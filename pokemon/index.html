@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PokeStay v1.8 - Stable UI</title>
+    <title>PokeStay v1.9 - Emergency Fix</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png">
     
     <style>
-        /* --- 1. CORE CSS --- */
-        * { box-sizing: border-box; margin: 0; padding: 0; } /* Reset toàn bộ để tránh lệch */
+        /* --- CORE CSS --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body { 
             background: url('wp2595124.jpg') no-repeat center center fixed; 
@@ -19,7 +19,7 @@
         }
 
         #app { 
-            display: none; /* Mặc định ẩn */
+            display: none; /* Ẩn lúc đầu */
             width: 100%; max-width: 500px; 
             background-color: rgba(47, 49, 54, 0.95); 
             backdrop-filter: blur(8px); 
@@ -27,114 +27,91 @@
             border-left: 1px solid rgba(0,0,0,0.5); border-right: 1px solid rgba(0,0,0,0.5); 
             box-shadow: 0 0 50px rgba(0,0,0,0.8); position: relative; z-index: 1;
         }
-        
+
+        /* LAYOUT */
         header { flex: 0 0 auto; background-color: rgba(32, 34, 37, 0.9); padding: 15px; border-bottom: 1px solid #202225; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
         #chat-area { flex: 1 1 auto; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
         .footer { flex: 0 0 auto; display: flex; justify-content: space-between; padding: 5px 10px; font-size: 0.8em; background: #202225; }
-
-        /* --- CONTROLS (FLEXBOX STABLE) --- */
-        #controls { 
-            flex: 0 0 auto; 
-            padding: 10px; 
-            background-color: rgba(64, 68, 75, 0.95); 
-            border-top: 1px solid rgba(255,255,255,0.1);
-            min-height: 80px;
-            
-            /* Dùng Flexbox an toàn */
-            display: flex;
-            flex-wrap: wrap; 
-            justify-content: space-between; /* Căn đều 2 bên */
-            gap: 5px; 
-        }
-
-        .btn { 
-            border: none; border-radius: 4px; 
-            font-weight: bold; cursor: pointer; color: white; 
-            font-size: 0.85em; transition: 0.2s; 
-            display: flex; align-items: center; justify-content: center; gap: 5px; 
-            
-            /* PC: Mặc định chia 3 cột (trừ đi khoảng cách gap) */
-            width: calc(33.33% - 4px);
-            height: 45px; /* Chiều cao cố định cho đều */
-        }
-        .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
-
-        /* --- MOBILE RESPONSIVE --- */
-        @media (max-width: 768px) {
-            body { background: #202225; }
-            #app { max-width: 100%; border: none; height: 100dvh; position: fixed; top: 0; left: 0; }
-            
-            #controls { padding-bottom: 25px; gap: 5px; }
-            
-            /* Quy tắc xếp nút Mobile (An toàn tuyệt đối) */
-            .btn-hunt { width: 100% !important; font-size: 1.2em; height: 50px; margin-bottom: 5px; }
-            
-            .btn-shop, .btn-bag { width: 49% !important; } /* Hàng 2 nút */
-            
-            .btn-job, .btn-achieve, .btn-daycare { width: 32% !important; font-size: 0.8em; } /* Hàng 3 nút nhỏ */
-            
-            .btn-daily, .btn-dex { width: 49% !important; } /* Hàng 2 nút */
-            
-            .btn-log { width: 100% !important; margin-top: 5px; background: #636e72 !important; }
-        }
-
-        /* --- LOGIN SCREEN FIX (CĂN CHỈNH TUYỆT ĐỐI) --- */
-        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; justify-content: center; align-items: center; }
         
+        /* LOGIN SCREEN (QUAN TRỌNG: Z-INDEX CAO) */
+        #login-screen { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.9); z-index: 9999; /* Luôn đè lên trên cùng */
+            display: flex; justify-content: center; align-items: center; 
+        }
+
         .login-box { 
             background: #2f3136; padding: 25px; border-radius: 10px; 
             border: 2px solid #faa61a; text-align: center; 
             width: 90%; max-width: 320px; 
-            display: flex; flex-direction: column; gap: 10px; /* Khoảng cách đều nhau */
+            display: flex; flex-direction: column; gap: 10px; 
         }
 
         .login-input { 
-            width: 100%; height: 45px; /* Chiều cao cố định */
-            padding: 0 15px; /* Chỉ padding ngang */
+            width: 100%; height: 45px; padding: 0 15px; 
             border-radius: 5px; border: 1px solid #444; 
             background: #40444b; color: white; 
-            text-align: center; font-weight: bold; font-size: 16px; 
-            outline: none;
+            text-align: center; font-weight: bold; font-size: 16px; outline: none;
         }
         
         .btn-auth { 
-            width: 100%; height: 45px; /* Chiều cao bằng input */
-            border: none; border-radius: 5px; 
+            width: 100%; height: 45px; border: none; border-radius: 5px; 
             font-weight: bold; cursor: pointer; font-size: 1em;
             display: flex; align-items: center; justify-content: center;
         }
-        
         .btn-login { background: #3ba55c; color: white; } 
         .btn-register { background: #e91e63; color: white; }
 
+        /* CONTROLS (FLEXBOX AN TOÀN) */
+        #controls { 
+            flex: 0 0 auto; padding: 10px; 
+            background-color: rgba(64, 68, 75, 0.95); 
+            border-top: 1px solid rgba(255,255,255,0.1);
+            min-height: 80px; 
+            display: flex; flex-wrap: wrap; justify-content: space-between; gap: 5px; 
+        }
+
+        .btn { 
+            border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; 
+            font-size: 0.85em; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; 
+            width: calc(33.33% - 4px); height: 45px; margin:0;
+        }
+        .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
         /* COLORS */
         .btn-hunt { background: url('image_1.png') no-repeat center center; background-size: cover; text-shadow: 0 0 3px black, 0 0 3px black; border: 2px solid #2ecc71; }
-        .btn-shop { background: #faa61a; color: #202225; } 
-        .btn-bag { background: #5865f2; }
-        .btn-job { background: #7289da; } 
-        .btn-achieve { background: #f1c40f; color:#202225; } 
-        .btn-daycare { background: #e91e63; }
-        .btn-daily { background: #eb459e; } 
-        .btn-dex { background: #3498db; } 
-        .btn-log { background: #95a5a6; }
+        .btn-shop { background: #faa61a; color: #202225; } .btn-bag { background: #5865f2; }
+        .btn-job { background: #7289da; } .btn-achieve { background: #f1c40f; color:#202225; } .btn-daycare { background: #e91e63; }
+        .btn-daily { background: #eb459e; } .btn-dex { background: #3498db; } .btn-log { background: #95a5a6; }
+
+        /* MOBILE FIX */
+        @media (max-width: 768px) {
+            body { background: #202225; }
+            #app { max-width: 100%; border: none; height: 100dvh; position: fixed; top: 0; left: 0; }
+            #controls { padding-bottom: 25px; gap: 5px; }
+            .btn-hunt { width: 100% !important; font-size: 1.2em; height: 50px; margin-bottom: 5px; }
+            .btn-shop, .btn-bag { width: 49% !important; }
+            .btn-job, .btn-achieve, .btn-daycare { width: 32% !important; font-size: 0.8em; }
+            .btn-daily, .btn-dex { width: 49% !important; }
+            .btn-log { width: 100% !important; margin-top: 5px; background: #636e72 !important; }
+        }
 
         /* MODALS & MISC */
         #donate-modal, #update-modal, #buy-modal, #battle-modal, #job-modal, #achieve-modal, #daycare-modal, #repair-modal, #dex-modal, #daily-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index: 1000; display: none; justify-content: center; align-items: center; }
         .box-style { background: #2f3136; padding: 20px; border-radius: 10px; border: 2px solid #faa61a; text-align: center; width: 90%; max-width: 350px; box-shadow: 0 0 20px rgba(0,0,0,0.5); max-height: 85vh; display: flex; flex-direction: column; overflow-y: auto;}
         
-        .hp-wrapper { display: flex; align-items: center; gap: 5px; margin-top: 3px; }
-        .hp-container { flex: 1; height: 8px; background: #202225; border-radius: 4px; overflow: hidden; border: 1px solid #444; }
-        .hp-fill { height: 100%; width: 0%; transition: width 0.3s, background-color 0.3s; }
-        
+        /* Battle UI Restore */
         .battle-card { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #444; text-align:center; }
         .difficulty-btn { width: 100%; padding: 15px; margin-bottom: 10px; border: none; border-radius: 5px; font-weight: bold; color: white !important; cursor: pointer; text-align: left; display: flex; justify-content: space-between; transition: 0.2s; font-size: 1em; text-shadow: 1px 1px 2px black; }
         .diff-easy { background: linear-gradient(90deg, #2ecc71, #27ae60); box-shadow: 0 4px 0 #219150; }
         .diff-med { background: linear-gradient(90deg, #f1c40f, #f39c12); color: black !important; text-shadow: none; box-shadow: 0 4px 0 #d35400; }
         .gym-btn { background: linear-gradient(90deg, #e74c3c, #c0392b); border: 2px solid gold; box-shadow: 0 4px 0 #96281b; }
-        
         .btn-close { background: #ed4245; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-top: 15px; font-weight:bold; width:100%; }
-        
-        /* Other styling essentials */
+
+        /* Other styles */
+        .hp-wrapper { display: flex; align-items: center; gap: 5px; margin-top: 3px; }
+        .hp-container { flex: 1; height: 8px; background: #202225; border-radius: 4px; overflow: hidden; border: 1px solid #444; }
+        .hp-fill { height: 100%; width: 0%; transition: width 0.3s, background-color 0.3s; }
         .embed { background-color: rgba(41, 43, 47, 0.8); border-left: 4px solid #00b0f4; padding: 10px; border-radius: 4px; position: relative; margin-bottom: 5px; }
         .embed-header { display: flex; justify-content: space-between; align-items: flex-start; }
         .poke-sprite { width: 100px; height: 100px; image-rendering: pixelated; margin-left: 5px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
@@ -152,7 +129,7 @@
         .daycare-row { background: rgba(0,0,0,0.2); border: 1px dashed #7289da; border-radius: 5px; padding: 10px; margin-bottom: 10px; display:flex; justify-content:space-between; align-items:center; }
         .quest-item { margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px; text-align: left;}
         .quest-header { display: flex; justify-content: space-between; font-size: 0.85em; margin-bottom: 3px;}
-        .quest-progress-bar, .durability-bar, .xp-container { width: 100%; height: 6px; background: #202225; border-radius: 3px; overflow: hidden; margin-top:3px; }
+        .quest-progress-bar, .durability-bar { width: 100%; height: 6px; background: #202225; border-radius: 3px; overflow: hidden; margin-top:3px; }
         .quest-progress-fill { height: 100%; background: #3ba55c; width: 0%; transition: width 0.3s; }
         .xp-fill { height: 100%; background: #3498db; width: 0%; }
         .durability-fill { height: 100%; background: #3ba55c; width: 100%; transition: width 0.2s; }
@@ -166,12 +143,14 @@
         .ball-btn.disabled { opacity: 0.4; pointer-events: none; filter: grayscale(1); }
         .quiz-img { width: 100px; height: 100px; margin: 10px auto; filter: brightness(0); transition: filter 0.5s; image-rendering: pixelated;}
         .quiz-img.revealed { filter: brightness(1); }
+        .quiz-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
         .quiz-opt { padding: 10px; background: #2f3136; border: 1px solid #444; color: white; cursor: pointer; border-radius: 4px; transition: 0.2s; font-size: 0.9em; }
         .badge-list { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 5px 0; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 5px; border: 1px solid #444; }
         .badge-item { font-size: 1.5em; cursor: help; filter: drop-shadow(0 0 5px gold); }
         .donate-btn-text { color: #eb459e; font-weight: bold; animation: pulse 2s infinite; cursor: pointer;}
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-        
+        .footer-link { text-align: center; font-size: 0.75em; color: #72767d; cursor: pointer; text-decoration: underline; margin-right: 10px; }
+
         /* Modal Backgrounds */
         #buy-modal .box-style { background: url('image_3.png') no-repeat center center; background-size: cover; }
         #dex-modal .box-style { background: url('image_4.png') no-repeat center center; background-size: cover; color: #eee; }
@@ -184,12 +163,10 @@
 <div id="login-screen">
     <div class="login-box">
         <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto 10px auto">
-        <h2 style="color: white; margin: 0 0 5px 0;">POKESTAY v1.8</h2>
-        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Stable UI</div>
-        
+        <h2 style="color: white; margin: 0 0 5px 0;">POKESTAY v1.9</h2>
+        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Emergency Fix</div>
         <input type="text" id="username-input" class="login-input" placeholder="Tên đăng nhập" onkeypress="handleEnter(event)">
         <input type="password" id="password-input" class="login-input" placeholder="Mật khẩu" onkeypress="handleEnter(event)">
-        
         <button class="btn-auth btn-login" onclick="login()">ĐĂNG NHẬP</button>
         <button class="btn-auth btn-register" onclick="register()">ĐĂNG KÝ</button>
     </div>
@@ -200,7 +177,7 @@
         <div style="display:flex; flex-direction:column">
             <div style="display:flex; align-items:center; gap:5px">
                 <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png" width="24" height="24">
-                <span>PokeStay v1.8</span>
+                <span>PokeStay v1.9</span>
             </div>
             <span id="display-username" style="font-size:0.8em; color:#bbb">TRAINER</span>
         </div>
@@ -339,11 +316,11 @@
         <h2 style="color: #faa61a;">📜 Update Log</h2>
         <div class="update-list" style="text-align:left; width:100%">
              <div style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px">
-                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.8</span> 
-                <span style="color:#bbb; font-size:0.8em; float:right">Stable</span>
+                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.9</span> 
+                <span style="color:#bbb; font-size:0.8em; float:right">Emergency</span>
                 <ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde">
-                    <li><b>Stable UI:</b> Khôi phục giao diện Flexbox ổn định.</li>
-                    <li><b>Fix:</b> Sửa lỗi màn hình trắng và lệch khung Login.</li>
+                    <li><b>UI Rescue:</b> Sửa lỗi màn hình trống.</li>
+                    <li><b>Stable Grid:</b> Khôi phục giao diện Flexbox an toàn.</li>
                 </ul>
             </div>
         </div>
@@ -636,7 +613,7 @@
         }
         if(p.xp >= p.maxXp) { 
             p.level++; p.xp -= p.maxXp; p.maxXp = Math.floor(p.maxXp * 1.2); 
-            recalcStats(p); 
+            recalcStats(p); // RECALC HP ON LEVEL UP
             msg += `<br><b style="color:#faa61a">🆙 LEVEL UP! ${p.name} lên Lv.${p.level}. HP hồi đầy!</b>`; 
         }
         incrementEggSteps(); saveGame(); updateStats(); openBag(); log(`<div class="embed" style="border-left-color:${roll<winRate?'#3ba55c':'#ed4245'}"><div class="embed-desc">${msg}</div></div>`);
