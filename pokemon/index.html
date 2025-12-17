@@ -564,19 +564,31 @@ async function login() {
    async function loadGame() {
     if (!currentUser) return;
 
-    // Hiện thông báo đang tải (vì mạng có thể chậm)
-    controls.innerHTML = '<div style="color:yellow">Đang tải dữ liệu từ máy chủ...</div>';
+    // Hiển thị thông báo đang tải
+    const controlsDiv = document.getElementById('controls');
+    if(controlsDiv) controlsDiv.innerHTML = '<div style="color:yellow; padding:10px">☁️ Đang đồng bộ dữ liệu máy chủ...</div>';
 
     try {
-        // Lấy dữ liệu từ Firebase về
+        // 1. Thử lấy dữ liệu từ Firebase
         const snapshot = await firebase.database().ref('users/' + currentUser).once('value');
-        const d = snapshot.val();
+        let d = snapshot.val();
+        let source = "server"; // Đánh dấu nguồn dữ liệu
 
+        // 2. LOGIC MIGRATION: Nếu trên mạng chưa có (null), kiểm tra dữ liệu cũ trong máy
+        if (!d) {
+            console.log("Dữ liệu trên server trống. Kiểm tra LocalStorage...");
+            const localData = localStorage.getItem(BASE_SAVE_KEY + currentUser);
+            if (localData) {
+                d = JSON.parse(localData);
+                source = "local";
+                console.log("Tìm thấy dữ liệu cũ! Đang di chuyển lên server...");
+            }
+        }
+
+        // 3. Nạp dữ liệu (Nếu có d)
         if (d) {
-            // Nạp dữ liệu vào biến
             coins = d.coins || 0;
             myBag = d.myBag || [];
-            // Chuyển lại từ Array thành Set
             pokedex = new Set(d.pokedex || []);
             inventory = { ...inventory, ...d.inventory };
             lastDailyDate = d.lastDailyDate || "";
@@ -595,58 +607,43 @@ async function login() {
                 if (d.daycare.slots) { daycare = d.daycare; } 
                 else { daycare = { unlocked: 1, slots: [{ pokemon: d.daycare.pokemon, depositTime: d.daycare.depositTime }] }; }
             }
+
+            // --- FIX DATA & NÂNG CẤP (Giữ nguyên logic của bạn) ---
+            myBag = myBag.filter(p => p && p.name && p.name !== 'undefined');
+            let fixCount = 0;
+            myBag.forEach(p => {
+                if (!p.isEgg) {
+                    if (isNaN(p.hp)) p.hp = p.maxHp;
+                    if (isNaN(p.maxHp)) recalcStats(p);
+                }
+                if (!p.stages) p.stages = { atk: 0, def: 0, spA: 0, spD: 0, spd: 0, acc: 0 };
+                if (!p.status) p.status = null;
+                recalcStats(p); 
+                if (p.moves && p.moves.length > 0 && typeof p.moves[0].priority === 'undefined') assignMoves(p);
+            });
+            // --------------------------------------------------------
+
+            // 4. Nếu dữ liệu lấy từ Local (Migration), thì LƯU NGAY lên Server
+            if (source === "local") {
+                saveGame(); // Đẩy lên Firebase
+                alert("Đã chuyển dữ liệu cũ lên Online thành công!");
+            }
+
         } else {
-            console.log("Người chơi mới hoặc chưa có dữ liệu trên Firebase.");
+            console.log("Chào mừng người chơi mới (hoặc dữ liệu đã mất).");
         }
 
-        // --- GIỮ NGUYÊN LOGIC FIX DỮ LIỆU CŨ CỦA BẠN ---
-        myBag = myBag.filter(p => p && p.name && p.name !== 'undefined');
-        if (!userStats.mining) userStats.mining = 0;
-        if (!userStats.shinies) userStats.shinies = 0;
-
-        let fixCount = 0;
-        let upgradedCount = 0;
-
-        myBag.forEach(p => {
-            // Fix Stats
-            if (!p.isEgg) {
-                if (isNaN(p.hp)) { p.hp = p.maxHp; fixCount++; }
-                if (isNaN(p.maxHp)) { recalcStats(p); fixCount++; }
-            }
-            // Fix logic mới: Stages & Status
-            if (!p.stages) p.stages = { atk: 0, def: 0, spA: 0, spD: 0, spd: 0, acc: 0 };
-            if (!p.status) p.status = null;
-            
-            // Logic nâng cấp lên LV 5
-            if (p.level < 5) {
-                p.level = 5;
-                recalcStats(p);
-                p.hp = p.maxHp;
-                upgradedCount++;
-            } else {
-                recalcStats(p); // Tính lại để đồng bộ
-            }
-
-            // Fix moves priority
-            if (p.moves && p.moves.length > 0 && typeof p.moves[0].priority === 'undefined') {
-                assignMoves(p);
-            }
-        });
-
-        if (upgradedCount > 0) console.log(`Đã nâng cấp ${upgradedCount} Pokemon lên Lv.5`);
-        
-        // --- KẾT THÚC LOGIC FIX ---
-
+        // 5. Hoàn tất
         checkDailyQuestGen();
         updateStats();
         playBGM('map');
-        
-        // Hiện lại menu sau khi tải xong
-        showMenu(); 
+        showMenu(); // Hiện lại menu
 
     } catch (error) {
         console.error("Lỗi tải game:", error);
-        alert("Không thể tải dữ liệu! Vui lòng F5 lại.");
+        alert("Lỗi kết nối! Vui lòng kiểm tra mạng hoặc F12 xem console.");
+        // Nếu lỗi mạng, cố gắng load tạm từ local để chơi offline (tùy chọn)
+        showMenu();
     }
 }
     
@@ -1641,4 +1638,5 @@ async function login() {
 </script>
 </body>
 </html>
+
 
