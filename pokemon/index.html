@@ -192,6 +192,30 @@
             </div>
         </div>
     </div>
+
+<button id="battle-end-btn" class="btn-auth" style="display:none; background:#3ba55c" onclick="endBattle()">Hoàn Tất</button>
+        </div>
+    </div>
+</div>  ```
+
+3.  Ngay bên dưới dòng `</div>` đó là thẻ `<script>` bắt đầu code cũ.
+4.  **HÀNH ĐỘNG:** Hãy **XÓA TOÀN BỘ** từ dòng `<script>` đó cho đến hết file (xóa sạch sẽ đến dòng cuối cùng).
+
+---
+
+### BƯỚC 2: DÁN CODE MỚI
+
+Sau khi xóa xong, file của bạn sẽ kết thúc cụt lủn ở cái thẻ `</div>` (của battle-modal).
+
+Bây giờ, hãy **DÁN ĐOẠN CODE DƯỚI ĐÂY** vào ngay bên dưới nó. Đoạn này bao gồm:
+1.  Thư viện Firebase.
+2.  Code khởi động Firebase (Config).
+3.  Toàn bộ Logic game + Audio mới nhất.
+4.  Thẻ đóng `</body>` và `</html>` để hoàn thiện file.
+
+**(Copy toàn bộ khối dưới đây và dán vào):**
+
+```html
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
@@ -340,6 +364,8 @@
     const LEGENDARY_IDS = [144,145,146,150,151,243,244,245,249,250,251,377,378,379,380,381,382,383,384,385,386,480,481,482,483,484,485,486,487,488,489,490,491,492,493,494,638,639,640,641,642,643,644,645,646];
     
     const TYPE_ADVANTAGE = { 'normal': [], 'fire': ['grass', 'ice', 'bug', 'steel'], 'water': ['fire', 'ground', 'rock'], 'grass': ['water', 'ground', 'rock'], 'electric': ['water', 'flying'], 'ice': ['grass', 'ground', 'flying', 'dragon'], 'fighting': ['normal', 'ice', 'rock', 'dark', 'steel'], 'poison': ['grass', 'fairy'], 'ground': ['fire', 'electric', 'poison', 'rock', 'steel'], 'flying': ['grass', 'fighting', 'bug'], 'psychic': ['fighting', 'poison'], 'bug': ['grass', 'psychic', 'dark'], 'rock': ['fire', 'ice', 'flying', 'bug'], 'ghost': ['psychic', 'ghost'], 'dragon': ['dragon'], 'steel': ['ice', 'rock', 'fairy'], 'fairy': ['fighting', 'dragon', 'dark'] };
+    
+    const TYPE_COLORS = { 'normal': '#A8A77A', 'fire': '#EE8130', 'water': '#6390F0', 'electric': '#F7D02C', 'grass': '#7AC74C', 'ice': '#96D9D6', 'fighting': '#C22E28', 'poison': '#A33EA1', 'ground': '#E2BF65', 'flying': '#A98FF3', 'psychic': '#F95587', 'bug': '#A6B91A', 'rock': '#B6A136', 'ghost': '#735797', 'dragon': '#6F35FC', 'steel': '#B7B7CE', 'fairy': '#D685AD' };
     
     const MOVES_DB = {
         'normal': [{name: 'Tackle', pwr: 40, cat: 'phy', acc: 100}, {name: 'Quick Attack', pwr: 40, cat: 'phy', acc: 100, priority: 1}, {name: 'Hyper Beam', pwr: 150, cat: 'spe', acc: 90}, {name: 'Growl', pwr: 0, cat: 'stat', stat: 'atk', stage: -1, acc: 100}, {name: 'Swords Dance', pwr: 0, cat: 'stat', stat: 'atk', stage: 2, target: 'self', acc: 100}, {name: 'Sing', pwr: 0, cat: 'status', status: 'slp', acc: 55}],
@@ -841,13 +867,9 @@
     function closePokedex() { document.getElementById('dex-modal').style.display='none'; }
     
     function checkEvolution(idx, btn) { alert("Chức năng đang bảo trì!"); }
-        </script>
+</script>
 </body>
 </html>
-
-
-
-
 
 
 
