@@ -914,7 +914,8 @@
 
         // Tính toán chỉ số
         recalcStats(enemy); 
-        
+
+        assignMoves(enemy);
         // LOGIC BOSS: Tăng thêm 20% chỉ số sau khi tính toán để làm Trùm
         if(isBoss) {
             enemy.maxHp = Math.floor(enemy.maxHp * 1.2);
@@ -1461,6 +1462,7 @@
 </script>
 </body>
 </html>
+
 
 
 
