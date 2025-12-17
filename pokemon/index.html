@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PokeStay v1.7 - UI Rescue</title>
+    <title>PokeStay v1.8 - Stable UI</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png">
     
     <style>
-        /* --- CORE CSS --- */
-        * { box-sizing: border-box; }
+        /* --- 1. CORE CSS --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; } /* Reset toàn bộ để tránh lệch */
+        
         body { 
             background: url('wp2595124.jpg') no-repeat center center fixed; 
             background-size: cover; 
             color: #dcddde; 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            display: flex; justify-content: center; height: 100vh; margin: 0; overflow: hidden; 
+            display: flex; justify-content: center; height: 100vh; overflow: hidden; 
         }
 
         #app { 
@@ -27,13 +28,11 @@
             box-shadow: 0 0 50px rgba(0,0,0,0.8); position: relative; z-index: 1;
         }
         
-        /* HEADER */
         header { flex: 0 0 auto; background-color: rgba(32, 34, 37, 0.9); padding: 15px; border-bottom: 1px solid #202225; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-        
-        /* CHAT AREA */
         #chat-area { flex: 1 1 auto; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
+        .footer { flex: 0 0 auto; display: flex; justify-content: space-between; padding: 5px 10px; font-size: 0.8em; background: #202225; }
 
-        /* CONTROLS (GRID SYSTEM) */
+        /* --- CONTROLS (FLEXBOX STABLE) --- */
         #controls { 
             flex: 0 0 auto; 
             padding: 10px; 
@@ -41,18 +40,72 @@
             border-top: 1px solid rgba(255,255,255,0.1);
             min-height: 80px;
             
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr; /* PC: 3 cột */
-            gap: 6px; 
+            /* Dùng Flexbox an toàn */
+            display: flex;
+            flex-wrap: wrap; 
+            justify-content: space-between; /* Căn đều 2 bên */
+            gap: 5px; 
         }
 
         .btn { 
-            padding: 12px 0; border: none; border-radius: 4px; 
+            border: none; border-radius: 4px; 
             font-weight: bold; cursor: pointer; color: white; 
-            width: 100%; font-size: 0.85em; transition: 0.2s; 
-            display: flex; align-items: center; justify-content: center; gap: 5px; margin: 0;
+            font-size: 0.85em; transition: 0.2s; 
+            display: flex; align-items: center; justify-content: center; gap: 5px; 
+            
+            /* PC: Mặc định chia 3 cột (trừ đi khoảng cách gap) */
+            width: calc(33.33% - 4px);
+            height: 45px; /* Chiều cao cố định cho đều */
         }
         .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+        /* --- MOBILE RESPONSIVE --- */
+        @media (max-width: 768px) {
+            body { background: #202225; }
+            #app { max-width: 100%; border: none; height: 100dvh; position: fixed; top: 0; left: 0; }
+            
+            #controls { padding-bottom: 25px; gap: 5px; }
+            
+            /* Quy tắc xếp nút Mobile (An toàn tuyệt đối) */
+            .btn-hunt { width: 100% !important; font-size: 1.2em; height: 50px; margin-bottom: 5px; }
+            
+            .btn-shop, .btn-bag { width: 49% !important; } /* Hàng 2 nút */
+            
+            .btn-job, .btn-achieve, .btn-daycare { width: 32% !important; font-size: 0.8em; } /* Hàng 3 nút nhỏ */
+            
+            .btn-daily, .btn-dex { width: 49% !important; } /* Hàng 2 nút */
+            
+            .btn-log { width: 100% !important; margin-top: 5px; background: #636e72 !important; }
+        }
+
+        /* --- LOGIN SCREEN FIX (CĂN CHỈNH TUYỆT ĐỐI) --- */
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; justify-content: center; align-items: center; }
+        
+        .login-box { 
+            background: #2f3136; padding: 25px; border-radius: 10px; 
+            border: 2px solid #faa61a; text-align: center; 
+            width: 90%; max-width: 320px; 
+            display: flex; flex-direction: column; gap: 10px; /* Khoảng cách đều nhau */
+        }
+
+        .login-input { 
+            width: 100%; height: 45px; /* Chiều cao cố định */
+            padding: 0 15px; /* Chỉ padding ngang */
+            border-radius: 5px; border: 1px solid #444; 
+            background: #40444b; color: white; 
+            text-align: center; font-weight: bold; font-size: 16px; 
+            outline: none;
+        }
+        
+        .btn-auth { 
+            width: 100%; height: 45px; /* Chiều cao bằng input */
+            border: none; border-radius: 5px; 
+            font-weight: bold; cursor: pointer; font-size: 1em;
+            display: flex; align-items: center; justify-content: center;
+        }
+        
+        .btn-login { background: #3ba55c; color: white; } 
+        .btn-register { background: #e91e63; color: white; }
 
         /* COLORS */
         .btn-hunt { background: url('image_1.png') no-repeat center center; background-size: cover; text-shadow: 0 0 3px black, 0 0 3px black; border: 2px solid #2ecc71; }
@@ -65,57 +118,13 @@
         .btn-dex { background: #3498db; } 
         .btn-log { background: #95a5a6; }
 
-        /* MOBILE RESPONSIVE */
-        @media (max-width: 768px) {
-            body { background: #202225; }
-            #app { max-width: 100%; border: none; height: 100dvh; position: fixed; top: 0; left: 0; }
-            
-            #controls { 
-                padding-bottom: 25px; 
-                grid-template-columns: repeat(6, 1fr); /* Mobile: 6 cột ảo */
-            }
-            
-            .btn { padding: 14px 0; font-size: 1em; }
-            .btn-hunt { grid-column: span 6; font-size: 1.2em; height: 50px; }
-            .btn-shop { grid-column: span 3; } .btn-bag { grid-column: span 3; }
-            .btn-job { grid-column: span 2; font-size: 0.8em; } 
-            .btn-achieve { grid-column: span 2; font-size: 0.8em; } 
-            .btn-daycare { grid-column: span 2; font-size: 0.8em; }
-            .btn-daily { grid-column: span 3; } .btn-dex { grid-column: span 3; }
-            .btn-log { grid-column: span 6; margin-top: 5px; background: #636e72; }
-        }
-
-        /* LOGIN SCREEN FIX */
-        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; justify-content: center; align-items: center; }
-        .box-style { background: #2f3136; padding: 25px; border-radius: 10px; border: 2px solid #faa61a; text-align: center; width: 90%; max-width: 350px; box-shadow: 0 0 20px rgba(0,0,0,0.5); max-height: 85vh; display: flex; flex-direction: column; overflow-y: auto;}
-        
-        .login-input { display: block; width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #444; background: #40444b; color: white; text-align: center; font-weight: bold; font-size: 16px; }
-        .btn-auth { display: block; width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 1em; }
-        .btn-login { background: #3ba55c; color: white; } 
-        .btn-register { background: #e91e63; color: white; }
-
-        /* MODALS */
+        /* MODALS & MISC */
         #donate-modal, #update-modal, #buy-modal, #battle-modal, #job-modal, #achieve-modal, #daycare-modal, #repair-modal, #dex-modal, #daily-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index: 1000; display: none; justify-content: center; align-items: center; }
-        .inner-box { background: rgba(0, 0, 0, 0.7); padding: 15px; border-radius: 8px; height: 100%; width:100%; display: flex; flex-direction: column; }
-        #buy-modal .box-style { background: url('image_3.png') no-repeat center center; background-size: cover; }
-        #dex-modal .box-style { background: url('image_4.png') no-repeat center center; background-size: cover; color: #eee; }
-        #achieve-modal .box-style { background: url('image_5.png') no-repeat center center; background-size: cover; }
-
-        /* MISC UI */
-        .footer { flex: 0 0 auto; display: flex; justify-content: space-between; padding: 5px 10px; font-size: 0.8em; background: #202225; }
-        .footer-link { text-align: center; font-size: 0.75em; color: #72767d; cursor: pointer; text-decoration: underline; margin-right: 10px; }
-        .donate-btn-text { color: #eb459e; font-weight: bold; animation: pulse 2s infinite; cursor: pointer;}
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .box-style { background: #2f3136; padding: 20px; border-radius: 10px; border: 2px solid #faa61a; text-align: center; width: 90%; max-width: 350px; box-shadow: 0 0 20px rgba(0,0,0,0.5); max-height: 85vh; display: flex; flex-direction: column; overflow-y: auto;}
         
         .hp-wrapper { display: flex; align-items: center; gap: 5px; margin-top: 3px; }
         .hp-container { flex: 1; height: 8px; background: #202225; border-radius: 4px; overflow: hidden; border: 1px solid #444; }
         .hp-fill { height: 100%; width: 0%; transition: width 0.3s, background-color 0.3s; }
-        
-        .embed { background-color: rgba(41, 43, 47, 0.8); border-left: 4px solid #00b0f4; padding: 10px; border-radius: 4px; position: relative; margin-bottom: 5px; }
-        .embed-header { display: flex; justify-content: space-between; align-items: flex-start; }
-        .poke-sprite { width: 100px; height: 100px; image-rendering: pixelated; margin-left: 5px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
-        .rarity-tag { font-size: 0.6em; padding: 2px 4px; border-radius: 3px; font-weight: bold; margin-right: 5px; display: inline-block; text-transform: uppercase; letter-spacing: 0.5px; }
-        .r-common { background: #95a5a6; color: #fff; } .r-uncommon { background: #2ecc71; color: #000; } .r-rare { background: #3498db; color: #fff; } .r-superrare { background: #9b59b6; color: #fff; } .r-legendary { background: linear-gradient(45deg, #f1c40f, #e67e22); color: #000; } .r-shiny { background: #e74c3c; color: white; }
         
         .battle-card { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #444; text-align:center; }
         .difficulty-btn { width: 100%; padding: 15px; margin-bottom: 10px; border: none; border-radius: 5px; font-weight: bold; color: white !important; cursor: pointer; text-align: left; display: flex; justify-content: space-between; transition: 0.2s; font-size: 1em; text-shadow: 1px 1px 2px black; }
@@ -123,58 +132,66 @@
         .diff-med { background: linear-gradient(90deg, #f1c40f, #f39c12); color: black !important; text-shadow: none; box-shadow: 0 4px 0 #d35400; }
         .gym-btn { background: linear-gradient(90deg, #e74c3c, #c0392b); border: 2px solid gold; box-shadow: 0 4px 0 #96281b; }
         
+        .btn-close { background: #ed4245; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-top: 15px; font-weight:bold; width:100%; }
+        
+        /* Other styling essentials */
+        .embed { background-color: rgba(41, 43, 47, 0.8); border-left: 4px solid #00b0f4; padding: 10px; border-radius: 4px; position: relative; margin-bottom: 5px; }
+        .embed-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .poke-sprite { width: 100px; height: 100px; image-rendering: pixelated; margin-left: 5px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
+        .rarity-tag { font-size: 0.6em; padding: 2px 4px; border-radius: 3px; font-weight: bold; margin-right: 5px; display: inline-block; text-transform: uppercase; letter-spacing: 0.5px; }
+        .r-common { background: #95a5a6; color: #fff; } .r-uncommon { background: #2ecc71; color: #000; } .r-rare { background: #3498db; color: #fff; } .r-superrare { background: #9b59b6; color: #fff; } .r-legendary { background: linear-gradient(45deg, #f1c40f, #e67e22); color: #000; } .r-shiny { background: #e74c3c; color: white; }
         .bag-row { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(32, 34, 37, 0.5); margin-bottom: 5px; border-radius: 3px; border: 1px solid #2f3136; }
         .bag-actions { display: flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; width: 120px;}
         .btn-small { padding: 3px 6px; font-size: 0.7em; border: none; border-radius: 3px; color: white; cursor: pointer; margin-bottom: 2px;}
         .btn-battle { background: #e74c3c; width:100% } .btn-heal { background: #2ecc71; color:black} .btn-evo { background: #9b59b6; } .btn-sell { background: #ed4245; }
-        .btn-close { background: #ed4245; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-top: 15px; font-weight:bold; width:100%; }
-        
         .achieve-row { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 8px; background: rgba(0,0,0,0.5); padding:10px; border-radius:5px; border: 1px solid #444; }
         .achieve-info { text-align: left; flex: 1; margin-right: 10px; }
         .achieve-btn { padding: 5px 10px; border: none; border-radius: 3px; font-weight: bold; cursor: pointer; white-space: nowrap; }
         .achieve-claim { background: #3ba55c; color: white; animation: pulse 1s infinite; }
         .achieve-done { background: #4f545c; color: #aaa; cursor: default; }
-        
-        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-        .shop-card { background: rgba(64, 68, 75, 0.6); padding: 8px; border-radius: 5px; border: 1px solid #202225; cursor: pointer; display:flex; flex-direction:column; align-items:center; }
-        
         .daycare-row { background: rgba(0,0,0,0.2); border: 1px dashed #7289da; border-radius: 5px; padding: 10px; margin-bottom: 10px; display:flex; justify-content:space-between; align-items:center; }
         .quest-item { margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px; text-align: left;}
         .quest-header { display: flex; justify-content: space-between; font-size: 0.85em; margin-bottom: 3px;}
         .quest-progress-bar, .durability-bar, .xp-container { width: 100%; height: 6px; background: #202225; border-radius: 3px; overflow: hidden; margin-top:3px; }
         .quest-progress-fill { height: 100%; background: #3ba55c; width: 0%; transition: width 0.3s; }
-        .xp-fill { height: 100%; background: #3498db; width: 0%; } 
+        .xp-fill { height: 100%; background: #3498db; width: 0%; }
         .durability-fill { height: 100%; background: #3ba55c; width: 100%; transition: width 0.2s; }
         .difficulty-tag { padding: 1px 4px; border-radius: 3px; font-size: 0.7em; font-weight: bold; color:black;}
         .diff-0 { background: #2ecc71; } .diff-1 { background: #f1c40f; } .diff-2 { background: #ed4245; color:white;}
-        
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .shop-card { background: rgba(64, 68, 75, 0.6); padding: 8px; border-radius: 5px; border: 1px solid #202225; cursor: pointer; display:flex; flex-direction:column; align-items:center; }
         .ball-btn { background: #2f3136; border: 1px solid #202225; padding: 5px; border-radius: 5px; cursor: pointer; display: flex; flex-direction: column; align-items: center; min-width: 60px; position: relative; width: 23%; margin-bottom:5px;}
         .ball-btn img { width: 28px; }
         .rate-badge { position: absolute; top: -5px; right: -5px; background: #3ba55c; color: white; font-size: 0.7em; padding: 1px 3px; border-radius: 3px; }
         .ball-btn.disabled { opacity: 0.4; pointer-events: none; filter: grayscale(1); }
-        
         .quiz-img { width: 100px; height: 100px; margin: 10px auto; filter: brightness(0); transition: filter 0.5s; image-rendering: pixelated;}
         .quiz-img.revealed { filter: brightness(1); }
-        .quiz-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
         .quiz-opt { padding: 10px; background: #2f3136; border: 1px solid #444; color: white; cursor: pointer; border-radius: 4px; transition: 0.2s; font-size: 0.9em; }
-        
         .badge-list { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 5px 0; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 5px; border: 1px solid #444; }
         .badge-item { font-size: 1.5em; cursor: help; filter: drop-shadow(0 0 5px gold); }
+        .donate-btn-text { color: #eb459e; font-weight: bold; animation: pulse 2s infinite; cursor: pointer;}
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        
+        /* Modal Backgrounds */
+        #buy-modal .box-style { background: url('image_3.png') no-repeat center center; background-size: cover; }
+        #dex-modal .box-style { background: url('image_4.png') no-repeat center center; background-size: cover; color: #eee; }
+        #achieve-modal .box-style { background: url('image_5.png') no-repeat center center; background-size: cover; }
+        .inner-box { background: rgba(0, 0, 0, 0.7); padding: 15px; border-radius: 8px; height: 100%; width:100%; display: flex; flex-direction: column; }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
-    <div class="box-style">
-        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto 15px auto">
-        <h2 style="color: white; margin: 0 0 5px 0;">POKESTAY v1.7</h2>
-        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 20px;">UI Rescue</div>
-        <div style="width:100%">
-            <input type="text" id="username-input" class="login-input" placeholder="Tên đăng nhập" onkeypress="handleEnter(event)">
-            <input type="password" id="password-input" class="login-input" placeholder="Mật khẩu" onkeypress="handleEnter(event)">
-            <button class="btn-auth btn-login" onclick="login()">ĐĂNG NHẬP</button>
-            <button class="btn-auth btn-register" onclick="register()">ĐĂNG KÝ</button>
-        </div>
+    <div class="login-box">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto 10px auto">
+        <h2 style="color: white; margin: 0 0 5px 0;">POKESTAY v1.8</h2>
+        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Stable UI</div>
+        
+        <input type="text" id="username-input" class="login-input" placeholder="Tên đăng nhập" onkeypress="handleEnter(event)">
+        <input type="password" id="password-input" class="login-input" placeholder="Mật khẩu" onkeypress="handleEnter(event)">
+        
+        <button class="btn-auth btn-login" onclick="login()">ĐĂNG NHẬP</button>
+        <button class="btn-auth btn-register" onclick="register()">ĐĂNG KÝ</button>
     </div>
 </div>
 
@@ -183,7 +200,7 @@
         <div style="display:flex; flex-direction:column">
             <div style="display:flex; align-items:center; gap:5px">
                 <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png" width="24" height="24">
-                <span>PokeStay v1.7</span>
+                <span>PokeStay v1.8</span>
             </div>
             <span id="display-username" style="font-size:0.8em; color:#bbb">TRAINER</span>
         </div>
@@ -203,15 +220,15 @@
     <div class="box-style">
         <h2 style="color: #7289da; margin: 0 0 10px 0;">💼 Job Center</h2>
         <div id="job-menu" style="width:100%">
-            <button id="btn-mining" class="btn-auth" style="background:#40444b; text-align:left; display:flex; align-items:center; gap:10px" onclick="startMining()">
+            <button id="btn-mining" class="btn-auth" style="background:#40444b; text-align:left; display:flex; align-items:center; gap:10px; margin-bottom:10px" onclick="startMining()">
                 <span style="font-size:1.5em">⛏️</span> 
                 <div style="flex:1">
                     <div style="display:flex; justify-content:space-between"><span>Đào Mỏ</span><span id="durability-text" style="font-size:0.8em; color:#bbb">30/30</span></div>
                     <div class="durability-bar"><div id="durability-bar-fill" class="durability-fill"></div></div>
                 </div>
             </button>
-            <button id="btn-repair" class="btn-auth" style="background:#e74c3c; display:none; animation:pulse 1s infinite" onclick="openRepairModal()">🔧 CÚP GÃY! Sửa ngay</button>
-            <button class="btn-auth" style="background:#40444b; margin-top:10px" onclick="startQuiz()">🎓 Quiz Giáo Sư Oak</button>
+            <button id="btn-repair" class="btn-auth" style="background:#e74c3c; display:none; animation:pulse 1s infinite; margin-bottom:10px" onclick="openRepairModal()">🔧 CÚP GÃY! Sửa ngay</button>
+            <button class="btn-auth" style="background:#40444b; margin-bottom:10px" onclick="startQuiz()">🎓 Quiz Giáo Sư Oak</button>
             <div id="emergency-aid" style="display:none; margin-top:10px; border-top:1px solid #555; padding-top:10px">
                 <button class="btn-auth" style="background:#ed4245" onclick="claimEmergency()">🆘 Trợ cấp khẩn cấp</button>
             </div>
@@ -246,7 +263,7 @@
         <h2 style="color: #e91e63;">🏡 Daycare</h2>
         <div style="font-size:0.8em; color:#bbb; margin-bottom:10px">Nhận 50 XP/phút cho mỗi Pokemon.</div>
         <div id="daycare-list" style="width:100%"></div>
-        <button id="btn-buy-slot" class="btn-auth" style="background:#f1c40f; color:black; display:none" onclick="buyDaycareSlot()">Mở rộng Slot</button>
+        <button id="btn-buy-slot" class="btn-auth" style="background:#f1c40f; color:black; display:none; margin-top:10px" onclick="buyDaycareSlot()">Mở rộng Slot</button>
         <button class="btn-close" onclick="closeDaycare()">Đóng</button>
     </div>
 </div>
@@ -322,11 +339,11 @@
         <h2 style="color: #faa61a;">📜 Update Log</h2>
         <div class="update-list" style="text-align:left; width:100%">
              <div style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px">
-                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.7</span> 
-                <span style="color:#bbb; font-size:0.8em; float:right">Hotfix</span>
+                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.8</span> 
+                <span style="color:#bbb; font-size:0.8em; float:right">Stable</span>
                 <ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde">
-                    <li><b>UI Rescue:</b> Khôi phục giao diện hoàn chỉnh.</li>
-                    <li><b>Fixed:</b> Sửa lỗi màn hình trắng và lệch khung.</li>
+                    <li><b>Stable UI:</b> Khôi phục giao diện Flexbox ổn định.</li>
+                    <li><b>Fix:</b> Sửa lỗi màn hình trắng và lệch khung Login.</li>
                 </ul>
             </div>
         </div>
@@ -478,11 +495,9 @@
         <button class="btn btn-hunt" onclick="hunt()"><span>🔍 Săn tìm</span></button>
         <button class="btn btn-shop" onclick="shop()"><span>🛒 Shop</span></button>
         <button class="btn btn-bag" onclick="openBag()"><span>🎒 Túi</span></button>
-        <div style="display:contents">
-             <button class="btn btn-job" onclick="openJobs()"><span>💼 Jobs</span></button>
-             <button class="btn btn-achieve" onclick="openAchieve()"><span>🏆 Cup</span></button>
-             <button class="btn btn-daycare" onclick="openDaycare()"><span>🏡 Care</span></button>
-        </div>
+        <button class="btn btn-job" onclick="openJobs()"><span>💼 Jobs</span></button>
+        <button class="btn btn-achieve" onclick="openAchieve()"><span>🏆 Cup</span></button>
+        <button class="btn btn-daycare" onclick="openDaycare()"><span>🏡 Care</span></button>
         <button class="btn btn-daily" onclick="openDaily()"><span>🎁 Daily</span></button>
         <button class="btn btn-dex" onclick="showPokedex()"><span>📖 Dex</span></button>
         <button class="btn btn-log" onclick="showUpdates()"><span>📜 Updates</span></button>`;
@@ -528,7 +543,7 @@
         
         let baseHp = data.stats.find(s => s.stat.name === 'hp').base_stat;
         let p = { id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, baseHp: baseHp, level: 1, xp: 0, maxXp: 100 };
-        recalcStats(p); 
+        recalcStats(p); // Apply new formula immediately
         myBag[idx] = p;
 
         if(isShiny) userStats.shinies++; saveGame(); renderBag();
