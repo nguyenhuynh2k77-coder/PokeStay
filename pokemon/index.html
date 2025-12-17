@@ -87,6 +87,29 @@
         .quiz-img { width: 100px; height: 100px; margin: 10px auto; filter: brightness(0); transition: filter 0.5s; image-rendering: pixelated;}
         .quiz-img.revealed { filter: brightness(1); }
         .quiz-opt { padding: 10px; background: #2f3136; border: 1px solid #444; color: white; cursor: pointer; border-radius: 4px; transition: 0.2s; font-size: 0.9em; }
+        /* --- CSS CHO BẢNG XẾP HẠNG --- */
+        .rank-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #444;
+        }
+        .rank-num { font-weight: bold; width: 30px; text-align: center; font-size: 1.2em; }
+        .rank-name { flex: 1; text-align: left; padding-left: 10px; font-weight: bold; }
+        .rank-coin { color: #f1c40f; font-weight: bold; }
+
+        /* Màu sắc riêng cho Top 3 */
+        .top-1 { border: 2px solid #f1c40f; background: rgba(241, 196, 15, 0.2); } /* Vàng */
+        .top-1 .rank-num { color: #f1c40f; text-shadow: 0 0 5px #f1c40f; }
+
+        .top-2 { border: 2px solid #bdc3c7; background: rgba(189, 195, 199, 0.2); } /* Bạc */
+        .top-2 .rank-num { color: #bdc3c7; }
+
+        .top-3 { border: 2px solid #d35400; background: rgba(211, 84, 0, 0.2); } /* Đồng */
+        .top-3 .rank-num { color: #d35400; }
     </style>
 </head>
 <body>
@@ -129,6 +152,18 @@
     </div>
 
     <div id="shop-modal"><div class="box-style" style="width:95%; max-width:500px"><h2 style="color: #faa61a; margin: 0 0 10px 0;">🛒 Poke Mart</h2><div style="text-align:right; width:100%; margin-bottom:5px">Số dư: <span id="shop-coin-display" style="color:#f1c40f; font-weight:bold">0</span>💰</div><div id="shop-list" class="shop-grid" style="overflow-y:auto; max-height:60vh"></div><button class="btn-close" onclick="closeShop()">Đóng</button></div></div>
+    <div id="leaderboard-modal">
+    <div class="box-style" style="width:95%; max-width:400px">
+        <h2 style="color: #f1c40f; margin: 0 0 10px 0;">🏆 Bảng Phong Thần</h2>
+        <div style="font-size:0.8em; color:#bbb; margin-bottom:15px">Top 10 Đại Gia Server</div>
+        
+        <div id="leaderboard-list" style="width:100%; max-height:60vh; overflow-y:auto; display:flex; flex-direction:column; gap:5px">
+            <div style="color:white">Đang tải dữ liệu...</div>
+        </div>
+
+        <button class="btn-close" style="margin-top:15px" onclick="closeLeaderboard()">Đóng</button>
+    </div>
+    </div>
     <div id="buy-modal"><div class="box-style"><div class="inner-box"><h3 style="color: #faa61a; margin: 5px 0;" id="buy-name">Item</h3><img id="buy-img" src="" width="60" style="margin: 10px auto; display:block"><div style="margin-bottom: 10px; color:#bbb">Giá: <span id="buy-price" style="color:white; font-weight:bold">0</span>💰</div><div style="display:flex; justify-content:center; align-items:center; gap:10px; margin: 10px 0;"><input type="number" id="buy-qty" class="login-input" style="width:60px; margin:0" value="1" min="1" oninput="calcTotal()"></div><div style="font-size: 1.1em; margin-bottom: 15px;">Tổng: <span id="buy-total" style="color:#3ba55c; font-weight:bold">0</span>💰</div><div style="display:flex; gap:10px; width:100%"><button class="btn-auth" style="background:#7f8c8d; margin:0" onclick="closeBuy()">HỦY</button><button class="btn-auth btn-login" style="margin:0" onclick="submitBuy()">MUA</button></div></div></div></div>
     <div id="job-modal"><div class="box-style"><h2 style="color: #7289da; margin: 0 0 10px 0;">💼 Job Center</h2><div id="job-menu" style="width:100%"><button id="btn-mining" class="btn-auth" style="background:#40444b; text-align:left; display:flex; align-items:center; gap:10px" onclick="startMining()"><span style="font-size:1.5em">⛏️</span> <div style="flex:1"><div style="display:flex; justify-content:space-between"><span>Đào Mỏ</span><span id="durability-text" style="font-size:0.8em; color:#bbb">30/30</span></div><div style="width:100%;height:6px;background:#202225;border-radius:3px;overflow:hidden;margin-top:3px"><div id="durability-bar-fill" style="height:100%;background:#3ba55c;width:100%;transition:width 0.2s"></div></div></div></button><button id="btn-repair" class="btn-auth" style="background:#e74c3c; display:none; animation:pulse 1s infinite" onclick="openRepairModal()">🔧 CÚP GÃY! Sửa ngay</button><button class="btn-auth" style="background:#40444b; margin-top:10px" onclick="startQuiz()">🎓 Quiz Giáo Sư Oak</button><div id="emergency-aid" style="margin-top:10px; border-top:1px solid #555; padding-top:10px; display:none;"><button class="btn-auth" style="background:#ed4245" onclick="claimEmergency()">🆘 Trợ cấp khẩn cấp</button><div style="font-size:0.7em; color:#bbb; margin-top:2px">(Dành cho người nghèo)</div></div></div><div id="quiz-ui" style="display:none; width:100%"><div style="color:#bbb; font-size:0.9em">Who's that Pokemon?</div><img id="quiz-image" class="quiz-img" src=""><div id="quiz-options" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px"></div></div><button class="btn-close" style="margin-top:15px" onclick="closeJobs()">Đóng</button></div></div>
     <div id="daily-modal"><div class="box-style"><h2 style="color: #eb459e; margin: 0 0 10px 0;">🎁 Daily Zone</h2><div class="daily-section" style="background:rgba(0,0,0,0.2);padding:10px;border-radius:5px;border:1px solid #444;text-align:left"><div style="font-weight:bold; color:#f1c40f">📅 Điểm danh</div><div style="font-size:0.8em; color:#bbb; margin-bottom:5px">Nhận 500 Coins</div><button id="btn-claim-daily" class="btn-small" style="background:#3ba55c; width:100%; padding:8px" onclick="claimDailyReward()">Nhận</button></div><div class="daily-section" style="margin-top:10px;background:rgba(0,0,0,0.2);padding:10px;border-radius:5px;border:1px solid #444;text-align:left"><div style="font-weight:bold; color:#3498db; margin-bottom:5px">📜 Nhiệm vụ ngày</div><div id="daily-quests-container"></div></div><button class="btn-close" style="margin-top:15px" onclick="closeDaily()">Đóng</button></div></div>
@@ -715,19 +750,31 @@ async function login() {
     }
     
     function showMenu() {
-        controls.innerHTML = `
-        <button class="btn btn-hunt" onclick="hunt()"><span>🔍 Săn tìm</span></button>
-        <button class="btn btn-shop" onclick="shop()"><span>🛒 Shop</span></button>
-        <button class="btn btn-bag" onclick="openBag()"><span>🎒 Túi</span></button>
-        <div style="width:100%; display:flex; justify-content:space-between; gap:5px">
-             <button class="btn btn-job" onclick="openJobs()"><span>💼 Jobs</span></button>
-             <button class="btn btn-center" onclick="healAll()"><span>🏥 Center</span></button>
-             <button class="btn btn-achieve" onclick="openAchieve()"><span>🏆 Cup</span></button>
-             <button class="btn btn-daycare" onclick="openDaycare()"><span>🏡 Care</span></button>
-        </div>
+    controls.innerHTML = `
+    <button class="btn btn-hunt" onclick="hunt()"><span>🔍 Săn tìm</span></button>
+    <button class="btn btn-shop" onclick="shop()"><span>🛒 Shop</span></button>
+    <button class="btn btn-bag" onclick="openBag()"><span>🎒 Túi</span></button>
+    
+    <div style="width:100%; display:flex; justify-content:space-between; gap:5px; margin-top:5px">
+         <button class="btn btn-job" onclick="openJobs()"><span>💼 Jobs</span></button>
+         <button class="btn btn-center" onclick="healAll()"><span>🏥 Center</span></button>
+         
+         <button class="btn" style="background:#8e44ad; color:white; border:2px solid #9b59b6" onclick="openLeaderboard()">
+            <span>🏆 BXH</span>
+         </button>
+    </div>
+    
+    <div style="width:100%; display:flex; justify-content:space-between; gap:5px; margin-top:5px">
+        <button class="btn btn-achieve" onclick="openAchieve()"><span>🌟 Cup</span></button>
+        <button class="btn btn-daycare" onclick="openDaycare()"><span>🏡 Care</span></button>
         <button class="btn btn-daily" onclick="openDaily()"><span>🎁 Daily</span></button>
+    </div>
+    
+    <div style="width:100%; display:flex; justify-content:space-between; gap:5px; margin-top:5px">
         <button class="btn btn-dex" onclick="showPokedex()"><span>📖 Dex</span></button>
-        <button class="btn btn-log" onclick="showUpdates()"><span>📜 Updates</span></button>`;
+        <button class="btn btn-log" onclick="showUpdates()"><span>📜 Updates</span></button>
+    </div>`;
+};
     }
 
     function healAll() {
@@ -1682,9 +1729,77 @@ async function login() {
     assignMoves(p); 
     saveGame(); openBag(); log(`<div class="embed" style="border-left-color:#9b59b6"><div class="embed-header"><div><span class="embed-title">TIẾN HÓA!</span><div class="embed-desc"><b>${p.name}</b><br>HP: ${p.maxHp} | ATK: ${p.atk}</div></div><img class="poke-sprite" src="${p.img}"></div></div>`); } else { btn.innerHTML = "Evo"; btn.classList.remove('loading'); let reqText = reqType === 'use-item' ? 'Cần Evo Stone' : `Cần Level ${(details && details.min_level) || 25}`; alert(`Chưa đủ điều kiện!\n${reqText}`); } } catch(e) { console.log(e); btn.innerHTML="Err"; btn.classList.remove('loading'); } })(); }
     function findNodeInChain(node, name) { if (node.species.name === name) return node; for (let child of node.evolves_to) { let f = findNodeInChain(child, name); if (f) return f; } return null; }
+    // --- HỆ THỐNG LEADERBOARD ---
+function openLeaderboard() {
+    if(!currentUser) return;
+    document.getElementById('leaderboard-modal').style.display = 'flex';
+    document.getElementById('leaderboard-list').innerHTML = '<div style="color:yellow">Đang tải dữ liệu từ máy chủ...</div>';
+
+    // Lấy Top 10 người có 'coins' cao nhất
+    firebase.database().ref('users').orderByChild('coins').limitToLast(10).once('value')
+    .then((snapshot) => {
+        let list = [];
+        snapshot.forEach((childSnapshot) => {
+            let data = childSnapshot.val();
+            // Lấy tên (key) và tiền
+            list.push({ name: childSnapshot.key, coins: data.coins || 0 });
+        });
+
+        // Firebase trả về dữ liệu theo thứ tự tăng dần (Thấp -> Cao)
+        // Nên ta phải đảo ngược lại để người giàu nhất lên đầu
+        list.reverse();
+
+        renderLeaderboard(list);
+    })
+    .catch((err) => {
+        console.error(err);
+        document.getElementById('leaderboard-list').innerHTML = '<div style="color:red">Lỗi tải BXH!</div>';
+    });
+}
+
+function renderLeaderboard(list) {
+    const container = document.getElementById('leaderboard-list');
+    
+    if(list.length === 0) {
+        container.innerHTML = '<div style="color:#bbb">Chưa có ai đua top...</div>';
+        return;
+    }
+
+    let html = list.map((user, index) => {
+        let rank = index + 1;
+        let specialClass = '';
+        let icon = `#${rank}`;
+
+        if(rank === 1) { specialClass = 'top-1'; icon = '👑'; }
+        if(rank === 2) { specialClass = 'top-2'; icon = '🥈'; }
+        if(rank === 3) { specialClass = 'top-3'; icon = '🥉'; }
+
+        // Đánh dấu bản thân
+        let isMe = (user.name === currentUser) ? ' (Bạn)' : '';
+        let nameColor = (user.name === currentUser) ? '#2ecc71' : 'white';
+
+        return `
+        <div class="rank-row ${specialClass}">
+            <div class="rank-num">${icon}</div>
+            <div class="rank-name" style="color:${nameColor}">
+                ${user.name.toUpperCase()}${isMe}
+            </div>
+            <div class="rank-coin">
+                ${user.coins.toLocaleString()}💰
+            </div>
+        </div>`;
+    }).join('');
+
+    container.innerHTML = html;
+}
+
+function closeLeaderboard() {
+    document.getElementById('leaderboard-modal').style.display = 'none';
+}
 </script>
 </body>
 </html>
+
 
 
 
