@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PokeStay v1.9 - Real RPG</title>
+    <title>PokeStay v1.9.1 - Bug Fixed</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png">
     
     <style>
         /* --- 1. CORE CSS --- */
         * { box-sizing: border-box; }
-        body { background: url('wp2595124.jpg') no-repeat center center fixed; background-size: cover; color: #dcddde; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
-        #app { display: none; width: 100%; max-width: 500px; background-color: rgba(47, 49, 54, 0.95); backdrop-filter: blur(8px); flex-direction: column; height: 100vh; border-left: 1px solid rgba(0,0,0,0.5); border-right: 1px solid rgba(0,0,0,0.5); box-shadow: 0 0 50px rgba(0,0,0,0.8); position: relative; }
+        body { background: #202225; color: #dcddde; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
+        #app { display: none; width: 100%; max-width: 500px; background-color: rgba(47, 49, 54, 0.95); flex-direction: column; height: 100vh; position: relative; border-left:1px solid #333; border-right:1px solid #333;}
         
         /* LAYOUT */
         header { flex: 0 0 auto; background-color: rgba(32, 34, 37, 0.9); padding: 15px; border-bottom: 1px solid #202225; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
@@ -21,34 +21,32 @@
         #controls { flex: 0 0 auto; padding: 10px; background-color: rgba(64, 68, 75, 0.95); display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: wrap; border-top: 1px solid rgba(255,255,255,0.1); min-height: 80px; }
         .btn { padding: 10px 0; border: none; border-radius: 3px; font-weight: bold; cursor: pointer; color: white; width: calc(33.33% - 4px); font-size: 0.85em; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; }
         .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
-        .btn-hunt { width: 32% !important; background: url('image_1.png') no-repeat center center; background-size: cover; text-shadow: 0 0 3px black, 0 0 3px black; border: 2px solid #2ecc71; }
+        .btn-hunt { width: 32% !important; background: #2ecc71; text-shadow: 0 0 3px black; border: 2px solid #27ae60; }
         .btn-shop { background: #faa61a; color: #202225; } .btn-bag { background: #5865f2; }
         .btn-job { background: #7289da; } .btn-achieve { background: #f1c40f; color:#202225; } .btn-daycare { background: #e91e63; }
         .btn-daily { background: #eb459e; } .btn-dex { background: #3498db; } .btn-center { background: #ff7675; color: white; }
 
         /* MOBILE */
         @media (max-width: 768px) {
-            body { background: #202225; }
-            #app { max-width: 100%; border: none; box-shadow: none; height: 100dvh; position: fixed; top: 0; left: 0; }
+            #app { max-width: 100%; border: none; height: 100dvh; position: fixed; top: 0; left: 0; }
             #controls { padding-bottom: 20px; gap: 5px; }
             .btn { padding: 14px 0; font-size: 1em; width: 48%; }
             .btn-hunt { width: 100% !important; margin-bottom: 5px; font-size: 1.2em; }
             .btn-shop, .btn-bag { width: 49% !important; }
             .btn-job, .btn-achieve, .btn-daycare { width: 32% !important; font-size: 0.8em; padding: 10px 0; }
             .btn-daily, .btn-center { width: 49% !important; }
-            .btn-dex { display:none; } /* Hide Dex on mobile to make room for Center */
+            .btn-dex { display:none; }
         }
 
         /* MODALS */
-        #login-screen, #donate-modal, #update-modal, #buy-modal, #battle-modal, #job-modal, #achieve-modal, #daycare-modal, #repair-modal, #dex-modal, #daily-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        #donate-modal, #update-modal, #buy-modal, #battle-modal, #job-modal, #achieve-modal, #daycare-modal, #repair-modal, #dex-modal, #daily-modal { display: none; z-index: 1000; }
+        #login-screen, #donate-modal, #update-modal, #shop-modal, #buy-modal, #battle-modal, #job-modal, #achieve-modal, #daycare-modal, #repair-modal, #dex-modal, #daily-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        #donate-modal, #update-modal, #shop-modal, #buy-modal, #battle-modal, #job-modal, #achieve-modal, #daycare-modal, #repair-modal, #dex-modal, #daily-modal { display: none; z-index: 1000; }
         .box-style { background: #2f3136; padding: 20px; border-radius: 10px; border: 2px solid #faa61a; text-align: center; width: 90%; max-width: 350px; box-shadow: 0 0 20px rgba(0,0,0,0.5); max-height: 80vh; display: flex; flex-direction: column; overflow-y: auto;}
-        #buy-modal .box-style { background: url('image_3.png') no-repeat center center; background-size: cover; }
-        #dex-modal .box-style { background: url('image_4.png') no-repeat center center; background-size: cover; color: #eee; }
-        #achieve-modal .box-style { background: url('image_5.png') no-repeat center center; background-size: cover; }
-        #battle-modal .box-style { width: 100%; max-width: 450px; height: 100%; max-height: 100%; border:none; background: linear-gradient(to bottom, #2c3e50, #000); justify-content: flex-start; padding: 10px; }
-        .inner-box { background: rgba(0, 0, 0, 0.7); padding: 15px; border-radius: 8px; height: 100%; display: flex; flex-direction: column; width:100%; }
-
+        
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; width: 100%; }
+        .shop-card { background: rgba(64, 68, 75, 0.6); padding: 10px; border-radius: 5px; border: 1px solid #202225; cursor: pointer; display:flex; flex-direction:column; align-items:center; transition: 0.2s; }
+        .shop-card:hover { background: rgba(64, 68, 75, 0.9); border-color: #faa61a; }
+        
         /* ELEMENTS */
         .embed { background-color: rgba(41, 43, 47, 0.8); border-left: 4px solid #00b0f4; padding: 10px; border-radius: 4px; position: relative; margin-bottom: 5px; }
         .embed-header { display: flex; justify-content: space-between; align-items: flex-start; }
@@ -65,32 +63,15 @@
         .rate-badge { position: absolute; top: -5px; right: -5px; background: #3ba55c; color: white; font-size: 0.7em; padding: 1px 3px; border-radius: 3px; }
         .ball-btn.disabled { opacity: 0.4; pointer-events: none; filter: grayscale(1); }
         .login-input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #202225; background: #40444b; color: white; text-align: center; font-weight: bold; font-size: 16px; }
-        .btn-auth { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
-        .btn-login { background: #3ba55c; color: white; } .btn-register { background: #e91e63; color: white; }
+        .btn-auth { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; color:white; }
+        .btn-login { background: #3ba55c; } .btn-register { background: #e91e63; }
         .btn-close { background: #ed4245; color: white; padding: 8px 20px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; font-weight:bold;}
         .bag-row { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(32, 34, 37, 0.5); margin-bottom: 5px; border-radius: 3px; border: 1px solid #2f3136; }
         .bag-actions { display: flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; width: 120px;}
         .btn-small { padding: 3px 6px; font-size: 0.7em; border: none; border-radius: 3px; color: white; cursor: pointer; margin-bottom: 2px;}
         .btn-battle { background: #e74c3c; width:100% } .btn-heal { background: #2ecc71; color:black} .btn-evo { background: #9b59b6; } .btn-sell { background: #ed4245; }
         
-        .daycare-row { background: rgba(0,0,0,0.2); border: 1px dashed #7289da; border-radius: 5px; padding: 10px; margin-bottom: 10px; display:flex; justify-content:space-between; align-items:center; }
-        .badge-list { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 5px 0; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 5px; border: 1px solid #444; }
-        .badge-item { font-size: 1.5em; cursor: help; filter: drop-shadow(0 0 5px gold); }
-        .donate-btn-text { color: #eb459e; font-weight: bold; animation: pulse 2s infinite; cursor: pointer;}
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-        .quest-item { margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px; text-align: left;}
-        .quest-header { display: flex; justify-content: space-between; font-size: 0.85em; margin-bottom: 3px;}
-        .quest-progress-bar, .durability-bar { width: 100%; height: 6px; background: #202225; border-radius: 3px; overflow: hidden; margin-top:3px; }
-        .quest-progress-fill { height: 100%; background: #3ba55c; width: 0%; transition: width 0.3s; }
-        .difficulty-tag { padding: 1px 4px; border-radius: 3px; font-size: 0.7em; font-weight: bold; color:black;}
-        .diff-0 { background: #2ecc71; } .diff-1 { background: #f1c40f; } .diff-2 { background: #ed4245; color:white;}
-        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-        .shop-card { background: rgba(64, 68, 75, 0.6); padding: 8px; border-radius: 5px; border: 1px solid #202225; cursor: pointer; display:flex; flex-direction:column; align-items:center; }
-        .quiz-img { width: 100px; height: 100px; margin: 10px auto; filter: brightness(0); transition: filter 0.5s; image-rendering: pixelated;}
-        .quiz-img.revealed { filter: brightness(1); }
-        .quiz-opt { padding: 10px; background: #2f3136; border: 1px solid #444; color: white; cursor: pointer; border-radius: 4px; transition: 0.2s; font-size: 0.9em; }
-
-        /* --- BATTLE SYSTEM CSS v1.8 --- */
+        /* BATTLE CSS */
         .battle-scene { width: 100%; height: 280px; position: relative; background: rgba(0,0,0,0.3); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
         .battle-platform { position: absolute; bottom: 30px; width: 120px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 50%; transform: scaleY(0.4); border: 2px solid rgba(255,255,255,0.2); }
         .p-enemy { position: absolute; top: 20px; right: 20px; text-align: center; }
@@ -100,13 +81,21 @@
         @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
         .hp-box { background: rgba(0,0,0,0.7); padding: 5px 10px; border-radius: 5px; border: 1px solid #444; width: 140px; margin-bottom: 5px; text-align: left; }
         .battle-log-box { height: 80px; overflow-y: auto; background: rgba(0,0,0,0.5); border: 1px solid #555; padding: 5px; font-size: 0.8em; margin-bottom: 10px; text-align: left; color: #ddd; border-radius: 5px; }
-        
         .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
         .action-btn { padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; color: white; font-size: 0.9em; position:relative; overflow:hidden;}
-        .move-btn { background: #2f3136; border: 1px solid #555; text-align: left; display:flex; flex-direction:column; }
-        .move-btn:hover { background: #40444b; }
-        .move-type { font-size: 0.7em; opacity: 0.8; text-transform: uppercase; margin-top:2px; }
-        .main-menu-btn { height: 50px; }
+        
+        .daycare-row { background: rgba(0,0,0,0.2); border: 1px dashed #7289da; border-radius: 5px; padding: 10px; margin-bottom: 10px; display:flex; justify-content:space-between; align-items:center; }
+        .donate-btn-text { color: #eb459e; font-weight: bold; animation: pulse 2s infinite; cursor: pointer;}
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .quest-item { margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px; text-align: left;}
+        .quest-progress-bar { width: 100%; height: 6px; background: #202225; border-radius: 3px; overflow: hidden; margin-top:3px; }
+        .quest-progress-fill { height: 100%; background: #3ba55c; width: 0%; transition: width 0.3s; }
+        .difficulty-tag { padding: 1px 4px; border-radius: 3px; font-size: 0.7em; font-weight: bold; color:black;}
+        .diff-0 { background: #2ecc71; } .diff-1 { background: #f1c40f; } .diff-2 { background: #ed4245; color:white;}
+        
+        .quiz-img { width: 100px; height: 100px; margin: 10px auto; filter: brightness(0); transition: filter 0.5s; image-rendering: pixelated;}
+        .quiz-img.revealed { filter: brightness(1); }
+        .quiz-opt { padding: 10px; background: #2f3136; border: 1px solid #444; color: white; cursor: pointer; border-radius: 4px; transition: 0.2s; font-size: 0.9em; }
     </style>
 </head>
 <body>
@@ -114,8 +103,8 @@
 <div id="login-screen">
     <div class="box-style">
         <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto">
-        <h2 style="color: white; margin: 10px 0;">POKESTAY v1.9</h2>
-        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Nurse Joy & Real Stats</div>
+        <h2 style="color: white; margin: 10px 0;">POKESTAY v1.9.1</h2>
+        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Bug Fixed Edition</div>
         <div style="width:100%">
             <input type="text" id="username-input" class="login-input" placeholder="Tên..." onkeypress="handleEnter(event)">
             <input type="password" id="password-input" class="login-input" placeholder="Mật khẩu..." onkeypress="handleEnter(event)">
@@ -130,19 +119,44 @@
         <div style="display:flex; flex-direction:column">
             <div style="display:flex; align-items:center; gap:5px">
                 <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/113.png" width="24" height="24">
-                <span>PokeStay v1.9</span>
+                <span>PokeStay v1.9.1</span>
             </div>
             <span id="display-username" style="font-size:0.8em; color:#bbb">TRAINER</span>
         </div>
         <div class="stats"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/nugget.png" style="width:20px"> <span id="coin-display">0</span></div>
     </header>
-    <div id="badge-bar" class="badge-list" style="display:none"></div>
+    <div id="badge-bar" style="display:none; gap:5px; justify-content:center; background:rgba(0,0,0,0.2); padding:5px;"></div>
     <div id="buff-bar" style="padding: 5px 15px; font-size: 0.75em; display: flex; gap: 10px; background: rgba(0,0,0,0.3); min-height: 20px;"></div>
     <div id="chat-area"></div>
     <div id="controls"></div>
     <div class="footer">
-        <div><span class="footer-link" onclick="logout()">[Thoát]</span><span class="footer-link" onclick="resetGame()">[Xóa]</span></div>
+        <div><span class="footer-link" onclick="logout()" style="cursor:pointer; color:#ed4245">[Thoát]</span> <span class="footer-link" onclick="resetGame()" style="cursor:pointer; color:#777">[Xóa]</span></div>
         <div class="footer-link donate-btn-text" onclick="showDonate()">💖 Ủng hộ</div>
+    </div>
+</div>
+
+<div id="shop-modal">
+    <div class="box-style" style="width:95%; max-width:500px">
+        <h2 style="color: #faa61a; margin: 0 0 10px 0;">🛒 Poke Mart</h2>
+        <div style="text-align:right; width:100%; margin-bottom:5px">Số dư: <span id="shop-coin-display" style="color:#f1c40f; font-weight:bold">0</span>💰</div>
+        <div id="shop-list" class="shop-grid" style="overflow-y:auto; max-height:60vh"></div>
+        <button class="btn-close" onclick="closeShop()">Đóng</button>
+    </div>
+</div>
+
+<div id="buy-modal">
+    <div class="box-style">
+        <h3 style="color: #faa61a; margin: 5px 0;" id="buy-name">Item</h3>
+        <img id="buy-img" src="" width="60" style="margin: 10px auto; display:block">
+        <div style="margin-bottom: 10px; color:#bbb">Giá: <span id="buy-price" style="color:white; font-weight:bold">0</span>💰</div>
+        <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin: 10px 0;">
+            <input type="number" id="buy-qty" class="login-input" style="width:60px; margin:0" value="1" min="1" oninput="calcTotal()">
+        </div>
+        <div style="font-size: 1.1em; margin-bottom: 15px;">Tổng: <span id="buy-total" style="color:#3ba55c; font-weight:bold">0</span>💰</div>
+        <div style="display:flex; gap:10px; width:100%">
+            <button class="btn-auth" style="background:#7f8c8d; margin:0" onclick="closeBuy()">HỦY</button>
+            <button class="btn-auth btn-login" style="margin:0" onclick="submitBuy()">MUA</button>
+        </div>
     </div>
 </div>
 
@@ -159,7 +173,7 @@
             </button>
             <button id="btn-repair" class="btn-auth" style="background:#e74c3c; display:none; animation:pulse 1s infinite" onclick="openRepairModal()">🔧 CÚP GÃY! Sửa ngay</button>
             <button class="btn-auth" style="background:#40444b; margin-top:10px" onclick="startQuiz()">🎓 Quiz Giáo Sư Oak</button>
-            <div id="emergency-aid" style="display:none; margin-top:10px; border-top:1px solid #555; padding-top:10px">
+            <div id="emergency-aid" style="margin-top:10px; border-top:1px solid #555; padding-top:10px">
                 <button class="btn-auth" style="background:#ed4245" onclick="claimEmergency()">🆘 Trợ cấp khẩn cấp</button>
             </div>
         </div>
@@ -210,52 +224,29 @@
 
 <div id="achieve-modal">
     <div class="box-style">
-        <div class="inner-box">
-            <h2 style="color: #f1c40f;">🏆 Thành Tựu</h2>
-            <div style="font-size:0.7em; color:#aaa; margin-bottom:10px">Bấm vào để xem phần thưởng</div>
-            <div id="achieve-list" style="overflow-y:auto; flex:1; width:100%"></div>
-            <button class="btn-close" onclick="closeAchieve()">Đóng</button>
-        </div>
-    </div>
-</div>
-
-<div id="buy-modal">
-    <div class="box-style">
-        <div class="inner-box">
-            <h3 style="color: #faa61a; margin: 5px 0;" id="buy-name">Item</h3>
-            <img id="buy-img" src="" width="60" style="margin: 10px auto; display:block">
-            <div style="margin-bottom: 10px; color:#bbb">Giá: <span id="buy-price" style="color:white; font-weight:bold">0</span>💰</div>
-            <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin: 10px 0;">
-                <input type="number" id="buy-qty" class="login-input" style="width:60px; margin:0" value="1" min="1" oninput="calcTotal()">
-            </div>
-            <div style="font-size: 1.1em; margin-bottom: 15px;">Tổng: <span id="buy-total" style="color:#3ba55c; font-weight:bold">0</span>💰</div>
-            <div style="display:flex; gap:10px; width:100%">
-                <button class="btn-auth" style="background:#7f8c8d; margin:0" onclick="closeBuy()">HỦY</button>
-                <button class="btn-auth btn-login" style="margin:0" onclick="submitBuy()">MUA</button>
-            </div>
-        </div>
+        <h2 style="color: #f1c40f;">🏆 Thành Tựu</h2>
+        <div style="font-size:0.7em; color:#aaa; margin-bottom:10px">Bấm vào để xem phần thưởng</div>
+        <div id="achieve-list" style="overflow-y:auto; flex:1; width:100%; max-height:60vh"></div>
+        <button class="btn-close" onclick="closeAchieve()">Đóng</button>
     </div>
 </div>
 
 <div id="dex-modal">
     <div class="box-style">
-        <div class="inner-box">
-            <h2 style="color: #3498db;">📖 Pokedex</h2>
-            <div style="font-size: 1.2em; margin-bottom: 20px;">
-                Đã bắt: <span style="color: #f1c40f; font-weight: bold;" id="dex-count">0</span> / 649
-            </div>
-            <button class="btn-close" onclick="closePokedex()">Đóng</button>
+        <h2 style="color: #3498db;">📖 Pokedex</h2>
+        <div style="font-size: 1.2em; margin-bottom: 20px;">
+            Đã bắt: <span style="color: #f1c40f; font-weight: bold;" id="dex-count">0</span> / 649
         </div>
+        <button class="btn-close" onclick="closePokedex()">Đóng</button>
     </div>
 </div>
 
 <div id="battle-modal">
-    <div class="box-style">
+    <div class="box-style" style="width:95%; max-width:450px; background: linear-gradient(to bottom, #2c3e50, #000); padding:10px; border:none">
         <div id="battle-select-screen" style="width:100%; text-align:center">
             <h2 style="color: #e74c3c; margin-bottom: 15px;">🔥 ĐẤU TRƯỜNG</h2>
             <div class="battle-card" style="width:100%; margin-bottom:10px; padding:10px; background:rgba(0,0,0,0.5); border-radius:5px">
                 <span id="battle-my-poke" style="color:#3ba55c; font-weight:bold">My Pokemon</span>
-                <div style="font-size:0.8em; color:#bbb">Ready for battle!</div>
             </div>
             <button class="difficulty-btn diff-easy btn-auth" style="background:#2ecc71" onclick="startBattle('easy')"><span>EASY: Wild</span></button>
             <button class="difficulty-btn diff-med btn-auth" style="background:#f1c40f; color:black" onclick="startBattle('medium')"><span>MEDIUM: Trainer</span></button>
@@ -274,7 +265,7 @@
                     <div class="battle-platform" style="right:10px; bottom:10px"></div>
                 </div>
                 <div class="p-player">
-                    <img id="player-sprite" class="battle-sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/25.png">
+                    <img id="player-sprite" class="battle-sprite" src="">
                      <div class="battle-platform" style="left:10px; bottom:10px"></div>
                      <div class="hp-box" style="margin-top:5px">
                         <div style="display:flex;justify-content:space-between;font-size:0.8em;font-weight:bold"><span id="player-name">Player</span> <span id="player-hp-text">20/20</span></div>
@@ -310,13 +301,12 @@
         <h2 style="color: #faa61a;">📜 Update Log</h2>
         <div class="update-list" style="text-align:left; width:100%">
              <div style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px">
-                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.9</span> 
-                <span style="color:#bbb; font-size:0.8em; float:right">New</span>
+                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.9.1</span> 
+                <span style="color:#bbb; font-size:0.8em; float:right">Fixed</span>
                 <ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde">
-                    <li><b>Nurse Joy:</b> Hồi máu miễn phí tại Pokemon Center (Menu chính).</li>
-                    <li><b>Items:</b> Potion chỉ được dùng trong Battle.</li>
-                    <li><b>Stats:</b> Thêm Sp.Atk và Sp.Def.</li>
-                    <li><b>Logic:</b> Phân loại chiêu Vật lý / Phép thuật.</li>
+                    <li><b>Fixed Shop:</b> Đã có thể mua đồ.</li>
+                    <li><b>Fixed Sell:</b> Đã có thể bán Pokemon.</li>
+                    <li><b>Fixed UI:</b> Sửa lỗi hiển thị máu Undefined.</li>
                 </ul>
             </div>
         </div>
@@ -327,7 +317,6 @@
 <div id="donate-modal">
     <div class="box-style" style="background:white; color:black">
         <h3 style="color: #6c38c6; margin:0 0 10px 0">Ủng Hộ Dev</h3>
-        <img src="38b84fc99acb15954cda.jpg" class="donate-qr" style="width:100%; border-radius:5px; border:1px solid #ddd">
         <div style="font-size:0.9em; margin-top:10px; font-weight:bold">TPBank QR</div>
         <button class="btn-close" onclick="closeDonate()">Đóng</button>
     </div>
@@ -342,33 +331,14 @@
     const URL_ITEMS = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/";
     const LEGENDARY_IDS = [144,145,146,150,151,243,244,245,249,250,251,377,378,379,380,381,382,383,384,385,386,480,481,482,483,484,485,486,487,488,489,490,491,492,493,494,638,639,640,641,642,643,644,645,646];
     const TYPE_ADVANTAGE = { 'fire': ['grass', 'ice', 'bug', 'steel'], 'water': ['fire', 'ground', 'rock'], 'grass': ['water', 'ground', 'rock'], 'electric': ['water', 'flying'], 'ice': ['grass', 'ground', 'flying', 'dragon'], 'fighting': ['normal', 'ice', 'rock', 'dark', 'steel'], 'poison': ['grass', 'fairy'], 'ground': ['fire', 'electric', 'poison', 'rock', 'steel'], 'flying': ['grass', 'fighting', 'bug'], 'psychic': ['fighting', 'poison'], 'bug': ['grass', 'psychic', 'dark'], 'rock': ['fire', 'ice', 'flying', 'bug'], 'ghost': ['psychic', 'ghost'], 'dragon': ['dragon'], 'steel': ['ice', 'rock', 'fairy'], 'fairy': ['fighting', 'dragon', 'dark'] };
-
-    // CATEGORIES: Physical or Special (Simplified)
-    // Physical: Normal, Fighting, Flying, Ground, Rock, Bug, Ghost, Poison, Steel
-    // Special: Fire, Water, Grass, Electric, Psychic, Ice, Dragon, Fairy
     const SPECIAL_TYPES = ['fire', 'water', 'grass', 'electric', 'psychic', 'ice', 'dragon', 'fairy'];
 
     const MOVES_DB = {
-        'normal': [
-            {name: 'Tackle', pwr: 40, acc: 100}, {name: 'Scratch', pwr: 40, acc: 100}, {name: 'Quick Attack', pwr: 40, acc: 100}, 
-            {name: 'Cut', pwr: 50, acc: 95}, {name: 'Headbutt', pwr: 70, acc: 100}, {name: 'Hyper Beam', pwr: 150, acc: 90}
-        ],
-        'fire': [
-            {name: 'Ember', pwr: 40, acc: 100}, {name: 'Flame Wheel', pwr: 60, acc: 100}, 
-            {name: 'Flamethrower', pwr: 90, acc: 100}, {name: 'Fire Blast', pwr: 110, acc: 85}
-        ],
-        'water': [
-            {name: 'Water Gun', pwr: 40, acc: 100}, {name: 'Bubble Beam', pwr: 65, acc: 100}, 
-            {name: 'Surf', pwr: 90, acc: 100}, {name: 'Hydro Pump', pwr: 110, acc: 80}
-        ],
-        'grass': [
-            {name: 'Vine Whip', pwr: 45, acc: 100}, {name: 'Razor Leaf', pwr: 55, acc: 95}, 
-            {name: 'Energy Ball', pwr: 90, acc: 100}, {name: 'Solar Beam', pwr: 120, acc: 100}
-        ],
-        'electric': [
-            {name: 'Thunder Shock', pwr: 40, acc: 100}, {name: 'Spark', pwr: 65, acc: 100}, 
-            {name: 'Thunderbolt', pwr: 90, acc: 100}, {name: 'Thunder', pwr: 110, acc: 70}
-        ],
+        'normal': [{name: 'Tackle', pwr: 40, acc: 100}, {name: 'Scratch', pwr: 40, acc: 100}, {name: 'Quick Attack', pwr: 40, acc: 100}, {name: 'Cut', pwr: 50, acc: 95}, {name: 'Headbutt', pwr: 70, acc: 100}, {name: 'Hyper Beam', pwr: 150, acc: 90}],
+        'fire': [{name: 'Ember', pwr: 40, acc: 100}, {name: 'Flame Wheel', pwr: 60, acc: 100}, {name: 'Flamethrower', pwr: 90, acc: 100}, {name: 'Fire Blast', pwr: 110, acc: 85}],
+        'water': [{name: 'Water Gun', pwr: 40, acc: 100}, {name: 'Bubble Beam', pwr: 65, acc: 100}, {name: 'Surf', pwr: 90, acc: 100}, {name: 'Hydro Pump', pwr: 110, acc: 80}],
+        'grass': [{name: 'Vine Whip', pwr: 45, acc: 100}, {name: 'Razor Leaf', pwr: 55, acc: 95}, {name: 'Energy Ball', pwr: 90, acc: 100}, {name: 'Solar Beam', pwr: 120, acc: 100}],
+        'electric': [{name: 'Thunder Shock', pwr: 40, acc: 100}, {name: 'Spark', pwr: 65, acc: 100}, {name: 'Thunderbolt', pwr: 90, acc: 100}, {name: 'Thunder', pwr: 110, acc: 70}],
         'ice': [{name:'Powder Snow',pwr:40}, {name:'Ice Beam',pwr:90}, {name:'Blizzard',pwr:110}],
         'fighting': [{name:'Karate Chop',pwr:50}, {name:'Brick Break',pwr:75}, {name:'Close Combat',pwr:120}],
         'poison': [{name:'Poison Sting',pwr:15}, {name:'Sludge Bomb',pwr:90}],
@@ -448,30 +418,17 @@
         return {label:'COMMON',class:'r-common',val:0}; 
     }
 
-    // --- RECALC STATS LOGIC v1.9 (Full 6 Stats) ---
-    function calculateMaxHp(base, iv, level) {
-        return Math.floor(((2 * base + iv) * level) / 100) + level + 10;
-    }
-    function calculateStat(base, iv, level) {
-        return Math.floor(((2 * base + iv) * level) / 100) + 5;
-    }
+    function calculateMaxHp(base, iv, level) { return Math.floor(((2 * base + iv) * level) / 100) + level + 10; }
+    function calculateStat(base, iv, level) { return Math.floor(((2 * base + iv) * level) / 100) + 5; }
 
     function recalcStats(p) {
-        // Fallbacks if data missing (Old saves)
-        let bHp = p.baseHp || 45; 
-        let bAtk = p.baseAtk || 49; 
-        let bDef = p.baseDef || 49; 
-        let bSpA = p.baseSpA || 65; 
-        let bSpD = p.baseSpD || 65; 
-        let bSpd = p.baseSpd || 45;
-        
+        let bHp = p.baseHp || 45; let bAtk = p.baseAtk || 49; let bDef = p.baseDef || 49; let bSpA = p.baseSpA || 65; let bSpD = p.baseSpD || 65; let bSpd = p.baseSpd || 45;
         p.maxHp = calculateMaxHp(bHp, p.iv, p.level);
         p.atk = calculateStat(bAtk, p.iv, p.level);
         p.def = calculateStat(bDef, p.iv, p.level);
         p.spA = calculateStat(bSpA, p.iv, p.level);
         p.spD = calculateStat(bSpD, p.iv, p.level);
         p.spd = calculateStat(bSpd, p.iv, p.level);
-        
         if(p.hp > p.maxHp) p.hp = p.maxHp;
     }
 
@@ -480,10 +437,8 @@
         let pool = MOVES_DB[mainType] || MOVES_DB['normal'];
         let normalPool = MOVES_DB['normal'];
         let moves = [];
-        
         if(pool.length > 0) moves.push({ ...pool[Math.floor(Math.random() * pool.length)], type: mainType });
         if(pool.length > 1) moves.push({ ...pool[Math.floor(Math.random() * pool.length)], type: mainType });
-        
         while(moves.length < 4) {
             let m = normalPool[Math.floor(Math.random() * normalPool.length)];
             moves.push({ ...m, type: 'normal' });
@@ -492,15 +447,8 @@
     }
 
     function ensureDataIntegrity(p) {
-        // Auto-fix for old saves that lack SpA/SpD
-        if(!p.spA || !p.spD) {
-            p.baseSpA = p.baseAtk || 50; 
-            p.baseSpD = p.baseDef || 50;
-            recalcStats(p);
-        }
-        if(!p.moves || p.moves.length === 0) {
-            assignMoves(p);
-        }
+        if(!p.spA || !p.spD) { p.baseSpA = p.baseAtk || 50; p.baseSpD = p.baseDef || 50; recalcStats(p); }
+        if(!p.moves || p.moves.length === 0) { assignMoves(p); }
     }
 
     function handleEnter(e) { if(e.key === 'Enter') login(); }
@@ -546,7 +494,6 @@
     }
     
     function showMenu() {
-        const today = new Date().toDateString();
         controls.innerHTML = `
         <button class="btn btn-hunt" onclick="hunt()"><span>🔍 Săn tìm</span></button>
         <button class="btn btn-shop" onclick="shop()"><span>🛒 Shop</span></button>
@@ -562,18 +509,13 @@
         <button class="btn btn-log" onclick="showUpdates()"><span>📜 Updates</span></button>`;
     }
 
-    // --- NEW: HEAL CENTER ---
     function healAll() {
         if(currentWild) return;
         let count = 0;
         myBag.forEach(p => {
-            if(p.hp < p.maxHp) {
-                p.hp = p.maxHp;
-                count++;
-            }
+            if(p.hp < p.maxHp) { p.hp = p.maxHp; count++; }
         });
-        saveGame();
-        updateStats();
+        saveGame(); updateStats();
         if(count > 0) {
             log(`<span style="color:#ff7675; font-weight:bold">🏥 Nurse Joy: Đã hồi phục cho ${count} Pokemon của bạn!</span>`);
             alert("Nurse Joy: Chào mừng tới Pokemon Center! Team của bạn đã khỏe mạnh.");
@@ -599,18 +541,108 @@
                 return `<div class="bag-row egg-row"><div style="display:flex;align-items:center;gap:10px"><img src="${URL_ITEMS}lucky-egg.png" width="40"><div><b>Mystery Egg</b><br><div class="xp-container"><div class="xp-fill" style="width:${percent}%; background:#f1c40f"></div></div><span style="font-size:0.7em">${p.steps}/${p.maxSteps} bước</span></div></div><div>${percent>=100 ? `<button class="btn-small" style="background:#f1c40f;color:black" onclick="hatchEgg(${realIdx})">NỞ!</button>` : '...'}</div></div>`;
             }
             ensureDataIntegrity(p);
-
             if(!p.types) p.types = ['normal'];
             const r = getRarity(p);
             let rarityBonus = r.val * 50; if(r.code === 'L') rarityBonus += 1000; if(r.code === 'sr') rarityBonus += 300;
             let pr = Math.floor((p.baseXp * 0.5 + p.iv * 3) + rarityBonus); if(pr < 10) pr = 10;
-            let xpPercent = (p.xp / p.maxXp) * 100; let hpPercent = (p.hp / p.maxHp) * 100; let hpColor = getHpColor(hpPercent);
+            
+            // FIX HP UNDEFINED BUG
+            let currentHp = typeof p.hp !== 'undefined' ? Math.max(0, p.hp) : p.maxHp;
+            let hpPercent = (currentHp / p.maxHp) * 100; 
+            let hpColor = getHpColor(hpPercent);
+            
             let evoBtn = `<button class="btn-small btn-evo" onclick="checkEvolution(${realIdx}, this)">Evo</button>`;
-            // Removed Heal Button from Bag
             let candyBtn = inventory['rare-candy'] > 0 ? `<button class="btn-small btn-candy" onclick="useCandy(${realIdx})">Candy</button>` : '';
-            return `<div class="bag-row"><div style="display:flex;align-items:center;gap:10px; flex:1"><img src="${p.img}" width="40" style="${p.hp<=0?'filter:grayscale(1)':''}"><div style="width:100%"><div style="display:flex;justify-content:space-between"><span><span class="rarity-tag ${r.class}">${r.label}</span> <b>${p.name}</b></span><span style="font-size:0.8em;font-weight:bold;color:${hpColor}">${p.hp}/${p.maxHp}</span></div><span style="font-size:0.7em; color:#aaa">Lv.${p.level} | IV:${p.iv}</span><div class="hp-container"><div class="hp-fill" style="width:${hpPercent}%; background:${hpColor}"></div></div></div></div><div class="bag-actions"><button class="btn-small btn-battle" onclick="openBattleModal(${realIdx})">ĐẤU</button> ${candyBtn} ${evoBtn}<button class="btn-small btn-sell" onclick="sell(${realIdx},${pr})">Bán +${pr}</button></div></div>`;
+            return `<div class="bag-row"><div style="display:flex;align-items:center;gap:10px; flex:1"><img src="${p.img}" width="40" style="${currentHp<=0?'filter:grayscale(1)':''}"><div style="width:100%"><div style="display:flex;justify-content:space-between"><span><span class="rarity-tag ${r.class}">${r.label}</span> <b>${p.name}</b></span><span style="font-size:0.8em;font-weight:bold;color:${hpColor}">${currentHp}/${p.maxHp}</span></div><span style="font-size:0.7em; color:#aaa">Lv.${p.level} | IV:${p.iv}</span><div class="hp-container"><div class="hp-fill" style="width:${hpPercent}%; background:${hpColor}"></div></div></div></div><div class="bag-actions"><button class="btn-small btn-battle" onclick="openBattleModal(${realIdx})">ĐẤU</button> ${candyBtn} ${evoBtn}<button class="btn-small btn-sell" onclick="sell(${realIdx},${pr})">Bán +${pr}</button></div></div>`;
         }).join('');
         log(`<div class="embed" style="border-left-color:#5865f2"><span class="embed-title">🎒 Backpack</span><div class="embed-desc" style="max-height:300px;overflow-y:auto">${listHtml}</div></div>`);
+    }
+
+    // --- NEW: SELL FUNCTION (FIXED) ---
+    function sell(idx, price) {
+        if(!myBag[idx]) return;
+        if(confirm(`Bạn có chắc muốn bán ${myBag[idx].name} với giá ${price} coins?`)) {
+            coins += price;
+            myBag.splice(idx, 1);
+            saveGame();
+            updateStats();
+            renderBag();
+            log(`<span style="color:#f1c40f">Đã bán Pokemon nhận ${price}💰</span>`);
+        }
+    }
+
+    // --- NEW: SHOP FUNCTIONS (FIXED) ---
+    function shop() {
+        if(currentWild) return;
+        const list = document.getElementById('shop-list');
+        document.getElementById('shop-coin-display').innerText = coins.toLocaleString();
+        list.innerHTML = SHOP_DB.map(i => {
+             // Check logic for items that have limit or sell type
+             let action = "openBuy";
+             if(i.type === 'sell') return ``; // Do not show sell-only items in shop buy list
+             return `
+             <div class="shop-card" onclick="${action}('${i.id}')">
+                <img src="${URL_ITEMS}${i.img}" width="50">
+                <div style="font-weight:bold; color:#faa61a">${i.name}</div>
+                <div style="font-size:0.8em; color:#bbb">${i.price}💰</div>
+             </div>`;
+        }).join('');
+        document.getElementById('shop-modal').style.display = 'flex';
+    }
+
+    function closeShop() { document.getElementById('shop-modal').style.display = 'none'; }
+
+    function openBuy(id) {
+        selectedItemId = id;
+        const item = SHOP_DB.find(i => i.id === id);
+        if(!item) return;
+        document.getElementById('buy-name').innerText = item.name;
+        document.getElementById('buy-img').src = URL_ITEMS + item.img;
+        document.getElementById('buy-price').innerText = item.price;
+        document.getElementById('buy-qty').value = 1;
+        document.getElementById('buy-total').innerText = item.price;
+        document.getElementById('shop-modal').style.display = 'none';
+        document.getElementById('buy-modal').style.display = 'flex';
+    }
+
+    function calcTotal() {
+        const item = SHOP_DB.find(i => i.id === selectedItemId);
+        let qty = parseInt(document.getElementById('buy-qty').value);
+        if(qty < 1) qty = 1;
+        document.getElementById('buy-total').innerText = (item.price * qty).toLocaleString();
+    }
+
+    function submitBuy() {
+        const item = SHOP_DB.find(i => i.id === selectedItemId);
+        let qty = parseInt(document.getElementById('buy-qty').value);
+        if(qty < 1) qty = 1;
+        let total = item.price * qty;
+        
+        if(coins >= total) {
+            coins -= total;
+            userStats.spent += total;
+            
+            if(item.type === 'upgrade') {
+                 maxBagSize += (5 * qty);
+                 alert(`Đã nâng cấp túi thêm ${5*qty} slot!`);
+            } else {
+                if(!inventory[item.id]) inventory[item.id] = 0;
+                inventory[item.id] += qty;
+            }
+            
+            updateQuestProgress('spend', total);
+            saveGame();
+            updateStats();
+            closeBuy();
+            alert(`Mua thành công ${qty}x ${item.name}!`);
+        } else {
+            alert("Không đủ tiền!");
+        }
+    }
+
+    function closeBuy() { 
+        document.getElementById('buy-modal').style.display = 'none'; 
+        document.getElementById('shop-modal').style.display = 'flex'; // Return to shop list
     }
 
     function incrementEggSteps() { let hatched = false; myBag.forEach(p => { if(p.isEgg && p.steps < p.maxSteps) { p.steps++; if(p.steps >= p.maxSteps) hatched = true; } }); if(hatched) log(`<span style="color:#f1c40f">🥚 Có trứng đã sẵn sàng nở! Vào túi kiểm tra ngay.</span>`); saveGame(); }
@@ -622,7 +654,6 @@
         const isShiny = Math.random() < 0.1; let img = data.sprites.other['official-artwork'].front_default || data.sprites.front_default; if(isShiny) img = data.sprites.front_shiny || img;
         let iv = Math.floor(Math.random() * 32); 
         
-        // Fetch ALL 6 Stats
         let stats = {};
         data.stats.forEach(s => { stats[s.stat.name] = s.base_stat; });
 
@@ -702,7 +733,6 @@
     }
     function useItem(id) { inventory[id]--; saveGame(); if(id==='razz-berry') activeBuffs.berry=true; if(id==='lucky-egg') activeBuffs.egg=true; if(id==='incense') { spawnPokemon(); return; } updateStats(); renderBattleControls(); }
 
-    // --- BATTLE UI HANDLING ---
     function openBattleModal(idx) {
         selectedBattleIdx = idx; let p = myBag[idx];
         document.getElementById('battle-my-poke').innerText = `${p.name} (Lv.${p.level})`;
@@ -716,7 +746,6 @@
     }
     function closeBattle() { document.getElementById('battle-modal').style.display = 'none'; }
     
-    // --- BATTLE LOGIC ENGINE v1.9 ---
     async function startBattle(difficulty) {
         let p = myBag[selectedBattleIdx];
         ensureDataIntegrity(p); 
@@ -747,7 +776,6 @@
             enemyLevel = p.level + 5; enemyTypes = [gymData.type];
         }
 
-        // Generate Enemy Stats (Simulated)
         let baseStat = 45 + (enemyLevel * 2);
         let enemyStats = {
             maxHp: calculateMaxHp(baseStat, 15, enemyLevel),
@@ -767,7 +795,6 @@
             rewards: { xp: difficulty==='easy'?50: (difficulty==='medium'?150:1000), coin: difficulty==='medium'?100: (difficulty==='hard'?500:0) }
         };
 
-        // Render UI
         document.getElementById('enemy-name').innerText = battleState.enemy.name;
         document.getElementById('enemy-lv').innerText = `Lv.${battleState.enemy.level}`;
         document.getElementById('enemy-sprite').src = battleState.enemy.img;
@@ -818,13 +845,13 @@
 
     function updateBattleUI() {
         let p = battleState.player; let e = battleState.enemy;
-        // Update HP Bars
         let pHpPct = Math.max(0, (p.hp / p.maxHp) * 100);
         let eHpPct = Math.max(0, (e.hp / e.maxHp) * 100);
         
         document.getElementById('player-hp-bar').style.width = pHpPct + '%';
         document.getElementById('player-hp-bar').style.background = getHpColor(pHpPct);
-        document.getElementById('player-hp-text').innerText = `${p.hp}/${p.maxHp}`;
+        // FIX UNDEFINED HP DISPLAY
+        document.getElementById('player-hp-text').innerText = `${Math.max(0, p.hp)}/${p.maxHp}`;
         
         document.getElementById('enemy-hp-bar').style.width = eHpPct + '%';
         document.getElementById('enemy-hp-bar').style.background = getHpColor(eHpPct);
@@ -841,10 +868,7 @@
         if((inventory['potion'] || 0) <= 0) return logBattle("Hết Potion!");
         executeTurn('heal');
     }
-    function playerSkip() {
-        if(!battleState.active) return;
-        executeTurn('skip');
-    }
+    function playerSkip() { if(!battleState.active) return; executeTurn('skip'); }
     function playerRun() {
         if(battleState.difficulty === 'hard') return logBattle("Không thể bỏ chạy khỏi Gym!");
         logBattle("Đã bỏ chạy thành công!");
@@ -883,7 +907,6 @@
             let typeMod = getEffectiveness(move.type, e.types);
             let dmg = calculateDamage(p, e, move, typeMod);
             
-            // Animation
             document.getElementById('player-sprite').style.transform = "translateX(20px)";
             setTimeout(()=>document.getElementById('player-sprite').style.transform="translateX(0)", 200);
             
@@ -925,9 +948,6 @@
     }
 
     function calculateDamage(attacker, defender, move, typeMod) {
-        // DAMAGE FORMULA:
-        // Damage = ((((2 * Level / 5 + 2) * Power * A / D) / 50) + 2) * Modifiers
-        // Check Category (Phys vs Spec)
         let isSpecial = SPECIAL_TYPES.includes(move.type);
         let atk = isSpecial ? attacker.spA : attacker.atk;
         let def = isSpecial ? defender.spD : defender.def;
@@ -1000,7 +1020,7 @@
     function endBattle() {
         document.getElementById('battle-modal').style.display = 'none';
         updateStats();
-        openBag(); // Refresh bag UI
+        openBag(); // Refresh bag UI to update HP/Level
     }
 
     function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
@@ -1203,7 +1223,6 @@
     function startMining() { if(pickaxe.durability <= 0) return updateMiningUI(); pickaxe.durability--; userStats.mining++; let r = Math.random(); let earned = Math.floor(Math.random() * 6) + 10; coins += earned; if (r < 0.005) { inventory['nugget']++; } else if (r < 0.03) { inventory['stardust']++; } incrementEggSteps(); updateQuestProgress('mine', 1); saveGame(); updateStats(); updateMiningUI(); const btn = document.getElementById('btn-mining'); const old = btn.innerHTML; btn.innerHTML = `<div style="color:#2ecc71; font-size:1.2em; text-align:center">+${earned}💰</div>`; btn.disabled = true; setTimeout(() => { btn.innerHTML = old; btn.disabled = false; updateMiningUI(); }, 600); }
     function claimEmergency() { if(confirm("Nhận trợ cấp?")) { coins += 200; inventory['poke-ball'] += 5; saveGame(); updateStats(); openJobs(); alert("Đã nhận 200 Coins & 5 Poke Balls."); } }
     
-    function closeBuy() { document.getElementById('buy-modal').style.display = 'none'; }
     function closePokedex() { document.getElementById('dex-modal').style.display = 'none'; }
     function showPokedex() { document.getElementById('dex-count').innerText = pokedex.size; document.getElementById('dex-modal').style.display = 'flex'; }
     function run() { currentWild=null; showMenu(); log("Bỏ chạy."); }
