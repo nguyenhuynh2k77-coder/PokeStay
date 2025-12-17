@@ -196,11 +196,9 @@
 <script>
     // --- DATA & CONFIG ---
     let currentUser = "";
-    // --- AUDIO SYSTEM (NEW) ---
-    // --- AUDIO SYSTEM (CLEAN FIX) ---
+   
     let isMuted = false;
-    // --- AUDIO SYSTEM (FIXED SOURCE MP3) ---
-    let isMuted = false;
+    
     const AUDIO_SRC = {
         // Nhạc Battle: Pokemon Red/Blue - Wild Battle (MP3)
         bgm_battle: "https://ia800605.us.archive.org/32/items/PokemonGBS/107-battle%20%28vs%20wild%20pokemon%29.mp3", 
@@ -213,7 +211,7 @@
     };
     
     // Khai báo biến Audio 1 lần duy nhất
-    let currentBGM = new Audio();
+    
     currentBGM.loop = true;
 
     function toggleMute() {
@@ -1546,6 +1544,7 @@
 </script>
 </body>
 </html>
+
 
 
 
