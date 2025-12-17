@@ -665,7 +665,7 @@
             let p = { 
                 id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, 
                 baseHp: stats['hp'], baseAtk: stats['attack'], baseDef: stats['defense'], baseSpA: stats['special-attack'], baseSpD: stats['special-defense'], baseSpd: stats['speed'],
-                level: 1, xp: 0, maxXp: 100 
+                level: 5, xp: 0, maxXp: 100 
             };
             recalcStats(p);
             assignMoves(p);
@@ -1172,5 +1172,6 @@
 </script>
 </body>
 </html>
+
 
 
