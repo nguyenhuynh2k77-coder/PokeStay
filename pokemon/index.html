@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PokeStay v1.8 - Tactics</title>
+    <title>PokeStay v1.9 - Real RPG</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png">
     
     <style>
@@ -24,7 +24,7 @@
         .btn-hunt { width: 32% !important; background: url('image_1.png') no-repeat center center; background-size: cover; text-shadow: 0 0 3px black, 0 0 3px black; border: 2px solid #2ecc71; }
         .btn-shop { background: #faa61a; color: #202225; } .btn-bag { background: #5865f2; }
         .btn-job { background: #7289da; } .btn-achieve { background: #f1c40f; color:#202225; } .btn-daycare { background: #e91e63; }
-        .btn-daily { background: #eb459e; } .btn-dex { background: #3498db; } .btn-log { background: #95a5a6; }
+        .btn-daily { background: #eb459e; } .btn-dex { background: #3498db; } .btn-center { background: #ff7675; color: white; }
 
         /* MOBILE */
         @media (max-width: 768px) {
@@ -35,8 +35,8 @@
             .btn-hunt { width: 100% !important; margin-bottom: 5px; font-size: 1.2em; }
             .btn-shop, .btn-bag { width: 49% !important; }
             .btn-job, .btn-achieve, .btn-daycare { width: 32% !important; font-size: 0.8em; padding: 10px 0; }
-            .btn-daily, .btn-dex { width: 49% !important; }
-            .btn-log { width: 100% !important; margin-top: 5px; }
+            .btn-daily, .btn-center { width: 49% !important; }
+            .btn-dex { display:none; } /* Hide Dex on mobile to make room for Center */
         }
 
         /* MODALS */
@@ -114,8 +114,8 @@
 <div id="login-screen">
     <div class="box-style">
         <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto">
-        <h2 style="color: white; margin: 10px 0;">POKESTAY v1.8</h2>
-        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Tactical Update</div>
+        <h2 style="color: white; margin: 10px 0;">POKESTAY v1.9</h2>
+        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Nurse Joy & Real Stats</div>
         <div style="width:100%">
             <input type="text" id="username-input" class="login-input" placeholder="Tên..." onkeypress="handleEnter(event)">
             <input type="password" id="password-input" class="login-input" placeholder="Mật khẩu..." onkeypress="handleEnter(event)">
@@ -129,8 +129,8 @@
     <header>
         <div style="display:flex; flex-direction:column">
             <div style="display:flex; align-items:center; gap:5px">
-                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png" width="24" height="24">
-                <span>PokeStay v1.8</span>
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/113.png" width="24" height="24">
+                <span>PokeStay v1.9</span>
             </div>
             <span id="display-username" style="font-size:0.8em; color:#bbb">TRAINER</span>
         </div>
@@ -310,12 +310,13 @@
         <h2 style="color: #faa61a;">📜 Update Log</h2>
         <div class="update-list" style="text-align:left; width:100%">
              <div style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px">
-                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.8</span> 
+                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.9</span> 
                 <span style="color:#bbb; font-size:0.8em; float:right">New</span>
                 <ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde">
-                    <li><b>Move Set:</b> Pokemon sở hữu 4 kỹ năng riêng biệt.</li>
-                    <li><b>Tactics:</b> Chọn chiêu thức trong trận đấu.</li>
-                    <li><b>True Stats:</b> Công thức chỉ số chuẩn Gen 3.</li>
+                    <li><b>Nurse Joy:</b> Hồi máu miễn phí tại Pokemon Center (Menu chính).</li>
+                    <li><b>Items:</b> Potion chỉ được dùng trong Battle.</li>
+                    <li><b>Stats:</b> Thêm Sp.Atk và Sp.Def.</li>
+                    <li><b>Logic:</b> Phân loại chiêu Vật lý / Phép thuật.</li>
                 </ul>
             </div>
         </div>
@@ -342,7 +343,11 @@
     const LEGENDARY_IDS = [144,145,146,150,151,243,244,245,249,250,251,377,378,379,380,381,382,383,384,385,386,480,481,482,483,484,485,486,487,488,489,490,491,492,493,494,638,639,640,641,642,643,644,645,646];
     const TYPE_ADVANTAGE = { 'fire': ['grass', 'ice', 'bug', 'steel'], 'water': ['fire', 'ground', 'rock'], 'grass': ['water', 'ground', 'rock'], 'electric': ['water', 'flying'], 'ice': ['grass', 'ground', 'flying', 'dragon'], 'fighting': ['normal', 'ice', 'rock', 'dark', 'steel'], 'poison': ['grass', 'fairy'], 'ground': ['fire', 'electric', 'poison', 'rock', 'steel'], 'flying': ['grass', 'fighting', 'bug'], 'psychic': ['fighting', 'poison'], 'bug': ['grass', 'psychic', 'dark'], 'rock': ['fire', 'ice', 'flying', 'bug'], 'ghost': ['psychic', 'ghost'], 'dragon': ['dragon'], 'steel': ['ice', 'rock', 'fairy'], 'fairy': ['fighting', 'dragon', 'dark'] };
 
-    // --- EXPANDED MOVE DATABASE (v1.8) ---
+    // CATEGORIES: Physical or Special (Simplified)
+    // Physical: Normal, Fighting, Flying, Ground, Rock, Bug, Ghost, Poison, Steel
+    // Special: Fire, Water, Grass, Electric, Psychic, Ice, Dragon, Fairy
+    const SPECIAL_TYPES = ['fire', 'water', 'grass', 'electric', 'psychic', 'ice', 'dragon', 'fairy'];
+
     const MOVES_DB = {
         'normal': [
             {name: 'Tackle', pwr: 40, acc: 100}, {name: 'Scratch', pwr: 40, acc: 100}, {name: 'Quick Attack', pwr: 40, acc: 100}, 
@@ -407,8 +412,8 @@
         { id: 'great-ball', name: 'Great Ball', price: 300, type: 'ball', rate: 0.50, img: 'great-ball.png' },
         { id: 'ultra-ball', name: 'Ultra Ball', price: 800, type: 'ball', rate: 0.75, img: 'ultra-ball.png' },
         { id: 'master-ball', name: 'Master Ball', price: 5000, type: 'ball', rate: 1.0, img: 'master-ball.png' },
-        { id: 'potion', name: 'Potion', price: 200, type: 'item', desc: 'Hồi 50 HP', img: 'potion.png' },
-        { id: 'super-potion', name: 'Super Potion', price: 500, type: 'item', desc: 'Hồi Full HP', img: 'super-potion.png' },
+        { id: 'potion', name: 'Potion', price: 200, type: 'item', desc: 'Hồi 50 HP (Chỉ dùng trong Battle)', img: 'potion.png' },
+        { id: 'super-potion', name: 'Super Potion', price: 500, type: 'item', desc: 'Hồi Full HP (Chỉ dùng trong Battle)', img: 'super-potion.png' },
         { id: 'rare-candy', name: 'Rare Candy', price: 3000, type: 'item', desc: '+1 Level', img: 'rare-candy.png' }, 
         { id: 'mystery-egg', name: 'Mystery Egg', price: 1000, type: 'item', desc: 'Ấp nở thú hiếm', img: 'lucky-egg.png' }, 
         { id: 'bag-upgrade', name: 'Bag Upgrade', price: 2000, type: 'upgrade', desc: '+5 Slot Túi', img: 'wailmer-pail.png' },
@@ -443,58 +448,54 @@
         return {label:'COMMON',class:'r-common',val:0}; 
     }
 
-    // --- RECALC STATS LOGIC v1.8 (Official Gen 3 Formula) ---
+    // --- RECALC STATS LOGIC v1.9 (Full 6 Stats) ---
     function calculateMaxHp(base, iv, level) {
-        // HP = Floor( ( (2*Base + IV) * Level ) / 100 ) + Level + 10
         return Math.floor(((2 * base + iv) * level) / 100) + level + 10;
     }
     function calculateStat(base, iv, level) {
-        // Stat = Floor( ( ( (2*Base + IV) * Level ) / 100 ) + 5 )
         return Math.floor(((2 * base + iv) * level) / 100) + 5;
     }
 
     function recalcStats(p) {
-        // Ensure Base Stats exist
+        // Fallbacks if data missing (Old saves)
         let bHp = p.baseHp || 45; 
         let bAtk = p.baseAtk || 49; 
         let bDef = p.baseDef || 49; 
+        let bSpA = p.baseSpA || 65; 
+        let bSpD = p.baseSpD || 65; 
         let bSpd = p.baseSpd || 45;
         
-        // Calculate
         p.maxHp = calculateMaxHp(bHp, p.iv, p.level);
         p.atk = calculateStat(bAtk, p.iv, p.level);
         p.def = calculateStat(bDef, p.iv, p.level);
+        p.spA = calculateStat(bSpA, p.iv, p.level);
+        p.spD = calculateStat(bSpD, p.iv, p.level);
         p.spd = calculateStat(bSpd, p.iv, p.level);
         
         if(p.hp > p.maxHp) p.hp = p.maxHp;
     }
 
     function assignMoves(p) {
-        // Pick 4 moves: 2 from Type, 2 from Normal (or random if Type moves scarce)
         let mainType = p.types[0];
         let pool = MOVES_DB[mainType] || MOVES_DB['normal'];
         let normalPool = MOVES_DB['normal'];
-        
         let moves = [];
         
-        // Try add 2 type moves
         if(pool.length > 0) moves.push({ ...pool[Math.floor(Math.random() * pool.length)], type: mainType });
         if(pool.length > 1) moves.push({ ...pool[Math.floor(Math.random() * pool.length)], type: mainType });
         
-        // Fill rest with Normal moves
         while(moves.length < 4) {
             let m = normalPool[Math.floor(Math.random() * normalPool.length)];
             moves.push({ ...m, type: 'normal' });
         }
-        
-        // Deduplicate (simple check)
         p.moves = moves;
     }
 
-    // Ensure stats & moves on old saves
     function ensureDataIntegrity(p) {
-        if(!p.atk || !p.def || !p.spd) {
-            p.baseAtk = p.baseAtk || 50; p.baseDef = p.baseDef || 50; p.baseSpd = p.baseSpd || 50;
+        // Auto-fix for old saves that lack SpA/SpD
+        if(!p.spA || !p.spD) {
+            p.baseSpA = p.baseAtk || 50; 
+            p.baseSpD = p.baseDef || 50;
             recalcStats(p);
         }
         if(!p.moves || p.moves.length === 0) {
@@ -552,12 +553,33 @@
         <button class="btn btn-bag" onclick="openBag()"><span>🎒 Túi</span></button>
         <div style="width:100%; display:flex; justify-content:space-between; gap:5px">
              <button class="btn btn-job" onclick="openJobs()"><span>💼 Jobs</span></button>
+             <button class="btn btn-center" onclick="healAll()"><span>🏥 Center</span></button>
              <button class="btn btn-achieve" onclick="openAchieve()"><span>🏆 Cup</span></button>
              <button class="btn btn-daycare" onclick="openDaycare()"><span>🏡 Care</span></button>
         </div>
         <button class="btn btn-daily" onclick="openDaily()"><span>🎁 Daily</span></button>
         <button class="btn btn-dex" onclick="showPokedex()"><span>📖 Dex</span></button>
         <button class="btn btn-log" onclick="showUpdates()"><span>📜 Updates</span></button>`;
+    }
+
+    // --- NEW: HEAL CENTER ---
+    function healAll() {
+        if(currentWild) return;
+        let count = 0;
+        myBag.forEach(p => {
+            if(p.hp < p.maxHp) {
+                p.hp = p.maxHp;
+                count++;
+            }
+        });
+        saveGame();
+        updateStats();
+        if(count > 0) {
+            log(`<span style="color:#ff7675; font-weight:bold">🏥 Nurse Joy: Đã hồi phục cho ${count} Pokemon của bạn!</span>`);
+            alert("Nurse Joy: Chào mừng tới Pokemon Center! Team của bạn đã khỏe mạnh.");
+        } else {
+            alert("Nurse Joy: Pokemon của bạn vẫn rất khỏe mạnh!");
+        }
     }
     
     function showUpdates() { document.getElementById('update-modal').style.display = 'flex'; }
@@ -576,7 +598,6 @@
                 let percent = Math.min(100, Math.floor((p.steps / p.maxSteps) * 100));
                 return `<div class="bag-row egg-row"><div style="display:flex;align-items:center;gap:10px"><img src="${URL_ITEMS}lucky-egg.png" width="40"><div><b>Mystery Egg</b><br><div class="xp-container"><div class="xp-fill" style="width:${percent}%; background:#f1c40f"></div></div><span style="font-size:0.7em">${p.steps}/${p.maxSteps} bước</span></div></div><div>${percent>=100 ? `<button class="btn-small" style="background:#f1c40f;color:black" onclick="hatchEgg(${realIdx})">NỞ!</button>` : '...'}</div></div>`;
             }
-            // Ensure stats & moves
             ensureDataIntegrity(p);
 
             if(!p.types) p.types = ['normal'];
@@ -585,9 +606,9 @@
             let pr = Math.floor((p.baseXp * 0.5 + p.iv * 3) + rarityBonus); if(pr < 10) pr = 10;
             let xpPercent = (p.xp / p.maxXp) * 100; let hpPercent = (p.hp / p.maxHp) * 100; let hpColor = getHpColor(hpPercent);
             let evoBtn = `<button class="btn-small btn-evo" onclick="checkEvolution(${realIdx}, this)">Evo</button>`;
-            let healBtn = p.hp < p.maxHp ? `<button class="btn-small btn-heal" onclick="usePotion(${realIdx})">Heal</button>` : '';
+            // Removed Heal Button from Bag
             let candyBtn = inventory['rare-candy'] > 0 ? `<button class="btn-small btn-candy" onclick="useCandy(${realIdx})">Candy</button>` : '';
-            return `<div class="bag-row"><div style="display:flex;align-items:center;gap:10px; flex:1"><img src="${p.img}" width="40" style="${p.hp<=0?'filter:grayscale(1)':''}"><div style="width:100%"><div style="display:flex;justify-content:space-between"><span><span class="rarity-tag ${r.class}">${r.label}</span> <b>${p.name}</b></span><span style="font-size:0.8em;font-weight:bold;color:${hpColor}">${p.hp}/${p.maxHp}</span></div><span style="font-size:0.7em; color:#aaa">Lv.${p.level} | IV:${p.iv}</span><div class="hp-container"><div class="hp-fill" style="width:${hpPercent}%; background:${hpColor}"></div></div></div></div><div class="bag-actions"><button class="btn-small btn-battle" onclick="openBattleModal(${realIdx})">ĐẤU</button>${healBtn} ${candyBtn} ${evoBtn}<button class="btn-small btn-sell" onclick="sell(${realIdx},${pr})">Bán +${pr}</button></div></div>`;
+            return `<div class="bag-row"><div style="display:flex;align-items:center;gap:10px; flex:1"><img src="${p.img}" width="40" style="${p.hp<=0?'filter:grayscale(1)':''}"><div style="width:100%"><div style="display:flex;justify-content:space-between"><span><span class="rarity-tag ${r.class}">${r.label}</span> <b>${p.name}</b></span><span style="font-size:0.8em;font-weight:bold;color:${hpColor}">${p.hp}/${p.maxHp}</span></div><span style="font-size:0.7em; color:#aaa">Lv.${p.level} | IV:${p.iv}</span><div class="hp-container"><div class="hp-fill" style="width:${hpPercent}%; background:${hpColor}"></div></div></div></div><div class="bag-actions"><button class="btn-small btn-battle" onclick="openBattleModal(${realIdx})">ĐẤU</button> ${candyBtn} ${evoBtn}<button class="btn-small btn-sell" onclick="sell(${realIdx},${pr})">Bán +${pr}</button></div></div>`;
         }).join('');
         log(`<div class="embed" style="border-left-color:#5865f2"><span class="embed-title">🎒 Backpack</span><div class="embed-desc" style="max-height:300px;overflow-y:auto">${listHtml}</div></div>`);
     }
@@ -601,14 +622,17 @@
         const isShiny = Math.random() < 0.1; let img = data.sprites.other['official-artwork'].front_default || data.sprites.front_default; if(isShiny) img = data.sprites.front_shiny || img;
         let iv = Math.floor(Math.random() * 32); 
         
-        let baseHp = data.stats.find(s => s.stat.name === 'hp').base_stat;
-        let baseAtk = data.stats.find(s => s.stat.name === 'attack').base_stat;
-        let baseDef = data.stats.find(s => s.stat.name === 'defense').base_stat;
-        let baseSpd = data.stats.find(s => s.stat.name === 'speed').base_stat;
-        
-        let p = { id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, baseHp: baseHp, baseAtk: baseAtk, baseDef: baseDef, baseSpd: baseSpd, level: 1, xp: 0, maxXp: 100 };
-        recalcStats(p); // Calc HP, Atk, Def, Spd
-        assignMoves(p); // Assign Moves
+        // Fetch ALL 6 Stats
+        let stats = {};
+        data.stats.forEach(s => { stats[s.stat.name] = s.base_stat; });
+
+        let p = { 
+            id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, 
+            baseHp: stats['hp'], baseAtk: stats['attack'], baseDef: stats['defense'], baseSpA: stats['special-attack'], baseSpD: stats['special-defense'], baseSpd: stats['speed'],
+            level: 1, xp: 0, maxXp: 100 
+        };
+        recalcStats(p); 
+        assignMoves(p); 
 
         myBag[idx] = p;
         if(isShiny) userStats.shinies++; saveGame(); renderBag();
@@ -624,13 +648,15 @@
             const id = Math.floor(Math.random()*MAX_ID)+1; const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); const data = await res.json();
             const isShiny = Math.random() < 0.01; let img = data.sprites.other['official-artwork'].front_default || data.sprites.front_default; if(isShiny) img = data.sprites.front_shiny || img;
             
-            let baseHp = data.stats.find(s => s.stat.name === 'hp').base_stat;
-            let baseAtk = data.stats.find(s => s.stat.name === 'attack').base_stat;
-            let baseDef = data.stats.find(s => s.stat.name === 'defense').base_stat;
-            let baseSpd = data.stats.find(s => s.stat.name === 'speed').base_stat;
+            let stats = {};
+            data.stats.forEach(s => { stats[s.stat.name] = s.base_stat; });
             let iv = Math.floor(Math.random() * 32); 
             
-            let p = { id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, baseHp: baseHp, baseAtk: baseAtk, baseDef: baseDef, baseSpd: baseSpd, level: 1, xp: 0, maxXp: 100 };
+            let p = { 
+                id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, 
+                baseHp: stats['hp'], baseAtk: stats['attack'], baseDef: stats['defense'], baseSpA: stats['special-attack'], baseSpD: stats['special-defense'], baseSpd: stats['speed'],
+                level: 1, xp: 0, maxXp: 100 
+            };
             recalcStats(p);
             assignMoves(p);
 
@@ -690,11 +716,11 @@
     }
     function closeBattle() { document.getElementById('battle-modal').style.display = 'none'; }
     
-    // --- BATTLE LOGIC ENGINE v1.8 ---
+    // --- BATTLE LOGIC ENGINE v1.9 ---
     async function startBattle(difficulty) {
         let p = myBag[selectedBattleIdx];
-        ensureDataIntegrity(p); // Calc stats & moves if missing
-        if(p.hp <= 0) return alert("Pokemon này đã ngất! Hãy hồi máu.");
+        ensureDataIntegrity(p); 
+        if(p.hp <= 0) return alert("Pokemon này đã ngất! Hãy hồi máu tại Center.");
 
         document.getElementById('battle-select-screen').style.display = 'none';
         document.getElementById('battle-combat-screen').style.display = 'flex';
@@ -727,6 +753,8 @@
             maxHp: calculateMaxHp(baseStat, 15, enemyLevel),
             atk: calculateStat(baseStat, 15, enemyLevel),
             def: calculateStat(baseStat, 15, enemyLevel),
+            spA: calculateStat(baseStat, 15, enemyLevel),
+            spD: calculateStat(baseStat, 15, enemyLevel),
             spd: calculateStat(baseStat, 15, enemyLevel)
         };
         enemyStats.hp = enemyStats.maxHp;
@@ -830,7 +858,6 @@
         let p = battleState.player; let e = battleState.enemy;
         let pSpeed = p.spd || 10; let eSpeed = e.spd || 10;
         
-        // Determine order
         let playerFirst = pSpeed >= eSpeed;
         if(pSpeed === eSpeed) playerFirst = Math.random() < 0.5;
 
@@ -853,10 +880,8 @@
         
         if(action === 'attack') {
             logBattle(`<b>${p.name}</b> dùng ${move.name}!`);
-            
-            // Calc Damage: ( (2*Lv/5 + 2) * Pwr * A/D ) / 50 + 2
             let typeMod = getEffectiveness(move.type, e.types);
-            let dmg = calculateDamage(p.level, move.pwr, p.atk, e.def, typeMod);
+            let dmg = calculateDamage(p, e, move, typeMod);
             
             // Animation
             document.getElementById('player-sprite').style.transform = "translateX(20px)";
@@ -885,14 +910,12 @@
         if(battleState.enemy.hp <= 0) return;
         let p = battleState.player; let e = battleState.enemy;
         
-        // Enemy selects move randomly (AI)
         let pool = MOVES_DB[e.types[0]] || MOVES_DB['normal'];
         let move = pool[Math.floor(Math.random() * pool.length)];
 
         logBattle(`Địch dùng ${move.name}!`);
-        
         let typeMod = getEffectiveness(move.type, p.types);
-        let dmg = calculateDamage(e.level, move.pwr, e.atk, p.def, typeMod);
+        let dmg = calculateDamage(e, p, move, typeMod);
         
         document.getElementById('enemy-sprite').style.transform = "translateX(-20px)";
         setTimeout(()=>document.getElementById('enemy-sprite').style.transform="translateX(0)", 200);
@@ -901,10 +924,16 @@
         applyDamage(p, dmg, 'player');
     }
 
-    function calculateDamage(level, power, atk, def, typeMod) {
-        // Official Pokemon Damage Formula
-        let base = ((((2 * level / 5 + 2) * power * (atk / def)) / 50) + 2);
-        return Math.floor(base * typeMod * (Math.random() * 0.15 + 0.85)); // 85-100% Variance
+    function calculateDamage(attacker, defender, move, typeMod) {
+        // DAMAGE FORMULA:
+        // Damage = ((((2 * Level / 5 + 2) * Power * A / D) / 50) + 2) * Modifiers
+        // Check Category (Phys vs Spec)
+        let isSpecial = SPECIAL_TYPES.includes(move.type);
+        let atk = isSpecial ? attacker.spA : attacker.atk;
+        let def = isSpecial ? defender.spD : defender.def;
+        
+        let base = ((((2 * attacker.level / 5 + 2) * move.pwr * (atk / def)) / 50) + 2);
+        return Math.floor(base * typeMod * (Math.random() * 0.15 + 0.85)); 
     }
 
     function getEffectiveness(atkType, defTypes) {
@@ -1182,9 +1211,11 @@
     p.baseHp = d2.stats.find(s=>s.stat.name==='hp').base_stat; 
     p.baseAtk = d2.stats.find(s=>s.stat.name==='attack').base_stat; 
     p.baseDef = d2.stats.find(s=>s.stat.name==='defense').base_stat; 
+    p.baseSpA = d2.stats.find(s=>s.stat.name==='special-attack').base_stat; 
+    p.baseSpD = d2.stats.find(s=>s.stat.name==='special-defense').base_stat; 
     p.baseSpd = d2.stats.find(s=>s.stat.name==='speed').base_stat; 
     recalcStats(p); 
-    assignMoves(p); // New moves on Evo
+    assignMoves(p); 
     saveGame(); openBag(); log(`<div class="embed" style="border-left-color:#9b59b6"><div class="embed-header"><div><span class="embed-title">TIẾN HÓA!</span><div class="embed-desc"><b>${p.name}</b><br>HP: ${p.maxHp} | ATK: ${p.atk}</div></div><img class="poke-sprite" src="${p.img}"></div></div>`); } else { btn.innerHTML = "Evo"; btn.classList.remove('loading'); let reqText = reqType === 'use-item' ? 'Cần Evo Stone' : `Cần Level ${(details && details.min_level) || 25}`; alert(`Chưa đủ điều kiện!\n${reqText}`); } } catch(e) { console.log(e); btn.innerHTML="Err"; btn.classList.remove('loading'); } })(); }
     function findNodeInChain(node, name) { if (node.species.name === name) return node; for (let child of node.evolves_to) { let f = findNodeInChain(child, name); if (f) return f; } return null; }
 </script>
