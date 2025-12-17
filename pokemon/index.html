@@ -990,9 +990,20 @@
 
     function useMove(moveIdx) {
         if(!battleState.active) return;
-        let move = battleState.player.moves[moveIdx];
+        
+        // 1. Ẩn menu ngay lập tức để tránh bấm đúp
         hideMoveMenu();
-        executeTurn('attack', move);
+        
+        // 2. Gọi engine mới với tham số là INDEX (số thứ tự 0,1,2,3)
+        // Lưu ý: Hàm executeTurn giờ là async, nhưng ở đây ta gọi không cần await
+        executeTurn('attack', moveIdx).catch(err => {
+            console.error("Lỗi Battle:", err);
+            alert("Đã xảy ra lỗi trong trận đấu! Xem console (F12) để biết chi tiết.");
+            // Hiện lại menu nếu lỗi để không bị kẹt
+            document.getElementById('battle-main-menu').style.display = 'grid';
+            document.getElementById('battle-main-menu').style.opacity = '1';
+            document.getElementById('battle-main-menu').style.pointerEvents = 'auto';
+        });
     }
 
     function updateBattleUI() {
@@ -1018,9 +1029,15 @@
     function playerHeal() {
         if(!battleState.active) return;
         if((inventory['potion'] || 0) <= 0) return logBattle("Hết Potion!");
-        executeTurn('heal');
+        
+        // Gọi executeTurn với hành động 'heal', tham số sau để null
+        executeTurn('heal', null);
     }
-    function playerSkip() { if(!battleState.active) return; executeTurn('skip'); }
+
+    function playerSkip() { 
+        if(!battleState.active) return;
+        executeTurn('skip', null); 
+    }
     function playerRun() {
         if(battleState.difficulty === 'hard') return logBattle("Không thể bỏ chạy khỏi Gym!");
         logBattle("Đã bỏ chạy thành công!");
@@ -1444,6 +1461,7 @@
 </script>
 </body>
 </html>
+
 
 
 
