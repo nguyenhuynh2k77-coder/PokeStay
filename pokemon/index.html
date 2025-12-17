@@ -105,16 +105,19 @@
     </div>
     
     <div id="app">
-        <header>
-            <div style="display:flex; flex-direction:column">
-                <div style="display:flex; align-items:center; gap:5px">
-                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" width="24" height="24">
-                    <span>PokeStay v2.3</span>
-                </div>
-                <span id="display-username" style="font-size:0.8em; color:#bbb">TRAINER</span>
-            </div>
-            <div class="stats"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/nugget.png" style="width:20px"> <span id="coin-display">0</span></div>
-        </header>
+       <header>
+    <div style="display:flex; flex-direction:column">
+        <div style="display:flex; align-items:center; gap:5px">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" width="24" height="24">
+            <span>PokeStay v2.3.1</span>
+        </div>
+        <span id="display-username" style="font-size:0.8em; color:#bbb">TRAINER</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px">
+        <button id="btn-mute" onclick="toggleMute()" style="background:none; border:none; cursor:pointer; font-size:1.2em">🔊</button>
+        <div class="stats"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/nugget.png" style="width:20px"> <span id="coin-display">0</span></div>
+    </div>
+    </header>
         <div id="badge-bar" style="display:none; gap:5px; justify-content:center; background:rgba(0,0,0,0.2); padding:5px;"></div>
         <div id="buff-bar" style="padding: 5px 15px; font-size: 0.75em; display: flex; gap: 10px; background: rgba(0,0,0,0.3); min-height: 20px;"></div>
         <div id="chat-area"></div>
@@ -193,6 +196,60 @@
 <script>
     // --- DATA & CONFIG ---
     let currentUser = "";
+    // --- AUDIO SYSTEM (NEW) ---
+    let isMuted = false;
+    const AUDIO_SRC = {
+        bgm_battle: "https://upload.wikimedia.org/wikipedia/commons/c/c4/Urgent_Stop.ogg", // Nhạc nền ví dụ (bạn có thể thay link mp3 khác)
+        sfx_level: "https://upload.wikimedia.org/wikipedia/commons/1/13/7550_-_sfx_level_up_2.wav",
+        sfx_catch: "https://upload.wikimedia.org/wikipedia/commons/3/3a/Cat_meow.ogg" // Tạm dùng tiếng mèo làm tiếng bắt :D
+    };
+    
+    let currentBGM = new Audio();
+    currentBGM.loop = true;
+
+    function toggleMute() {
+        isMuted = !isMuted;
+        document.getElementById('btn-mute').innerText = isMuted ? "🔇" : "🔊";
+        if(isMuted) { currentBGM.pause(); } 
+        else if(battleState.active) { playBGM('battle'); }
+    }
+
+    function playCry(id) {
+        if(isMuted) return;
+        // API LẤY TIẾNG POKEMON TỰ ĐỘNG
+        let audio = new Audio(`https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`);
+        audio.volume = 0.6;
+        audio.play().catch(e => console.log("Audio play error:", e));
+    }
+
+    function playBGM(type) {
+        if(isMuted) return;
+        if(type === 'battle') currentBGM.src = AUDIO_SRC.bgm_battle;
+        else currentBGM.src = ""; // Stop music
+        
+        if(currentBGM.src) {
+            currentBGM.volume = 0.3;
+            currentBGM.play().catch(e => console.log("BGM error:", e));
+        }
+    }
+
+    function stopBGM() {
+        currentBGM.pause();
+        currentBGM.currentTime = 0;
+    }
+
+    function playSFX(type) {
+        if(isMuted) return;
+        let src = "";
+        if(type === 'levelup') src = AUDIO_SRC.sfx_level;
+        if(type === 'catch') src = AUDIO_SRC.sfx_catch;
+        
+        if(src) {
+            let a = new Audio(src);
+            a.volume = 0.5;
+            a.play();
+        }
+    }
     const BASE_SAVE_KEY = 'poke_save_';
     const AUTH_KEY = 'poke_auth_'; 
     const MAX_ID = 649;
@@ -572,6 +629,7 @@
         assignMoves(p); 
 
         myBag[idx] = p;
+        playCry(p.id);
         if(isShiny) userStats.shinies++; saveGame(); renderBag();
         log(`<div class="embed" style="border-left-color:#f1c40f"><div class="embed-header"><div><span class="embed-title">🐣 TRỨNG NỞ!</span><div class="embed-desc">Chào mừng <b>${isShiny?'✨ ':''}${data.name.toUpperCase()}</b> (IV: ${iv}) - HP: ${p.maxHp}</div></div><img class="poke-sprite" src="${img}"></div></div>`);
     }
@@ -596,7 +654,9 @@
             recalcStats(p);
             assignMoves(p);
 
+            // Trong hàm spawnPokemon()
             currentWild = p;
+            playCry(p.id); // <--- THÊM DÒNG NÀY: Kêu khi xuất hiện
             const r = getRarity(currentWild);
             log(`<div class="embed" style="border-left-color:${isShiny?'#e74c3c':'#00b0f4'}"><div class="embed-header"><div><span class="rarity-tag ${r.class}">${r.label}</span> <span class="embed-title">${currentWild.name}</span><div class="embed-desc">IV: ${currentWild.iv}/31 | HP: ${p.maxHp}</div></div><img class="poke-sprite" src="${currentWild.img}"></div></div>`);
             renderBattleControls();
@@ -622,6 +682,7 @@
         inventory[bid]--; saveGame(); log(`<i>Ném bóng...</i>`);
         setTimeout(() => {
             if(Math.random() < rate) { 
+                playSFX('catch');
                 pokedex.add(currentWild.id); myBag.push(currentWild); 
                 let m = 100 + (currentWild.iv * 5); if(currentWild.isShiny) m *= 5; 
                 let amulets = inventory['amulet-coin'] || 0; if(amulets>10) amulets=10; let bonus = Math.floor(m * (amulets * 0.05));
@@ -714,6 +775,8 @@
         updateBattleUI();
         let atkStat = p.atk; let defStat = enemy.def;
         logBattle(`<b>${enemyName}</b> xuất hiện! (HP: ${enemy.maxHp})`);
+        playCry(battleState.enemy.id || Math.floor(Math.random()*151)); // Kêu tiếng địch
+playBGM('battle');
         
         document.getElementById('battle-main-menu').style.display = 'grid';
         document.getElementById('battle-move-menu').style.display = 'none';
@@ -955,6 +1018,7 @@
         }
         
         if(p.xp >= p.maxXp) {
+            playSFX('levelup');
             p.level++; p.xp -= p.maxXp; p.maxXp = Math.floor(p.maxXp * 1.2);
             recalcStats(p);
             logBattle(`🆙 Lên cấp ${p.level}! Stats tăng!`);
@@ -964,6 +1028,7 @@
     }
 
     function endBattle() {
+        stopBGM();
         document.getElementById('battle-modal').style.display = 'none';
         updateStats();
         openBag(); 
@@ -1027,3 +1092,4 @@
 </script>
 </body>
 </html>
+
