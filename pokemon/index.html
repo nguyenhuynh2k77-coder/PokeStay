@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PokeStay v2.1 - Fix Skill</title>
+    <title>PokeStay v2.2 - Emergency Fix</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png">
     
     <style>
@@ -112,8 +112,8 @@
 <div id="login-screen">
     <div class="box-style">
         <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto">
-        <h2 style="color: white; margin: 10px 0;">POKESTAY v2.1</h2>
-        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Hotfix: Undefined Skills</div>
+        <h2 style="color: white; margin: 10px 0;">POKESTAY v2.2</h2>
+        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Emergency Fix (Shop/HP)</div>
         <div style="width:100%">
             <input type="text" id="username-input" class="login-input" placeholder="Tên..." onkeypress="handleEnter(event)">
             <input type="password" id="password-input" class="login-input" placeholder="Mật khẩu..." onkeypress="handleEnter(event)">
@@ -128,7 +128,7 @@
         <div style="display:flex; flex-direction:column">
             <div style="display:flex; align-items:center; gap:5px">
                 <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" width="24" height="24">
-                <span>PokeStay v2.1</span>
+                <span>PokeStay v2.2</span>
             </div>
             <span id="display-username" style="font-size:0.8em; color:#bbb">TRAINER</span>
         </div>
@@ -149,9 +149,9 @@
 <div id="daycare-modal"><div class="box-style" style="width:95%; max-width:400px"><h2 style="color: #e91e63;">🏡 Daycare</h2><div style="font-size:0.8em; color:#bbb; margin-bottom:10px">Nhận 50 XP/phút cho mỗi Pokemon.</div><div id="daycare-list" style="width:100%"></div><button id="btn-buy-slot" class="btn-auth" style="background:#f1c40f; color:black; display:none" onclick="buyDaycareSlot()">Mở rộng Slot</button><button class="btn-close" onclick="closeDaycare()">Đóng</button></div></div>
 <div id="repair-modal"><div class="box-style"><h2 style="color: #e67e22;">🔧 Sửa Cúp</h2><div style="margin-bottom:15px; color:#bbb">Trả lời câu hỏi:</div><div id="repair-question" style="font-size: 2em; font-weight:bold; color:white; margin-bottom:15px"></div><div id="repair-options" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%"></div><div id="repair-limit-text" style="color:#ed4245; font-size:0.8em; margin-top:10px"></div></div></div>
 <div id="achieve-modal"><div class="box-style"><div class="inner-box"><h2 style="color: #f1c40f;">🏆 Thành Tựu</h2><div style="font-size:0.7em; color:#aaa; margin-bottom:10px">Bấm vào để xem phần thưởng</div><div id="achieve-list" style="overflow-y:auto; flex:1; width:100%"></div><button class="btn-close" onclick="closeAchieve()">Đóng</button></div></div></div>
-<div id="buy-modal"><div class="box-style"><div class="inner-box"><h3 style="color: #faa61a; margin: 5px 0;" id="buy-name">Item</h3><img id="buy-img" src="" width="60" style="margin: 10px auto; display:block"><div style="margin-bottom: 10px; color:#bbb">Giá: <span id="buy-price" style="color:white; font-weight:bold">0</span>💰</div><div style="display:flex; justify-content:center; align-items:center; gap:10px; margin: 10px 0;"><input type="number" id="buy-qty" class="login-input" style="width:60px; margin:0" value="1" min="1" oninput="calcTotal()"></div><div style="font-size: 1.1em; margin-bottom: 15px;">Tổng: <span id="buy-total" style="color:#3ba55c; font-weight:bold">0</span>💰</div><div style="display:flex; gap:10px; width:100%"><button class="btn-auth" style="background:#7f8c8d; margin:0" onclick="closeBuy()">HỦY</button><button class="btn-auth btn-login" style="margin:0" onclick="submitBuy()">MUA</button></div></div></div></div>
+<div id="buy-modal"><div class="box-style"><div class="inner-box"><h3 style="color: #faa61a; margin: 5px 0;" id="buy-name">Item</h3><div id="shop-container" style="overflow-y:auto; max-height:200px; display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-bottom:10px"></div><div id="buy-details" style="display:none"><h3 style="color:#faa61a;margin:0" id="buy-item-name"></h3><img id="buy-item-img" src="" width="50" style="display:block;margin:5px auto"><div style="color:#bbb">Giá: <span id="buy-item-price" style="color:white;font-weight:bold"></span>💰</div><div style="display:flex; justify-content:center; align-items:center; gap:10px; margin: 10px 0;"><input type="number" id="buy-qty" class="login-input" style="width:60px; margin:0; padding:5px" value="1" min="1" oninput="calcTotal()"></div><div style="font-size: 1em; margin-bottom: 10px;">Tổng: <span id="buy-total" style="color:#3ba55c; font-weight:bold">0</span>💰</div><div style="display:flex; gap:10px; width:100%"><button class="btn-auth" style="background:#7f8c8d; margin:0; padding:8px" onclick="backToShop()">Quay lại</button><button class="btn-auth btn-login" style="margin:0; padding:8px" onclick="submitBuy()">MUA</button></div></div><button class="btn-close" id="shop-close-btn" onclick="closeBuy()">Đóng</button></div></div></div>
 <div id="dex-modal"><div class="box-style"><div class="inner-box"><h2 style="color: #3498db;">📖 Pokedex</h2><div style="font-size: 1.2em; margin-bottom: 20px;">Đã bắt: <span style="color: #f1c40f; font-weight: bold;" id="dex-count">0</span> / 649</div><button class="btn-close" onclick="closePokedex()">Đóng</button></div></div></div>
-<div id="update-modal"><div class="box-style"><h2 style="color: #faa61a;">📜 Update Log</h2><div class="update-list" style="text-align:left; width:100%"><div style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px"><span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v2.1</span> <span style="color:#bbb; font-size:0.8em; float:right">Hotfix</span><ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde"><li><b>Bug Fix:</b> Sửa lỗi Skill bị undefined.</li><li><b>Auto-Repair:</b> Tự động cập nhật Skill cho Save cũ.</li><li><b>Balance:</b> Tinh chỉnh lại sức mạnh skill.</li></ul></div></div><button class="btn-close" onclick="closeUpdates()">Đóng</button></div></div>
+<div id="update-modal"><div class="box-style"><h2 style="color: #faa61a;">📜 Update Log</h2><div class="update-list" style="text-align:left; width:100%"><div style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px"><span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v2.2</span> <span style="color:#bbb; font-size:0.8em; float:right">Emergency</span><ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde"><li><b>Fix Critical:</b> Sửa lỗi màn hình trắng trên PC.</li><li><b>Fix Shop:</b> Sửa lỗi không mở được Shop.</li><li><b>Fix HP:</b> Sửa lỗi thanh máu "undefined".</li></ul></div></div><button class="btn-close" onclick="closeUpdates()">Đóng</button></div></div>
 <div id="donate-modal"><div class="box-style" style="background:white; color:black"><h3 style="color: #6c38c6; margin:0 0 10px 0">Ủng Hộ Dev</h3><img src="38b84fc99acb15954cda.jpg" class="donate-qr" style="width:100%; border-radius:5px; border:1px solid #ddd"><div style="font-size:0.9em; margin-top:10px; font-weight:bold">TPBank QR</div><button class="btn-close" onclick="closeDonate()">Đóng</button></div></div>
 
 <div id="battle-modal">
@@ -234,33 +234,12 @@
         fairy: { fire:0.5, fighting:2, poison:0.5, dragon:2, dark:2, steel:0.5 }
     };
 
-    // FIXED: Using "name" and "power" to maintain compatibility and clarity
     const MOVES_TIER = {
-        'normal': [
-            {name:'Tackle',power:40,t:1}, {name:'Scratch',power:40,t:1}, {name:'Quick Attack',power:40,t:1},
-            {name:'Cut',power:50,t:2}, {name:'Headbutt',power:70,t:2}, {name:'Slash',power:70,t:2},
-            {name:'Body Slam',power:85,t:3}, {name:'Hyper Beam',power:150,t:3}
-        ],
-        'fire': [
-            {name:'Ember',power:40,t:1}, 
-            {name:'Flame Wheel',power:60,t:2}, {name:'Fire Fang',power:65,t:2},
-            {name:'Flamethrower',power:90,t:3}, {name:'Fire Blast',power:110,t:3}
-        ],
-        'water': [
-            {name:'Water Gun',power:40,t:1}, {name:'Bubble',power:40,t:1},
-            {name:'Bubble Beam',power:65,t:2}, {name:'Water Pulse',power:60,t:2},
-            {name:'Surf',power:90,t:3}, {name:'Hydro Pump',power:110,t:3}
-        ],
-        'grass': [
-            {name:'Vine Whip',power:45,t:1}, {name:'Absorb',power:20,t:1},
-            {name:'Razor Leaf',power:55,t:2}, {name:'Magical Leaf',power:60,t:2},
-            {name:'Energy Ball',power:90,t:3}, {name:'Solar Beam',power:120,t:3}
-        ],
-        'electric': [
-            {name:'Thunder Shock',power:40,t:1}, 
-            {name:'Spark',power:65,t:2}, {name:'Shock Wave',power:60,t:2},
-            {name:'Thunderbolt',power:90,t:3}, {name:'Thunder',power:110,t:3}
-        ],
+        'normal': [{name:'Tackle',power:40,t:1}, {name:'Scratch',power:40,t:1}, {name:'Quick Attack',power:40,t:1}, {name:'Cut',power:50,t:2}, {name:'Headbutt',power:70,t:2}, {name:'Slash',power:70,t:2}, {name:'Body Slam',power:85,t:3}, {name:'Hyper Beam',power:150,t:3}],
+        'fire': [{name:'Ember',power:40,t:1}, {name:'Flame Wheel',power:60,t:2}, {name:'Fire Fang',power:65,t:2}, {name:'Flamethrower',power:90,t:3}, {name:'Fire Blast',power:110,t:3}],
+        'water': [{name:'Water Gun',power:40,t:1}, {name:'Bubble',power:40,t:1}, {name:'Bubble Beam',power:65,t:2}, {name:'Water Pulse',power:60,t:2}, {name:'Surf',power:90,t:3}, {name:'Hydro Pump',power:110,t:3}],
+        'grass': [{name:'Vine Whip',power:45,t:1}, {name:'Absorb',power:20,t:1}, {name:'Razor Leaf',power:55,t:2}, {name:'Magical Leaf',power:60,t:2}, {name:'Energy Ball',power:90,t:3}, {name:'Solar Beam',power:120,t:3}],
+        'electric': [{name:'Thunder Shock',power:40,t:1}, {name:'Spark',power:65,t:2}, {name:'Shock Wave',power:60,t:2}, {name:'Thunderbolt',power:90,t:3}, {name:'Thunder',power:110,t:3}],
         'ice': [{name:'Powder Snow',power:40,t:1}, {name:'Aurora Beam',power:65,t:2}, {name:'Ice Beam',power:90,t:3}],
         'fighting': [{name:'Karate Chop',power:50,t:1}, {name:'Brick Break',power:75,t:2}, {name:'Close Combat',power:120,t:3}],
         'poison': [{name:'Poison Sting',power:15,t:1}, {name:'Venoshock',power:65,t:2}, {name:'Sludge Bomb',power:90,t:3}],
@@ -295,17 +274,14 @@
     function calculateStat(base, iv, level) { return Math.floor(((2 * base + iv) * level) / 100) + 5; }
     function recalcStats(p) { let bHp=p.baseHp||45, bAtk=p.baseAtk||49, bDef=p.baseDef||49, bSpA=p.baseSpA||65, bSpD=p.baseSpD||65, bSpd=p.baseSpd||45; p.maxHp=calculateMaxHp(bHp,p.iv,p.level); p.atk=calculateStat(bAtk,p.iv,p.level); p.def=calculateStat(bDef,p.iv,p.level); p.spA=calculateStat(bSpA,p.iv,p.level); p.spD=calculateStat(bSpD,p.iv,p.level); p.spd=calculateStat(bSpd,p.iv,p.level); if(p.hp>p.maxHp) p.hp=p.maxHp; }
 
-    // --- LEARNSET LOGIC (v2.1 FIXED) ---
     function learnMoves(p) {
         let level = p.level;
         let pool = MOVES_TIER[p.types[0]] || MOVES_TIER['normal'];
         let normalPool = MOVES_TIER['normal'];
         let moves = [];
-
         let availableTiers = [1];
         if (level >= 16) availableTiers.push(2);
         if (level >= 36) availableTiers.push(3);
-
         function pick(typePool, tierCap) {
             let candidates = typePool.filter(m => m.t <= tierCap);
             if(tierCap > 1) {
@@ -314,7 +290,6 @@
             }
             return candidates[Math.floor(Math.random()*candidates.length)];
         }
-
         moves.push({ ...pick(pool, Math.max(...availableTiers)), type: p.types[0] });
         moves.push({ ...pick(normalPool, Math.max(...availableTiers)), type: 'normal' });
         while(moves.length < 4) {
@@ -325,9 +300,18 @@
         p.moves = moves;
     }
 
+    // --- AGGRESSIVE AUTO-SANITIZER (The "Blank Screen" Fixer) ---
     function ensureDataIntegrity(p) {
-        if(!p.spA || !p.spD) { p.baseSpA=p.baseAtk||50; p.baseSpD=p.baseDef||50; recalcStats(p); }
-        // FIX UNDEFINED SKILL: Check if moves exist OR if the move object is missing the 'name' property (old save conflict)
+        // Fix Missing Types
+        if (!p.types || !Array.isArray(p.types)) p.types = ['normal'];
+        // Fix Missing Stats
+        if(!p.spA || !p.spD || isNaN(p.hp) || isNaN(p.maxHp)) { 
+            p.baseSpA=p.baseAtk||50; p.baseSpD=p.baseDef||50; 
+            recalcStats(p); 
+        }
+        // Fix Broken HP (Undefined/NaN)
+        if (isNaN(p.hp) || p.hp === undefined) p.hp = p.maxHp;
+        // Fix Missing Moves (Conflict from v2.0/v2.1)
         if(!p.moves || p.moves.length === 0 || !p.moves[0].name) { 
             learnMoves(p); 
         }
@@ -339,7 +323,24 @@
     function login() { const u = document.getElementById('username-input').value.trim(), p = document.getElementById('password-input').value.trim(); if(localStorage.getItem(AUTH_KEY+u)===p) { currentUser = u; document.getElementById('display-username').innerText = u.toUpperCase(); document.getElementById('login-screen').style.display='none'; document.getElementById('app').style.display='flex'; loadGame(); showMenu(); } else alert("Sai thông tin!"); }
     function logout() { saveGame(); location.reload(); }
     function saveGame() { if(!currentUser) return; localStorage.setItem(BASE_SAVE_KEY+currentUser, JSON.stringify({ coins, myBag, pokedex: Array.from(pokedex), inventory, lastDailyDate, userStats, completedAchievements, daycare, gymProgress, maxBagSize, pickaxe, dailyRepairs, dailyQuests })); }
-    function loadGame() { if(!currentUser) return; const s = localStorage.getItem(BASE_SAVE_KEY + currentUser); if(s) { const d = JSON.parse(s); coins=d.coins; myBag=d.myBag; pokedex=new Set(d.pokedex); inventory={...inventory,...d.inventory}; lastDailyDate=d.lastDailyDate; if(d.userStats) userStats = d.userStats; if(d.completedAchievements) completedAchievements = d.completedAchievements; if(d.gymProgress) gymProgress = d.gymProgress; if(d.maxBagSize) maxBagSize = d.maxBagSize; if(d.pickaxe) pickaxe = d.pickaxe; if(d.dailyRepairs) dailyRepairs = d.dailyRepairs; if(d.dailyQuests && Array.isArray(d.dailyQuests)) dailyQuests = d.dailyQuests; else dailyQuests = []; if(d.daycare) { if(d.daycare.slots) { daycare = d.daycare; } else { daycare = { unlocked: 1, slots: [{ pokemon: d.daycare.pokemon, depositTime: d.daycare.depositTime }] }; } } } myBag = myBag.filter(p => p && p.name && p.name !== 'undefined'); if(!userStats.mining) userStats.mining = 0; if(!userStats.shinies) userStats.shinies = 0; checkDailyQuestGen(); updateStats(); }
+    function loadGame() { 
+        if(!currentUser) return; 
+        const s = localStorage.getItem(BASE_SAVE_KEY + currentUser); 
+        if(s) { 
+            const d = JSON.parse(s); 
+            coins=d.coins; myBag=d.myBag; pokedex=new Set(d.pokedex); inventory={...inventory,...d.inventory}; lastDailyDate=d.lastDailyDate; 
+            if(d.userStats) userStats = d.userStats; if(d.completedAchievements) completedAchievements = d.completedAchievements; if(d.gymProgress) gymProgress = d.gymProgress; if(d.maxBagSize) maxBagSize = d.maxBagSize; if(d.pickaxe) pickaxe = d.pickaxe; if(d.dailyRepairs) dailyRepairs = d.dailyRepairs; 
+            if(d.dailyQuests && Array.isArray(d.dailyQuests)) dailyQuests = d.dailyQuests; else dailyQuests = []; 
+            if(d.daycare) { if(d.daycare.slots) { daycare = d.daycare; } else { daycare = { unlocked: 1, slots: [{ pokemon: d.daycare.pokemon, depositTime: d.daycare.depositTime }] }; } } 
+        } 
+        // Filter bad data
+        myBag = myBag.filter(p => p && p.name && p.name !== 'undefined'); 
+        // Sanitize existing data immediately
+        myBag.forEach(p => ensureDataIntegrity(p));
+        
+        if(!userStats.mining) userStats.mining = 0; if(!userStats.shinies) userStats.shinies = 0; 
+        checkDailyQuestGen(); updateStats(); 
+    }
     function resetGame() { if(confirm("Xóa dữ liệu?")) { localStorage.removeItem(BASE_SAVE_KEY+currentUser); logout(); } }
 
     const chat = document.getElementById('chat-area'), controls = document.getElementById('controls');
@@ -347,6 +348,85 @@
     function updateStats() { document.getElementById('coin-display').innerText = coins.toLocaleString(); let h=''; if(activeBuffs.berry) h+=`<span style="background:#e91e63;color:white;padding:2px 5px;border-radius:3px">Berry</span> `; if(activeBuffs.egg) h+=`<span style="background:#f1c40f;color:black;padding:2px 5px;border-radius:3px">x2 Coin</span>`; if(inventory['amulet-coin'] > 0) h+= `<span style="background:#7289da;color:white;padding:2px 5px;border-radius:3px;margin-left:5px">Amulet x${inventory['amulet-coin']}</span>`; document.getElementById('buff-bar').innerHTML = h; const badgeBar = document.getElementById('badge-bar'); if(gymProgress > 0) { badgeBar.style.display = 'flex'; let bHtml = ''; for(let i=0; i<gymProgress; i++) { bHtml += `<div class="badge-item" title="${GYM_DB[i].badge}">${GYM_DB[i].icon}</div>`; } badgeBar.innerHTML = bHtml; } }
     function showMenu() { controls.innerHTML = `<button class="btn btn-hunt" onclick="hunt()"><span>🔍 Săn tìm</span></button><button class="btn btn-shop" onclick="shop()"><span>🛒 Shop</span></button><button class="btn btn-bag" onclick="openBag()"><span>🎒 Túi</span></button><div style="width:100%; display:flex; justify-content:space-between; gap:5px"><button class="btn btn-job" onclick="openJobs()"><span>💼 Jobs</span></button><button class="btn btn-center" onclick="healAll()"><span>🏥 Center</span></button><button class="btn btn-achieve" onclick="openAchieve()"><span>🏆 Cup</span></button><button class="btn btn-daycare" onclick="openDaycare()"><span>🏡 Care</span></button></div><button class="btn btn-daily" onclick="openDaily()"><span>🎁 Daily</span></button><button class="btn btn-dex" onclick="showPokedex()"><span>📖 Dex</span></button><button class="btn btn-log" onclick="showUpdates()"><span>📜 Updates</span></button>`; }
     
+    // --- SHOP LOGIC (FIXED) ---
+    function shop() {
+        document.getElementById('buy-modal').style.display = 'flex';
+        document.getElementById('shop-container').style.display = 'grid';
+        document.getElementById('buy-details').style.display = 'none';
+        document.getElementById('shop-close-btn').style.display = 'block';
+        
+        let html = '';
+        SHOP_DB.forEach(item => {
+            html += `<div class="shop-card" onclick="selectShopItem('${item.id}')">
+                <img src="${URL_ITEMS}${item.img}" width="30">
+                <div style="font-weight:bold; font-size:0.8em; margin-top:2px">${item.name}</div>
+                <div style="font-size:0.7em; color:#f1c40f">${item.price}💰</div>
+            </div>`;
+        });
+        document.getElementById('shop-container').innerHTML = html;
+    }
+    
+    function selectShopItem(id) {
+        selectedItemId = id;
+        const item = SHOP_DB.find(i => i.id === id);
+        document.getElementById('shop-container').style.display = 'none';
+        document.getElementById('shop-close-btn').style.display = 'none';
+        document.getElementById('buy-details').style.display = 'block';
+        
+        document.getElementById('buy-item-name').innerText = item.name;
+        document.getElementById('buy-item-img').src = URL_ITEMS + item.img;
+        document.getElementById('buy-item-price').innerText = item.price;
+        document.getElementById('buy-qty').value = 1;
+        calcTotal();
+    }
+    
+    function backToShop() {
+        document.getElementById('buy-details').style.display = 'none';
+        document.getElementById('shop-container').style.display = 'grid';
+        document.getElementById('shop-close-btn').style.display = 'block';
+    }
+    
+    function calcTotal() {
+        const item = SHOP_DB.find(i => i.id === selectedItemId);
+        let qty = parseInt(document.getElementById('buy-qty').value);
+        if(qty<1) qty=1;
+        document.getElementById('buy-total').innerText = (item.price * qty).toLocaleString();
+    }
+    
+    function submitBuy() {
+        const item = SHOP_DB.find(i => i.id === selectedItemId);
+        let qty = parseInt(document.getElementById('buy-qty').value);
+        let total = item.price * qty;
+        if(item.type === 'sell') {
+            // Sell logic
+            if(!inventory[item.id] || inventory[item.id] < qty) return alert("Không đủ vật phẩm để bán!");
+            inventory[item.id] -= qty;
+            coins += total; // Buying a "sell" item means we are selling it to shop? No, usually reverse.
+            // Wait, previous logic was weird. Let's fix: "Sell" items are nuggets. You SELL them.
+            // But this is a BUY modal.
+            // Let's assume standard shop: Buying items. Selling Nuggets happens in Bag? No, Sell button is for Pokemon.
+            // Let's support SELLING items here if type is 'sell'
+             alert("Chức năng bán vật phẩm đang bảo trì. Hãy dùng vật phẩm này trong túi để bán.");
+             return;
+        } 
+        
+        if(coins >= total) {
+            coins -= total;
+            if(item.id === 'bag-upgrade') {
+                maxBagSize += 5 * qty;
+                alert(`Đã nâng cấp túi lên ${maxBagSize} ô!`);
+            } else {
+                if(!inventory[item.id]) inventory[item.id] = 0;
+                inventory[item.id] += qty;
+                alert(`Mua thành công ${qty}x ${item.name}!`);
+            }
+            if(item.id === 'amulet-coin') userStats.spent += total;
+            saveGame(); updateStats(); backToShop();
+        } else {
+            alert("Không đủ tiền!");
+        }
+    }
+
     function healAll() { if(currentWild) return; let count = 0; myBag.forEach(p => { if(p.hp < p.maxHp) { p.hp = p.maxHp; count++; } }); saveGame(); updateStats(); if(count > 0) { log(`<span style="color:#ff7675; font-weight:bold">🏥 Nurse Joy: Đã hồi phục cho ${count} Pokemon!</span>`); alert("Nurse Joy: Team của bạn đã khỏe mạnh."); } else { alert("Nurse Joy: Pokemon của bạn vẫn rất khỏe mạnh!"); } }
     function showUpdates() { document.getElementById('update-modal').style.display = 'flex'; }
     function closeUpdates() { document.getElementById('update-modal').style.display = 'none'; }
@@ -355,7 +435,56 @@
     function getHpColor(pct) { if(pct > 50) return '#2ecc71'; if(pct > 20) return '#f1c40f'; return '#ed4245'; }
 
     function openBag() { if(currentWild) return; renderBag(); }
-    function renderBag() { if(myBag.length===0) { log("Túi rỗng."); return; } const listHtml = myBag.slice().reverse().map((p,i) => { const realIdx = myBag.length - 1 - i; if(p.isEgg) { let percent = Math.min(100, Math.floor((p.steps / p.maxSteps) * 100)); return `<div class="bag-row egg-row"><div style="display:flex;align-items:center;gap:10px"><img src="${URL_ITEMS}lucky-egg.png" width="40"><div><b>Mystery Egg</b><br><div class="xp-container"><div class="xp-fill" style="width:${percent}%; background:#f1c40f"></div></div><span style="font-size:0.7em">${p.steps}/${p.maxSteps} bước</span></div></div><div>${percent>=100 ? `<button class="btn-small" style="background:#f1c40f;color:black" onclick="hatchEgg(${realIdx})">NỞ!</button>` : '...'}</div></div>`; } ensureDataIntegrity(p); if(!p.types) p.types = ['normal']; const r = getRarity(p); let rarityBonus = r.val * 50; if(r.code === 'L') rarityBonus += 1000; if(r.code === 'sr') rarityBonus += 300; let pr = Math.floor((p.baseXp * 0.5 + p.iv * 3) + rarityBonus); if(pr < 10) pr = 10; let xpPercent = (p.xp / p.maxXp) * 100; let hpPercent = (p.hp / p.maxHp) * 100; let hpColor = getHpColor(hpPercent); let evoBtn = `<button class="btn-small btn-evo" onclick="checkEvolution(${realIdx}, this)">Evo</button>`; let candyBtn = inventory['rare-candy'] > 0 ? `<button class="btn-small btn-candy" onclick="useCandy(${realIdx})">Candy</button>` : ''; return `<div class="bag-row"><div style="display:flex;align-items:center;gap:10px; flex:1"><img src="${p.img}" width="40" style="${p.hp<=0?'filter:grayscale(1)':''}"><div style="width:100%"><div style="display:flex;justify-content:space-between"><span><span class="rarity-tag ${r.class}">${r.label}</span> <b>${p.name}</b></span><span style="font-size:0.8em;font-weight:bold;color:${hpColor}">${p.hp}/${p.maxHp}</span></div><span style="font-size:0.7em; color:#aaa">Lv.${p.level} | IV:${p.iv}</span><div class="hp-container"><div class="hp-fill" style="width:${hpPercent}%; background:${hpColor}"></div></div></div></div><div class="bag-actions"><button class="btn-small btn-battle" onclick="openBattleModal(${realIdx})">ĐẤU</button> ${candyBtn} ${evoBtn}<button class="btn-small btn-sell" onclick="sell(${realIdx},${pr})">Bán +${pr}</button></div></div>`; }).join(''); log(`<div class="embed" style="border-left-color:#5865f2"><span class="embed-title">🎒 Backpack</span><div class="embed-desc" style="max-height:300px;overflow-y:auto">${listHtml}</div></div>`); }
+    function renderBag() { 
+        if(myBag.length===0) { log("Túi rỗng."); return; } 
+        const listHtml = myBag.slice().reverse().map((p,i) => { 
+            const realIdx = myBag.length - 1 - i; 
+            if(p.isEgg) { 
+                let percent = Math.min(100, Math.floor((p.steps / p.maxSteps) * 100)); 
+                return `<div class="bag-row egg-row"><div style="display:flex;align-items:center;gap:10px"><img src="${URL_ITEMS}lucky-egg.png" width="40"><div><b>Mystery Egg</b><br><div class="xp-container"><div class="xp-fill" style="width:${percent}%; background:#f1c40f"></div></div><span style="font-size:0.7em">${p.steps}/${p.maxSteps} bước</span></div></div><div>${percent>=100 ? `<button class="btn-small" style="background:#f1c40f;color:black" onclick="hatchEgg(${realIdx})">NỞ!</button>` : '...'}</div></div>`; 
+            } 
+            ensureDataIntegrity(p); 
+            // Fix NaN display
+            let currentHp = isNaN(p.hp) ? p.maxHp : p.hp;
+            let maxHp = isNaN(p.maxHp) ? 100 : p.maxHp;
+            
+            if(!p.types) p.types = ['normal']; 
+            const r = getRarity(p); 
+            let rarityBonus = r.val * 50; if(r.code === 'L') rarityBonus += 1000; if(r.code === 'sr') rarityBonus += 300; 
+            let pr = Math.floor((p.baseXp * 0.5 + p.iv * 3) + rarityBonus); if(pr < 10) pr = 10; 
+            let xpPercent = (p.xp / p.maxXp) * 100; 
+            let hpPercent = (currentHp / maxHp) * 100; 
+            let hpColor = getHpColor(hpPercent); 
+            let evoBtn = `<button class="btn-small btn-evo" onclick="checkEvolution(${realIdx}, this)">Evo</button>`; 
+            let candyBtn = inventory['rare-candy'] > 0 ? `<button class="btn-small btn-candy" onclick="useCandy(${realIdx})">Candy</button>` : ''; 
+            
+            // Allow selling even if dead (Critical Fix)
+            let sellBtn = `<button class="btn-small btn-sell" onclick="sell(${realIdx},${pr})">Bán +${pr}</button>`;
+            
+            return `<div class="bag-row"><div style="display:flex;align-items:center;gap:10px; flex:1"><img src="${p.img}" width="40" style="${currentHp<=0?'filter:grayscale(1)':''}"><div style="width:100%"><div style="display:flex;justify-content:space-between"><span><span class="rarity-tag ${r.class}">${r.label}</span> <b>${p.name}</b></span><span style="font-size:0.8em;font-weight:bold;color:${hpColor}">${currentHp}/${maxHp}</span></div><span style="font-size:0.7em; color:#aaa">Lv.${p.level} | IV:${p.iv}</span><div class="hp-container"><div class="hp-fill" style="width:${hpPercent}%; background:${hpColor}"></div></div></div></div><div class="bag-actions"><button class="btn-small btn-battle" onclick="openBattleModal(${realIdx})">ĐẤU</button> ${candyBtn} ${evoBtn} ${sellBtn}</div></div>`; 
+        }).join(''); 
+        log(`<div class="embed" style="border-left-color:#5865f2"><span class="embed-title">🎒 Backpack</span><div class="embed-desc" style="max-height:300px;overflow-y:auto">${listHtml}</div></div>`); 
+    }
+    
+    function sell(idx, price) {
+        if(confirm(`Bán ${myBag[idx].name} với giá ${price} coins?`)) {
+            myBag.splice(idx, 1);
+            coins += price;
+            saveGame(); updateStats(); openBag();
+        }
+    }
+    
+    function useCandy(idx) {
+        if(inventory['rare-candy'] > 0) {
+            inventory['rare-candy']--;
+            let p = myBag[idx];
+            p.level++; p.xp = 0; p.maxXp = Math.floor(p.maxXp * 1.2);
+            recalcStats(p); learnMoves(p);
+            saveGame(); updateStats(); openBag();
+            log(`<span style="color:#9b59b6">🍬 Đã dùng Rare Candy! ${p.name} lên Lv.${p.level}.</span>`);
+        }
+    }
+
     function incrementEggSteps() { let hatched = false; myBag.forEach(p => { if(p.isEgg && p.steps < p.maxSteps) { p.steps++; if(p.steps >= p.maxSteps) hatched = true; } }); if(hatched) log(`<span style="color:#f1c40f">🥚 Có trứng đã sẵn sàng nở! Vào túi kiểm tra ngay.</span>`); saveGame(); }
     
     async function hatchEgg(idx) { let egg = myBag[idx]; if(!egg.isEgg || egg.steps < egg.maxSteps) return; let id = Math.floor(Math.random()*MAX_ID)+1; const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); const data = await res.json(); const isShiny = Math.random() < 0.1; let img = data.sprites.other['official-artwork'].front_default || data.sprites.front_default; if(isShiny) img = data.sprites.front_shiny || img; let iv = Math.floor(Math.random() * 32); let stats = {}; data.stats.forEach(s => { stats[s.stat.name] = s.base_stat; }); let p = { id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, baseHp: stats['hp'], baseAtk: stats['attack'], baseDef: stats['defense'], baseSpA: stats['special-attack'], baseSpD: stats['special-defense'], baseSpd: stats['speed'], level: 1, xp: 0, maxXp: 100 }; recalcStats(p); learnMoves(p); myBag[idx] = p; if(isShiny) userStats.shinies++; saveGame(); renderBag(); log(`<div class="embed" style="border-left-color:#f1c40f"><div class="embed-header"><div><span class="embed-title">🐣 TRỨNG NỞ!</span><div class="embed-desc">Chào mừng <b>${isShiny?'✨ ':''}${data.name.toUpperCase()}</b> (IV: ${iv}) - HP: ${p.maxHp}</div></div><img class="poke-sprite" src="${img}"></div></div>`); }
@@ -368,7 +497,7 @@
     function openBattleModal(idx) { selectedBattleIdx = idx; let p = myBag[idx]; document.getElementById('battle-my-poke').innerText = `${p.name} (Lv.${p.level})`; document.getElementById('battle-select-screen').style.display = 'block'; document.getElementById('battle-combat-screen').style.display = 'none'; let gymData = GYM_DB[gymProgress] || {name: "All Cleared", type: "none"}; const gymBtn = document.getElementById('gym-btn'); if(gymProgress < GYM_DB.length) { gymBtn.innerHTML = `<span>HARD: ${gymData.name} (${gymData.type.toUpperCase()})</span> <span>Badge: ${gymData.badge}</span>`; gymBtn.disabled = false; } else { gymBtn.innerHTML = `<span>CHAMPION! Đã thắng hết Gym.</span>`; gymBtn.disabled = true; } document.getElementById('battle-modal').style.display = 'flex'; }
     function closeBattle() { document.getElementById('battle-modal').style.display = 'none'; }
     
-    // --- BATTLE LOGIC ENGINE v2.1 ---
+    // --- BATTLE LOGIC ENGINE v2.2 ---
     async function startBattle(difficulty) {
         let p = myBag[selectedBattleIdx];
         ensureDataIntegrity(p); 
@@ -439,10 +568,9 @@
         let moves = battleState.player.moves;
         for(let i=0; i<4; i++) {
             let btn = document.getElementById(`move-btn-${i}`);
-            // Fix: Use 'name' and 'power' (or 'p')
             if(moves[i]) {
-                let mName = moves[i].name || moves[i].n; // Compat
-                let mPower = moves[i].power || moves[i].p; // Compat
+                let mName = moves[i].name || moves[i].n; 
+                let mPower = moves[i].power || moves[i].p; 
                 btn.innerHTML = `<span class="move-name">${mName}</span><span class="move-type" style="color:${getColorForType(moves[i].type)}">${moves[i].type} | PWR: ${mPower}</span>`;
                 btn.style.visibility = 'visible';
             } else { btn.style.visibility = 'hidden'; }
@@ -451,7 +579,7 @@
     function hideMoveMenu() { document.getElementById('battle-move-menu').style.display = 'none'; document.getElementById('battle-main-menu').style.display = 'grid'; }
     function getColorForType(t) { const colors = { fire: '#e74c3c', water: '#3498db', grass: '#2ecc71', electric: '#f1c40f', normal: '#95a5a6' }; return colors[t] || '#fff'; }
     function useMove(moveIdx) { if(!battleState.active) return; let move = battleState.player.moves[moveIdx]; hideMoveMenu(); executeTurn('attack', move); }
-    function updateBattleUI() { let p = battleState.player; let e = battleState.enemy; let pHpPct = Math.max(0, (p.hp / p.maxHp) * 100); let eHpPct = Math.max(0, (e.hp / e.maxHp) * 100); document.getElementById('player-hp-bar').style.width = pHpPct + '%'; document.getElementById('player-hp-bar').style.background = getHpColor(pHpPct); document.getElementById('player-hp-text').innerText = `${p.hp}/${p.maxHp}`; document.getElementById('enemy-hp-bar').style.width = eHpPct + '%'; document.getElementById('enemy-hp-bar').style.background = getHpColor(eHpPct); }
+    function updateBattleUI() { let p = battleState.player; let e = battleState.enemy; let pHpPct = Math.max(0, (p.hp / p.maxHp) * 100); let eHpPct = Math.max(0, (e.hp / e.maxHp) * 100); document.getElementById('player-hp-bar').style.width = pHpPct + '%'; document.getElementById('player-hp-bar').style.background = getHpColor(pHpPct); document.getElementById('player-hp-text').innerText = `${Math.ceil(p.hp)}/${p.maxHp}`; document.getElementById('enemy-hp-bar').style.width = eHpPct + '%'; document.getElementById('enemy-hp-bar').style.background = getHpColor(eHpPct); }
     function logBattle(msg) { let box = document.getElementById('battle-log'); box.innerHTML += `<div>${msg}</div>`; box.scrollTop = box.scrollHeight; }
     function playerHeal() { if(!battleState.active) return; if((inventory['potion'] || 0) <= 0) return logBattle("Hết Potion!"); executeTurn('heal'); }
     function playerSkip() { if(!battleState.active) return; executeTurn('skip'); }
@@ -508,7 +636,8 @@
         let stab = attacker.types.includes(move.type) ? 1.5 : 1;
         let pwr = move.power || move.p; // Compat
         let base = ((((2 * attacker.level / 5 + 2) * pwr * (atk / def)) / 50) + 2);
-        return Math.floor(base * typeMod * stab * (Math.random() * 0.15 + 0.85)); 
+        let finalDmg = Math.floor(base * typeMod * stab * (Math.random() * 0.15 + 0.85)); 
+        return Math.max(1, finalDmg); // Always at least 1 dmg
     }
 
     function getEffectiveness(atkType, defTypes) {
