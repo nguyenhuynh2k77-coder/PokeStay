@@ -531,12 +531,10 @@ async function login() {
 
    function saveGame() {
     if (!currentUser) return;
-
-    // Chuẩn bị dữ liệu để lưu
     const dataToSave = {
         coins: coins,
         myBag: myBag,
-        pokedex: Array.from(pokedex), // Firebase không lưu được Set, phải chuyển sang Array
+        pokedex: Array.from(pokedex),
         inventory: inventory,
         lastDailyDate: lastDailyDate,
         userStats: userStats,
@@ -548,17 +546,9 @@ async function login() {
         dailyRepairs: dailyRepairs,
         dailyQuests: dailyQuests
     };
-
-    // Gửi lên Firebase
-    // db đã được khai báo ở bước trước: const db = firebase.database();
     firebase.database().ref('users/' + currentUser).set(dataToSave)
-        .then(() => {
-            console.log("Đã lưu game lên Firebase thành công!");
-        })
-        .catch((error) => {
-            console.error("Lỗi khi lưu game:", error);
-            alert("Lỗi lưu dữ liệu! Kiểm tra kết nối mạng.");
-        });
+        .then(() => console.log("Saved to Firebase"))
+        .catch((e) => console.error("Save error:", e));
 }
     
    async function loadGame() {
@@ -1638,5 +1628,6 @@ async function login() {
 </script>
 </body>
 </html>
+
 
 
