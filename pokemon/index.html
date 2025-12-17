@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PokeStay v1.5 - HP Rebalance</title>
+    <title>PokeStay v1.6 - Official HP</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png">
     
     <style>
@@ -98,8 +98,8 @@
 <div id="login-screen">
     <div class="box-style">
         <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto">
-        <h2 style="color: white; margin: 10px 0;">POKESTAY v1.5</h2>
-        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">HP Rebalance</div>
+        <h2 style="color: white; margin: 10px 0;">POKESTAY v1.6</h2>
+        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Official HP Formula</div>
         <div style="width:100%">
             <input type="text" id="username-input" class="login-input" placeholder="Tên..." onkeypress="handleEnter(event)">
             <input type="password" id="password-input" class="login-input" placeholder="Mật khẩu..." onkeypress="handleEnter(event)">
@@ -114,7 +114,7 @@
         <div style="display:flex; flex-direction:column">
             <div style="display:flex; align-items:center; gap:5px">
                 <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png" width="24" height="24">
-                <span>PokeStay v1.5</span>
+                <span>PokeStay v1.6</span>
             </div>
             <span id="display-username" style="font-size:0.8em; color:#bbb">TRAINER</span>
         </div>
@@ -253,18 +253,19 @@
         <h2 style="color: #faa61a;">📜 Update Log</h2>
         <div class="update-list" style="text-align:left; width:100%">
              <div style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px">
-                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.5</span> 
+                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.6</span> 
                 <span style="color:#bbb; font-size:0.8em; float:right">New</span>
                 <ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde">
-                    <li><b>HP Rebalance:</b> Máu tính theo Base Stat thật của Pokemon + Level.</li>
-                    <li><b>Visual:</b> Hiển thị thanh máu thông minh.</li>
+                    <li><b>Official HP:</b> Cập nhật công thức chuẩn.</li>
+                    <li><b>Battle:</b> Cân bằng lại sát thương theo Level.</li>
+                    <li><b>Auto-Fix:</b> Tự động chỉnh lại máu cho Save cũ.</li>
                 </ul>
             </div>
              <div style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px">
-                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.4</span> 
+                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.5</span> 
                 <ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde">
-                    <li><b>Daycare:</b> Mua thêm Slot.</li>
-                    <li><b>UI:</b> Rarity Full Text.</li>
+                    <li><b>HP Rebalance:</b> Máu tính theo Base Stat.</li>
+                    <li><b>Visual:</b> Hiển thị thanh máu thông minh.</li>
                 </ul>
             </div>
         </div>
@@ -353,12 +354,19 @@
         return {label:'COMMON',class:'r-common',val:0}; 
     }
 
-    // --- RECALC STATS LOGIC v1.5 ---
+    // --- RECALC STATS LOGIC v1.6 (Standard Formula) ---
+    // HP = Floor( ((2 * Base + IV + Floor(EV/4)) * Level) / 100 ) + Level + 10
+    function calculateMaxHp(base, iv, level) {
+        let ev = 0; // Game chưa có hệ thống EV, mặc định là 0
+        let hp = Math.floor( ( (2 * base + iv + Math.floor(ev/4) ) * level ) / 100 ) + level + 10;
+        return hp;
+    }
+
     function recalcStats(p) {
-        // Formula: (BaseHP * 3) + (IV * 5) + (Level * 20)
-        let base = p.baseHp || 40; // Default fallback for old data
-        p.maxHp = Math.floor((base * 3) + (p.iv * 5) + (p.level * 20));
-        p.hp = p.maxHp; // Full heal on level up
+        let base = p.baseHp || 40;
+        p.maxHp = calculateMaxHp(base, p.iv, p.level);
+        // Khi lên cấp hoặc tính lại, hồi full máu
+        p.hp = p.maxHp; 
     }
 
     function handleEnter(e) { if(e.key === 'Enter') login(); }
@@ -435,7 +443,15 @@
                 let percent = Math.min(100, Math.floor((p.steps / p.maxSteps) * 100));
                 return `<div class="bag-row egg-row"><div style="display:flex;align-items:center;gap:10px"><img src="${URL_ITEMS}lucky-egg.png" width="40"><div><b>Mystery Egg</b><br><div class="xp-container"><div class="xp-fill" style="width:${percent}%; background:#f1c40f"></div></div><span style="font-size:0.7em">${p.steps}/${p.maxSteps} bước</span></div></div><div>${percent>=100 ? `<button class="btn-small" style="background:#f1c40f;color:black" onclick="hatchEgg(${realIdx})">NỞ!</button>` : '...'}</div></div>`;
             }
-            if(typeof p.maxHp === 'undefined') { p.maxHp = Math.floor(p.baseXp * 1.5) + (p.iv * 2); p.hp = p.maxHp; }
+            
+            // --- AUTO-FIX OLD SAVE DATA (v1.6) ---
+            let expectedHp = calculateMaxHp(p.baseHp || 40, p.iv || 0, p.level);
+            // Nếu maxHp không có, hoặc lớn bất thường so với công thức mới -> Cập nhật lại
+            if(typeof p.maxHp === 'undefined' || p.maxHp > expectedHp + 50) { 
+                p.maxHp = expectedHp; 
+                if(p.hp > p.maxHp) p.hp = p.maxHp; 
+            }
+
             if(!p.types) p.types = ['normal'];
             const r = getRarity(p);
             let rarityBonus = r.val * 50; if(r.code === 'L') rarityBonus += 1000; if(r.code === 'sr') rarityBonus += 300;
@@ -450,23 +466,26 @@
     }
 
     function incrementEggSteps() { let hatched = false; myBag.forEach(p => { if(p.isEgg && p.steps < p.maxSteps) { p.steps++; if(p.steps >= p.maxSteps) hatched = true; } }); if(hatched) log(`<span style="color:#f1c40f">🥚 Có trứng đã sẵn sàng nở! Vào túi kiểm tra ngay.</span>`); saveGame(); }
+    
     async function hatchEgg(idx) {
         let egg = myBag[idx]; if(!egg.isEgg || egg.steps < egg.maxSteps) return;
         let id = Math.floor(Math.random()*MAX_ID)+1;
         const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); const data = await res.json();
         const isShiny = Math.random() < 0.1; let img = data.sprites.other['official-artwork'].front_default || data.sprites.front_default; if(isShiny) img = data.sprites.front_shiny || img;
-        let iv = Math.floor(Math.random() * 11) + 20; 
+        let iv = Math.floor(Math.random() * 32); 
         
         let baseHp = data.stats.find(s => s.stat.name === 'hp').base_stat;
-        let calculatedHp = Math.floor((baseHp * 3) + (iv * 5) + 20); // Level 1 calculation
+        // TÍNH HP THEO CÔNG THỨC MỚI
+        let calculatedHp = calculateMaxHp(baseHp, iv, 1);
 
         myBag[idx] = { id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, baseHp: baseHp, level: 1, xp: 0, maxXp: 100, maxHp: calculatedHp, hp: calculatedHp };
         if(isShiny) userStats.shinies++; saveGame(); renderBag();
-        log(`<div class="embed" style="border-left-color:#f1c40f"><div class="embed-header"><div><span class="embed-title">🐣 TRỨNG NỞ!</span><div class="embed-desc">Chào mừng <b>${isShiny?'✨ ':''}${data.name.toUpperCase()}</b> (IV: ${iv})</div></div><img class="poke-sprite" src="${img}"></div></div>`);
+        log(`<div class="embed" style="border-left-color:#f1c40f"><div class="embed-header"><div><span class="embed-title">🐣 TRỨNG NỞ!</span><div class="embed-desc">Chào mừng <b>${isShiny?'✨ ':''}${data.name.toUpperCase()}</b> (IV: ${iv}) - HP: ${calculatedHp}</div></div><img class="poke-sprite" src="${img}"></div></div>`);
     }
 
     // --- BATTLE & HUNT ---
     async function hunt() { controls.innerHTML=`<div style="color:#faa61a">Đang tìm...</div>`; streakBonus=0; activeBuffs.berry=false; updateStats(); await spawnPokemon(); }
+    
     async function spawnPokemon() {
         if(myBag.length >= maxBagSize) { showMenu(); return alert("Túi đầy! Hãy nâng cấp hoặc bán bớt."); }
         try {
@@ -474,15 +493,18 @@
             const isShiny = Math.random() < 0.01; let img = data.sprites.other['official-artwork'].front_default || data.sprites.front_default; if(isShiny) img = data.sprites.front_shiny || img;
             
             let baseHp = data.stats.find(s => s.stat.name === 'hp').base_stat;
-            let iv = Math.floor(Math.random() * 31);
-            let calculatedHp = Math.floor((baseHp * 3) + (iv * 5) + 20); // Level 1 calc
+            let iv = Math.floor(Math.random() * 32); 
+            
+            // TÍNH HP THEO CÔNG THỨC MỚI
+            let calculatedHp = calculateMaxHp(baseHp, iv, 1);
 
             currentWild = { id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, baseHp: baseHp, level: 1, xp: 0, maxXp: 100, maxHp: calculatedHp, hp: calculatedHp };
             const r = getRarity(currentWild);
-            log(`<div class="embed" style="border-left-color:${isShiny?'#e74c3c':'#00b0f4'}"><div class="embed-header"><div><span class="rarity-tag ${r.class}">${r.label}</span> <span class="embed-title">${currentWild.name}</span><div class="embed-desc">IV: ${currentWild.iv}/31 | Type: ${currentWild.types.join('/')}</div></div><img class="poke-sprite" src="${currentWild.img}"></div></div>`);
+            log(`<div class="embed" style="border-left-color:${isShiny?'#e74c3c':'#00b0f4'}"><div class="embed-header"><div><span class="rarity-tag ${r.class}">${r.label}</span> <span class="embed-title">${currentWild.name}</span><div class="embed-desc">IV: ${currentWild.iv}/31 | HP: ${calculatedHp}</div></div><img class="poke-sprite" src="${currentWild.img}"></div></div>`);
             renderBattleControls();
         } catch(e) { showMenu(); }
     }
+
     function renderBattleControls() {
         const balls = SHOP_DB.filter(i => i.type === 'ball');
         let html = balls.map(b => {
@@ -528,34 +550,80 @@
         document.getElementById('battle-modal').style.display = 'flex';
     }
     function closeBattle() { document.getElementById('battle-modal').style.display = 'none'; }
+    
     function commitBattle(difficulty) {
-        closeBattle(); let p = myBag[selectedBattleIdx]; if(typeof p.hp === 'undefined') p.hp = p.maxHp;
+        closeBattle(); let p = myBag[selectedBattleIdx];
+        
+        // AUTO-FIX: Kiểm tra xem HP có bị sai (quá lớn) do Save cũ không
+        let trueMax = calculateMaxHp(p.baseHp||40, p.iv||0, p.level);
+        if(typeof p.hp === 'undefined' || p.maxHp > trueMax + 200) { recalcStats(p); }
+
         if(p.hp <= 0) return log(`<div class="embed" style="border-left-color:#ed4245"><div class="embed-desc">🚑 <b>${p.name}</b> đã ngất! Hãy dùng Potion hồi phục.</div></div>`);
-        let winRate = 0, rewardXP = 0, rewardCoin = 0, enemyName = "Wild Pokemon", baseDmg = 0, defenseMod = Math.floor(p.iv / 2), enemyTypes = [];
-        if(difficulty === 'easy') { enemyName = "Wild Pokemon"; winRate = 0.9; rewardXP = 50 + (p.level*2); baseDmg = Math.floor(Math.random() * 10) + 5; enemyTypes = ['normal', 'bug']; }
-        else if(difficulty === 'medium') { enemyName = "Trainer Battle"; winRate = 0.5; rewardXP = 150 + (p.level*5); baseDmg = Math.floor(Math.random() * 15) + 20; enemyTypes = ['electric', 'fighting']; }
-        else { let gym = GYM_DB[gymProgress]; enemyName = `Leader ${gym.name}`; enemyTypes = [gym.type]; winRate = 0.15; rewardXP = 1000 + (gymProgress * 200); rewardCoin = 500 + (gymProgress * 100); baseDmg = 50 + (gymProgress * 10); }
+        
+        let winRate = 0, rewardXP = 0, rewardCoin = 0, enemyName = "Wild Pokemon", baseDmg = 0;
+        let enemyTypes = [];
+
+        // --- NEW DAMAGE FORMULA (Scaled by Level) ---
+        // Damage giờ phụ thuộc vào Level để tránh One-shot
+        let dmgScale = Math.max(1, Math.floor(p.level * 0.3)); 
+
+        if(difficulty === 'easy') { 
+            enemyName = "Wild Pokemon"; winRate = 0.9; 
+            rewardXP = 50 + (p.level*2); 
+            baseDmg = dmgScale + Math.floor(Math.random() * 3); // Dmg thấp
+            enemyTypes = ['normal', 'bug']; 
+        }
+        else if(difficulty === 'medium') { 
+            enemyName = "Trainer Battle"; winRate = 0.5; 
+            rewardXP = 150 + (p.level*5); 
+            baseDmg = (dmgScale * 1.5) + Math.floor(Math.random() * 4); // Dmg trung bình
+            enemyTypes = ['electric', 'fighting']; 
+        }
+        else { 
+            let gym = GYM_DB[gymProgress]; enemyName = `Leader ${gym.name}`; enemyTypes = [gym.type]; 
+            winRate = 0.15; rewardXP = 1000 + (gymProgress * 200); rewardCoin = 500 + (gymProgress * 100); 
+            baseDmg = (dmgScale * 2.5) + (gymProgress * 2); // Dmg cao
+        }
+
         let effectiveness = 1; let userTypes = p.types || ['normal'];
         for(let uT of userTypes) { if(TYPE_ADVANTAGE[uT] && TYPE_ADVANTAGE[uT].some(t => enemyTypes.includes(t))) effectiveness = 2; }
-        let msgType = ""; if(effectiveness === 2) { winRate += 0.25; baseDmg = Math.floor(baseDmg * 0.5); msgType = `<br><b style="color:#2ecc71">⚡ Khắc hệ! Tỉ lệ thắng tăng mạnh!</b>`; }
-        if(gymProgress >= 1) baseDmg = Math.floor(baseDmg * 0.9); if(gymProgress >= 2 && difficulty==='easy') coins += 10; if(gymProgress >= 6) winRate += 0.05; 
-        let damageTaken = baseDmg - defenseMod; if(damageTaken < 1) damageTaken = 1; let roll = Math.random(); let msg = ""; p.hp -= damageTaken; if(p.hp < 0) p.hp = 0;
+        
+        let msgType = ""; 
+        if(effectiveness === 2) { 
+            winRate += 0.25; 
+            baseDmg = Math.floor(baseDmg * 0.6); // Khắc hệ giảm dmg nhận vào
+            msgType = `<br><b style="color:#2ecc71">⚡ Khắc hệ! Tỉ lệ thắng tăng mạnh!</b>`; 
+        }
+
+        let damageTaken = Math.max(1, baseDmg); 
+        
+        let roll = Math.random(); let msg = ""; 
+        p.hp -= damageTaken; 
+        
         if(roll < winRate) {
             p.xp += rewardXP; coins += rewardCoin;
             if(difficulty === 'hard') { userStats.hardWins++; msg = `<span style="color:#f1c40f">🏆 <b>CHIẾN THẮNG GYM LEADER!</b><br>Nhận ${GYM_DB[gymProgress].badge}!<br>Buff: ${GYM_DB[gymProgress].buff}</span>`; gymProgress++; }
             else { msg = `<span style="color:#3ba55c">⚔️ <b>THẮNG!</b> ${p.name} hạ ${enemyName}.<br>+${rewardXP} XP ${rewardCoin>0?`| +${rewardCoin}💰`:''} | <span style="color:#e74c3c">-${damageTaken} HP</span>${msgType}</span>`; }
             updateQuestProgress('win', 1);
         } else {
-            let critDmg = Math.floor(damageTaken * 0.5); p.hp -= critDmg; if(p.hp < 0) p.hp = 0; let pityXP = 20; p.xp += pityXP; msg = `<span style="color:#ed4245">🤕 <b>THUA!</b> ${enemyName} quá mạnh.<br>Nhận an ủi +${pityXP} XP | <span style="color:#e74c3c">-${damageTaken + critDmg} HP</span></span>`;
+            let critDmg = Math.floor(damageTaken * 0.5); p.hp -= critDmg; 
+            let pityXP = 20; p.xp += pityXP; 
+            msg = `<span style="color:#ed4245">🤕 <b>THUA!</b> ${enemyName} quá mạnh.<br>Nhận an ủi +${pityXP} XP | <span style="color:#e74c3c">-${damageTaken + critDmg} HP</span></span>`;
         }
-        if(p.xp >= p.maxXp) { p.level++; p.xp -= p.maxXp; p.maxXp = Math.floor(p.maxXp * 1.2); 
-            recalcStats(p); // V1.5: RECALCULATE HP ON LEVEL UP
-            msg += `<br><b style="color:#faa61a">🆙 LEVEL UP! ${p.name} lên Lv.${p.level}. HP hồi đầy!</b>`; 
+        
+        if(p.hp < 0) p.hp = 0;
+
+        if(p.xp >= p.maxXp) { 
+            p.level++; p.xp -= p.maxXp; p.maxXp = Math.floor(p.maxXp * 1.2); 
+            recalcStats(p); // RECALC ON LEVEL UP
+            msg += `<br><b style="color:#faa61a">🆙 LEVEL UP! ${p.name} lên Lv.${p.level}. HP: ${p.maxHp} (Hồi đầy)!</b>`; 
         }
-        incrementEggSteps(); saveGame(); updateStats(); openBag(); log(`<div class="embed" style="border-left-color:${roll<winRate?'#3ba55c':'#ed4245'}"><div class="embed-desc">${msg}</div></div>`);
+
+        incrementEggSteps(); saveGame(); updateStats(); openBag(); 
+        log(`<div class="embed" style="border-left-color:${roll<winRate?'#3ba55c':'#ed4245'}"><div class="embed-desc">${msg}</div></div>`);
     }
 
-    // --- DAILY SYSTEM (V1.0 HARDCORE) ---
+    // --- DAILY SYSTEM ---
     function openDaily() {
         if(currentWild) return;
         checkDailyQuestGen();
@@ -576,19 +644,16 @@
 
         if(dailyQuests.length === 0 || dailyQuests[0].date !== today) {
             dailyQuests = [];
-            // Easy
             let rE = Math.random();
             if(rE < 0.33) dailyQuests.push({date: today, type: 'mine', target: 50 + Math.floor(Math.random()*21), progress: 0, reward: {type:'item', id:'poke-ball', qty:20}, difficulty: 0, text: "Đào mỏ", claimed: false});
             else if(rE < 0.66) dailyQuests.push({date: today, type: 'catch', target: 15 + Math.floor(Math.random()*6), progress: 0, reward: {type:'item', id:'great-ball', qty:8}, difficulty: 0, text: "Bắt Pokemon", claimed: false});
             else dailyQuests.push({date: today, type: 'spend', target: 5000 + Math.floor(Math.random()*2000), progress: 0, reward: {type:'item', id:'potion', qty:5}, difficulty: 0, text: "Tiêu Coins", claimed: false});
 
-            // Medium
             let rM = Math.random();
             if(rM < 0.33) dailyQuests.push({date: today, type: 'mine', target: 150 + Math.floor(Math.random()*51), progress: 0, reward: {type:'item', id:'stardust', qty:10}, difficulty: 1, text: "Đào mỏ", claimed: false});
             else if(rM < 0.66) dailyQuests.push({date: today, type: 'catch', target: 30 + Math.floor(Math.random()*11), progress: 0, reward: {type:'item', id:'ultra-ball', qty:5}, difficulty: 1, text: "Bắt Pokemon", claimed: false});
             else dailyQuests.push({date: today, type: 'win', target: 8 + Math.floor(Math.random()*4), progress: 0, reward: {type:'item', id:'rare-candy', qty:2}, difficulty: 1, text: "Thắng Arena", claimed: false});
 
-            // Hard
             let rH = Math.random();
             if(rH < 0.33) dailyQuests.push({date: today, type: 'win', target: 20 + Math.floor(Math.random()*6), progress: 0, reward: {type:'item', id:'master-ball', qty:1}, difficulty: 2, text: "Thắng Arena", claimed: false});
             else if(rH < 0.66) dailyQuests.push({date: today, type: 'spend', target: 100000 + Math.floor(Math.random()*20001), progress: 0, reward: {type:'item', id:'nugget', qty:3}, difficulty: 2, text: "Tiêu Coins", claimed: false});
@@ -644,7 +709,7 @@
         if(changed) saveGame();
     }
 
-    // --- DAYCARE v1.4 ---
+    // --- DAYCARE ---
     function openDaycare() { if(currentWild) return; updateDaycareUI(); document.getElementById('daycare-modal').style.display = 'flex'; }
     function closeDaycare() { document.getElementById('daycare-modal').style.display = 'none'; }
     
@@ -718,7 +783,7 @@
             p.xp += earnedXP;
             while(p.xp >= p.maxXp) { 
                 p.level++; p.xp -= p.maxXp; p.maxXp = Math.floor(p.maxXp * 1.2); 
-                recalcStats(p); // V1.5 RECALC ON LEVEL UP
+                recalcStats(p); 
             }
             alert(`Rút ${p.name} về! Nhận được ${earnedXP} XP!`);
         } else { alert(`Chưa đủ 1 phút, chưa có XP.`); }
@@ -760,7 +825,7 @@
     function closePokedex() { document.getElementById('dex-modal').style.display = 'none'; }
     function showPokedex() { document.getElementById('dex-count').innerText = pokedex.size; document.getElementById('dex-modal').style.display = 'flex'; }
     function run() { currentWild=null; showMenu(); log("Bỏ chạy."); }
-    function checkEvolution(idx, btn) { btn.innerHTML = "⏳"; btn.classList.add('loading'); (async () => { let p = myBag[idx]; try { let res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${p.id}`); let data = await res.json(); let chain = await (await fetch(data.evolution_chain.url)).json(); let node = findNodeInChain(chain.chain, data.name); if(!node || node.evolves_to.length === 0) { btn.innerHTML="Max"; btn.classList.remove('loading'); return; } let nextEvo = node.evolves_to[0]; let details = nextEvo.evolution_details[0]; let reqType = details ? details.trigger.name : 'level-up'; let canEvolve = false; if (reqType === "level-up") { let minLv = (details && details.min_level) ? details.min_level : 25; if (p.level >= minLv) canEvolve = true; } else if (reqType === "use-item") { if (inventory['evo-stone'] > 0) canEvolve = true; } else { if (p.level >= 25) canEvolve = true; } if(canEvolve) { if(reqType === "use-item") inventory['evo-stone']--; let newId = nextEvo.species.name; let d2 = await (await fetch(`https://pokeapi.co/api/v2/pokemon/${newId}`)).json(); p.id = d2.id; p.name = d2.name.toUpperCase(); p.img = d2.sprites.other['official-artwork'].front_default; p.types = d2.types.map(t=>t.type.name); p.maxHp += 50; p.hp = p.maxHp; recalcStats(p); saveGame(); openBag(); log(`<div class="embed" style="border-left-color:#9b59b6"><div class="embed-header"><div><span class="embed-title">TIẾN HÓA!</span><div class="embed-desc"><b>${p.name}</b><br>HP Tăng mạnh!</div></div><img class="poke-sprite" src="${p.img}"></div></div>`); } else { btn.innerHTML = "Evo"; btn.classList.remove('loading'); let reqText = reqType === 'use-item' ? 'Cần Evo Stone' : `Cần Level ${(details && details.min_level) || 25}`; alert(`Chưa đủ điều kiện!\n${reqText}`); } } catch(e) { console.log(e); btn.innerHTML="Err"; btn.classList.remove('loading'); } })(); }
+    function checkEvolution(idx, btn) { btn.innerHTML = "⏳"; btn.classList.add('loading'); (async () => { let p = myBag[idx]; try { let res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${p.id}`); let data = await res.json(); let chain = await (await fetch(data.evolution_chain.url)).json(); let node = findNodeInChain(chain.chain, data.name); if(!node || node.evolves_to.length === 0) { btn.innerHTML="Max"; btn.classList.remove('loading'); return; } let nextEvo = node.evolves_to[0]; let details = nextEvo.evolution_details[0]; let reqType = details ? details.trigger.name : 'level-up'; let canEvolve = false; if (reqType === "level-up") { let minLv = (details && details.min_level) ? details.min_level : 25; if (p.level >= minLv) canEvolve = true; } else if (reqType === "use-item") { if (inventory['evo-stone'] > 0) canEvolve = true; } else { if (p.level >= 25) canEvolve = true; } if(canEvolve) { if(reqType === "use-item") inventory['evo-stone']--; let newId = nextEvo.species.name; let d2 = await (await fetch(`https://pokeapi.co/api/v2/pokemon/${newId}`)).json(); p.id = d2.id; p.name = d2.name.toUpperCase(); p.img = d2.sprites.other['official-artwork'].front_default; p.types = d2.types.map(t=>t.type.name); p.baseHp = d2.stats.find(s=>s.stat.name==='hp').base_stat; recalcStats(p); saveGame(); openBag(); log(`<div class="embed" style="border-left-color:#9b59b6"><div class="embed-header"><div><span class="embed-title">TIẾN HÓA!</span><div class="embed-desc"><b>${p.name}</b><br>HP: ${p.maxHp}</div></div><img class="poke-sprite" src="${p.img}"></div></div>`); } else { btn.innerHTML = "Evo"; btn.classList.remove('loading'); let reqText = reqType === 'use-item' ? 'Cần Evo Stone' : `Cần Level ${(details && details.min_level) || 25}`; alert(`Chưa đủ điều kiện!\n${reqText}`); } } catch(e) { console.log(e); btn.innerHTML="Err"; btn.classList.remove('loading'); } })(); }
     function findNodeInChain(node, name) { if (node.species.name === name) return node; for (let child of node.evolves_to) { let f = findNodeInChain(child, name); if (f) return f; } return null; }
 </script>
 </body>
