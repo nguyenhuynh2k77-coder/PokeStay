@@ -195,10 +195,11 @@
 
 <script>
     // --- DATA & CONFIG ---
+    // --- DATA & CONFIG ---
     let currentUser = "";
-   
-    let isMuted = false;
     
+    // --- AUDIO SYSTEM (FINAL FIXED) ---
+    let isMuted = false;
     const AUDIO_SRC = {
         // Nhạc Battle: Pokemon Red/Blue - Wild Battle (MP3)
         bgm_battle: "https://ia800605.us.archive.org/32/items/PokemonGBS/107-battle%20%28vs%20wild%20pokemon%29.mp3", 
@@ -211,8 +212,9 @@
     };
     
     // Khai báo biến Audio 1 lần duy nhất
-    
+    let currentBGM = new Audio();
     currentBGM.loop = true;
+    currentBGM.volume = 0.5;
 
     function toggleMute() {
         isMuted = !isMuted;
@@ -232,11 +234,6 @@
         audio.volume = 0.6;
         audio.play().catch(e => console.log("Audio play error:", e));
     }
-
-    // Khai báo biến Audio toàn cục
-    let currentBGM = new Audio();
-    currentBGM.loop = true; // Cho phép lặp lại liên tục
-    currentBGM.volume = 0.5; // Âm lượng mặc định
 
     function playBGM(type) {
         if(isMuted) return;
@@ -285,6 +282,16 @@
             a.play();
         }
     }
+    
+    // Tự động kích hoạt nhạc khi người dùng bấm chuột lần đầu tiên
+    document.body.addEventListener('click', function() {
+        if (currentBGM.paused && !isMuted && currentUser) {
+            let type = battleState.active ? 'battle' : 'map';
+            playBGM(type);
+        }
+    }, { once: true });
+
+    // --- KẾT THÚC AUDIO ---
     const BASE_SAVE_KEY = 'poke_save_';
     const AUTH_KEY = 'poke_auth_'; 
     const MAX_ID = 649;
@@ -1544,6 +1551,7 @@
 </script>
 </body>
 </html>
+
 
 
 
