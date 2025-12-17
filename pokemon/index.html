@@ -194,8 +194,109 @@
     </div>
 
 <script>
-    // --- DATA & CONFIG ---
-    // --- DATA & CONFIG ---
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+<script>
+    // --- CẤU HÌNH CỦA BẠN (Tôi đã điền giúp bạn rồi) ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyBfS5Mtj27J9CLd92m4m3X5rBwQOpv52v8",
+        authDomain: "pokestay-online.firebaseapp.com",
+        projectId: "pokestay-online",
+        storageBucket: "pokestay-online.firebasestorage.app",
+        messagingSenderId: "848625481232",
+        appId: "1:848625481232:web:60c88cdcbef8ae2f347c95"
+    };
+
+    // --- KHỞI ĐỘNG FIREBASE ---
+    // Kiểm tra để tránh lỗi khởi động lại nhiều lần
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const auth = firebase.auth();
+
+    // --- HÀM ĐĂNG KÝ (MỚI - Dùng Firebase) ---
+    function register() {
+        const u = document.getElementById('username-input').value.trim(); // Email
+        const p = document.getElementById('password-input').value.trim(); // Mật khẩu
+        
+        if(!u || !p) return alert("Vui lòng nhập Email và Mật khẩu!");
+        if(p.length < 6) return alert("Mật khẩu phải từ 6 ký tự trở lên!");
+
+        // Tạo tài khoản trên Google
+        auth.createUserWithEmailAndPassword(u, p)
+            .then((userCredential) => {
+                alert("Đăng ký thành công! Đang đăng nhập...");
+                // Không cần làm gì thêm, hàm onAuthStateChanged sẽ tự chạy
+            })
+            .catch((error) => {
+                let msg = error.message;
+                if(error.code === 'auth/email-already-in-use') msg = "Email này đã được đăng ký rồi!";
+                if(error.code === 'auth/invalid-email') msg = "Email không hợp lệ!";
+                alert("Lỗi đăng ký: " + msg);
+            });
+    }
+
+    // --- HÀM ĐĂNG NHẬP (MỚI - Dùng Firebase) ---
+    function login() {
+        const u = document.getElementById('username-input').value.trim();
+        const p = document.getElementById('password-input').value.trim();
+        
+        if(!u || !p) return alert("Thiếu thông tin!");
+
+        auth.signInWithEmailAndPassword(u, p)
+            .then((userCredential) => {
+                console.log("Đăng nhập thành công!");
+            })
+            .catch((error) => {
+                console.error(error);
+                alert("Đăng nhập thất bại! Kiểm tra lại Email/Pass.");
+            });
+    }
+    
+    // --- HÀM ĐĂNG XUẤT ---
+    function logout() {
+        if(confirm("Bạn muốn đăng xuất?")) {
+            // Lưu game lần cuối trước khi thoát
+            if(typeof saveGame === 'function') saveGame();
+            
+            auth.signOut().then(() => {
+                location.reload();
+            });
+        }
+    }
+
+    // --- TỰ ĐỘNG VÀO GAME (QUAN TRỌNG NHẤT) ---
+    // Hàm này tự chạy khi F5 nếu đã từng đăng nhập
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            // 1. Tạo ID người dùng sạch (bỏ @gmail.com đi)
+            let safeId = user.email.replace(/[^a-zA-Z0-9]/g, "");
+            
+            // 2. Cập nhật biến toàn cục currentUser
+            // (Lưu ý: biến currentUser phải được khai báo bằng 'let' ở script chính)
+            if(typeof currentUser !== 'undefined') {
+                currentUser = safeId;
+            } else {
+                window.currentUser = safeId;
+            }
+
+            // 3. Cập nhật giao diện
+            document.getElementById('display-username').innerText = user.email;
+            document.getElementById('login-screen').style.display='none';
+            document.getElementById('app').style.display='flex';
+            
+            console.log("Đã kết nối Firebase:", user.email);
+
+            // 4. Kích hoạt Game (Load dữ liệu & Nhạc)
+            if(typeof loadGame === 'function') loadGame(); 
+            if(typeof showMenu === 'function') showMenu();
+            if(typeof playBGM === 'function') playBGM('map'); // Nếu bạn đã thêm nhạc
+        } else {
+            console.log("Chưa đăng nhập.");
+        }
+    });
+</script>
     let currentUser = "";
     
     // --- AUDIO SYSTEM (FINAL FIXED) ---
@@ -491,9 +592,7 @@
     }
 
     function handleEnter(e) { if(e.key === 'Enter') login(); }
-    function register() { const u = document.getElementById('username-input').value.trim(), p = document.getElementById('password-input').value.trim(); if(!u||!p) return alert("Thiếu thông tin!"); if(localStorage.getItem(AUTH_KEY+u)) return alert("Tên tồn tại!"); localStorage.setItem(AUTH_KEY+u, p); alert("Đăng ký xong!"); }
-    function login() { const u = document.getElementById('username-input').value.trim(), p = document.getElementById('password-input').value.trim(); if(localStorage.getItem(AUTH_KEY+u)===p) { currentUser = u; document.getElementById('display-username').innerText = u.toUpperCase(); document.getElementById('login-screen').style.display='none'; document.getElementById('app').style.display='flex'; loadGame(); showMenu(); } else alert("Sai thông tin!"); }
-    function logout() { saveGame(); location.reload(); }
+   
 
     function saveGame() { if(!currentUser) return; localStorage.setItem(BASE_SAVE_KEY+currentUser, JSON.stringify({ coins, myBag, pokedex: Array.from(pokedex), inventory, lastDailyDate, userStats, completedAchievements, daycare, gymProgress, maxBagSize, pickaxe, dailyRepairs, dailyQuests })); }
     
@@ -1551,6 +1650,7 @@
 </script>
 </body>
 </html>
+
 
 
 
