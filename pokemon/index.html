@@ -199,10 +199,39 @@
     // --- AUDIO SYSTEM (NEW) ---
     let isMuted = false;
     const AUDIO_SRC = {
-        bgm_battle: "https://upload.wikimedia.org/wikipedia/commons/c/c4/Urgent_Stop.ogg", // Nhạc nền ví dụ (bạn có thể thay link mp3 khác)
+        // Nhạc chiến đấu (kịch tính)
+        bgm_battle: "https://upload.wikimedia.org/wikipedia/commons/c/c4/Urgent_Stop.ogg", 
+        // Nhạc nền map (nhẹ nhàng, thư giãn)
+        bgm_map: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Erik_Satie_-_Gymnop%C3%A9die_No._1.ogg", 
+        
         sfx_level: "https://upload.wikimedia.org/wikipedia/commons/1/13/7550_-_sfx_level_up_2.wav",
-        sfx_catch: "https://upload.wikimedia.org/wikipedia/commons/3/3a/Cat_meow.ogg" // Tạm dùng tiếng mèo làm tiếng bắt :D
+        sfx_catch: "https://upload.wikimedia.org/wikipedia/commons/3/3a/Cat_meow.ogg" 
     };
+    
+    let currentBGM = new Audio();
+    currentBGM.loop = true;
+
+    function playBGM(type) {
+        if(isMuted) return;
+        
+        let newSrc = "";
+        let newVol = 0.5;
+
+        if(type === 'battle') {
+            newSrc = AUDIO_SRC.bgm_battle;
+            newVol = 0.3; // Nhạc battle to vừa phải
+        } else if (type === 'map') {
+            newSrc = AUDIO_SRC.bgm_map;
+            newVol = 0.15; // Nhạc nền map nhỏ nhẹ (15%) để không đau đầu
+        }
+        
+        // Chỉ đổi nhạc nếu bài mới khác bài cũ
+        if(currentBGM.src !== newSrc) {
+            currentBGM.src = newSrc;
+            currentBGM.volume = newVol;
+            currentBGM.play().catch(e => console.log("BGM error:", e));
+        }
+    }
     
     let currentBGM = new Audio();
     currentBGM.loop = true;
@@ -515,6 +544,7 @@
     console.log("Đã cập nhật dữ liệu Pokemon cũ thành công!");
         checkDailyQuestGen();
         updateStats();
+        playBGM('map');
     }
     
     function resetGame() { if(confirm("Xóa dữ liệu?")) { localStorage.removeItem(BASE_SAVE_KEY+currentUser); logout(); } }
@@ -973,7 +1003,7 @@
         
         // --- AUDIO TRIGGER (Nếu đã thêm code Audio ở bước trước) ---
         if(typeof playCry === "function") playCry(enemy.id); 
-        if(typeof playBGM === "function") playBGM('battle');
+        playBGM('battle');
         // -----------------------------------------------------------
         
         document.getElementById('battle-main-menu').style.display = 'grid';
@@ -1444,7 +1474,7 @@
     }
 
     function endBattle() {
-        stopBGM();
+        playBGM('map');
         document.getElementById('battle-modal').style.display = 'none';
         updateStats();
         openBag(); 
@@ -1508,6 +1538,7 @@
 </script>
 </body>
 </html>
+
 
 
 
