@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PokeStay v2.0 - Balance</title>
+    <title>PokeStay v2.1 - Fix Skill</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png">
     
     <style>
@@ -112,8 +112,8 @@
 <div id="login-screen">
     <div class="box-style">
         <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto">
-        <h2 style="color: white; margin: 10px 0;">POKESTAY v2.0</h2>
-        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Balance & Learnset Update</div>
+        <h2 style="color: white; margin: 10px 0;">POKESTAY v2.1</h2>
+        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Hotfix: Undefined Skills</div>
         <div style="width:100%">
             <input type="text" id="username-input" class="login-input" placeholder="Tên..." onkeypress="handleEnter(event)">
             <input type="password" id="password-input" class="login-input" placeholder="Mật khẩu..." onkeypress="handleEnter(event)">
@@ -128,7 +128,7 @@
         <div style="display:flex; flex-direction:column">
             <div style="display:flex; align-items:center; gap:5px">
                 <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" width="24" height="24">
-                <span>PokeStay v2.0</span>
+                <span>PokeStay v2.1</span>
             </div>
             <span id="display-username" style="font-size:0.8em; color:#bbb">TRAINER</span>
         </div>
@@ -151,7 +151,7 @@
 <div id="achieve-modal"><div class="box-style"><div class="inner-box"><h2 style="color: #f1c40f;">🏆 Thành Tựu</h2><div style="font-size:0.7em; color:#aaa; margin-bottom:10px">Bấm vào để xem phần thưởng</div><div id="achieve-list" style="overflow-y:auto; flex:1; width:100%"></div><button class="btn-close" onclick="closeAchieve()">Đóng</button></div></div></div>
 <div id="buy-modal"><div class="box-style"><div class="inner-box"><h3 style="color: #faa61a; margin: 5px 0;" id="buy-name">Item</h3><img id="buy-img" src="" width="60" style="margin: 10px auto; display:block"><div style="margin-bottom: 10px; color:#bbb">Giá: <span id="buy-price" style="color:white; font-weight:bold">0</span>💰</div><div style="display:flex; justify-content:center; align-items:center; gap:10px; margin: 10px 0;"><input type="number" id="buy-qty" class="login-input" style="width:60px; margin:0" value="1" min="1" oninput="calcTotal()"></div><div style="font-size: 1.1em; margin-bottom: 15px;">Tổng: <span id="buy-total" style="color:#3ba55c; font-weight:bold">0</span>💰</div><div style="display:flex; gap:10px; width:100%"><button class="btn-auth" style="background:#7f8c8d; margin:0" onclick="closeBuy()">HỦY</button><button class="btn-auth btn-login" style="margin:0" onclick="submitBuy()">MUA</button></div></div></div></div>
 <div id="dex-modal"><div class="box-style"><div class="inner-box"><h2 style="color: #3498db;">📖 Pokedex</h2><div style="font-size: 1.2em; margin-bottom: 20px;">Đã bắt: <span style="color: #f1c40f; font-weight: bold;" id="dex-count">0</span> / 649</div><button class="btn-close" onclick="closePokedex()">Đóng</button></div></div></div>
-<div id="update-modal"><div class="box-style"><h2 style="color: #faa61a;">📜 Update Log</h2><div class="update-list" style="text-align:left; width:100%"><div style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px"><span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v2.0</span> <span style="color:#bbb; font-size:0.8em; float:right">New</span><ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde"><li><b>Balance:</b> Địch dùng chỉ số thật (không bị ảo).</li><li><b>Learnset:</b> Skill học theo Level (1-15 yếu, 36+ mạnh).</li><li><b>Type Chart:</b> Khắc hệ chuẩn (x2, x0.5, x0) + STAB.</li></ul></div></div><button class="btn-close" onclick="closeUpdates()">Đóng</button></div></div>
+<div id="update-modal"><div class="box-style"><h2 style="color: #faa61a;">📜 Update Log</h2><div class="update-list" style="text-align:left; width:100%"><div style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px"><span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v2.1</span> <span style="color:#bbb; font-size:0.8em; float:right">Hotfix</span><ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde"><li><b>Bug Fix:</b> Sửa lỗi Skill bị undefined.</li><li><b>Auto-Repair:</b> Tự động cập nhật Skill cho Save cũ.</li><li><b>Balance:</b> Tinh chỉnh lại sức mạnh skill.</li></ul></div></div><button class="btn-close" onclick="closeUpdates()">Đóng</button></div></div>
 <div id="donate-modal"><div class="box-style" style="background:white; color:black"><h3 style="color: #6c38c6; margin:0 0 10px 0">Ủng Hộ Dev</h3><img src="38b84fc99acb15954cda.jpg" class="donate-qr" style="width:100%; border-radius:5px; border:1px solid #ddd"><div style="font-size:0.9em; margin-top:10px; font-weight:bold">TPBank QR</div><button class="btn-close" onclick="closeDonate()">Đóng</button></div></div>
 
 <div id="battle-modal">
@@ -214,8 +214,6 @@
     const URL_ITEMS = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/";
     const LEGENDARY_IDS = [144,145,146,150,151,243,244,245,249,250,251,377,378,379,380,381,382,383,384,385,386,480,481,482,483,484,485,486,487,488,489,490,491,492,493,494,638,639,640,641,642,643,644,645,646];
     
-    // --- TYPE CHART v2.0 (Accurate) ---
-    // [AttackType] vs [DefType]: multiplier
     const TYPE_CHART = {
         normal: { rock:0.5, ghost:0, steel:0.5 },
         fire: { fire:0.5, water:0.5, grass:2, ice:2, bug:2, rock:0.5, dragon:0.5, steel:2 },
@@ -236,48 +234,45 @@
         fairy: { fire:0.5, fighting:2, poison:0.5, dragon:2, dark:2, steel:0.5 }
     };
 
-    // --- MOVES TIER LIST (v2.0) ---
-    // Tier 1: Level 1-15 (Power ~40)
-    // Tier 2: Level 16-35 (Power ~65)
-    // Tier 3: Level 36+ (Power ~90+)
+    // FIXED: Using "name" and "power" to maintain compatibility and clarity
     const MOVES_TIER = {
         'normal': [
-            {n:'Tackle',p:40,t:1}, {n:'Scratch',p:40,t:1}, {n:'Quick Attack',p:40,t:1},
-            {n:'Cut',p:50,t:2}, {n:'Headbutt',p:70,t:2}, {n:'Slash',p:70,t:2},
-            {n:'Body Slam',p:85,t:3}, {n:'Hyper Beam',p:150,t:3}
+            {name:'Tackle',power:40,t:1}, {name:'Scratch',power:40,t:1}, {name:'Quick Attack',power:40,t:1},
+            {name:'Cut',power:50,t:2}, {name:'Headbutt',power:70,t:2}, {name:'Slash',power:70,t:2},
+            {name:'Body Slam',power:85,t:3}, {name:'Hyper Beam',power:150,t:3}
         ],
         'fire': [
-            {n:'Ember',p:40,t:1}, 
-            {n:'Flame Wheel',p:60,t:2}, {n:'Fire Fang',p:65,t:2},
-            {n:'Flamethrower',p:90,t:3}, {n:'Fire Blast',p:110,t:3}
+            {name:'Ember',power:40,t:1}, 
+            {name:'Flame Wheel',power:60,t:2}, {name:'Fire Fang',power:65,t:2},
+            {name:'Flamethrower',power:90,t:3}, {name:'Fire Blast',power:110,t:3}
         ],
         'water': [
-            {n:'Water Gun',p:40,t:1}, {n:'Bubble',p:40,t:1},
-            {n:'Bubble Beam',p:65,t:2}, {n:'Water Pulse',p:60,t:2},
-            {n:'Surf',p:90,t:3}, {n:'Hydro Pump',p:110,t:3}
+            {name:'Water Gun',power:40,t:1}, {name:'Bubble',power:40,t:1},
+            {name:'Bubble Beam',power:65,t:2}, {name:'Water Pulse',power:60,t:2},
+            {name:'Surf',power:90,t:3}, {name:'Hydro Pump',power:110,t:3}
         ],
         'grass': [
-            {n:'Vine Whip',p:45,t:1}, {n:'Absorb',p:20,t:1},
-            {n:'Razor Leaf',p:55,t:2}, {n:'Magical Leaf',p:60,t:2},
-            {n:'Energy Ball',p:90,t:3}, {n:'Solar Beam',p:120,t:3}
+            {name:'Vine Whip',power:45,t:1}, {name:'Absorb',power:20,t:1},
+            {name:'Razor Leaf',power:55,t:2}, {name:'Magical Leaf',power:60,t:2},
+            {name:'Energy Ball',power:90,t:3}, {name:'Solar Beam',power:120,t:3}
         ],
         'electric': [
-            {n:'Thunder Shock',p:40,t:1}, 
-            {n:'Spark',p:65,t:2}, {n:'Shock Wave',p:60,t:2},
-            {n:'Thunderbolt',p:90,t:3}, {n:'Thunder',p:110,t:3}
+            {name:'Thunder Shock',power:40,t:1}, 
+            {name:'Spark',power:65,t:2}, {name:'Shock Wave',power:60,t:2},
+            {name:'Thunderbolt',power:90,t:3}, {name:'Thunder',power:110,t:3}
         ],
-        'ice': [{n:'Powder Snow',p:40,t:1}, {n:'Aurora Beam',p:65,t:2}, {n:'Ice Beam',p:90,t:3}],
-        'fighting': [{n:'Karate Chop',p:50,t:1}, {n:'Brick Break',p:75,t:2}, {n:'Close Combat',p:120,t:3}],
-        'poison': [{n:'Poison Sting',p:15,t:1}, {n:'Venoshock',p:65,t:2}, {n:'Sludge Bomb',p:90,t:3}],
-        'ground': [{n:'Mud Slap',p:20,t:1}, {n:'Mud Shot',p:55,t:2}, {n:'Earthquake',p:100,t:3}],
-        'flying': [{n:'Peck',p:35,t:1}, {n:'Wing Attack',p:60,t:2}, {n:'Brave Bird',p:120,t:3}],
-        'psychic': [{n:'Confusion',p:50,t:1}, {n:'Psybeam',p:65,t:2}, {n:'Psychic',p:90,t:3}],
-        'bug': [{n:'Bug Bite',p:60,t:1}, {n:'Signal Beam',p:75,t:2}, {n:'Bug Buzz',p:90,t:3}],
-        'rock': [{n:'Rock Throw',p:50,t:1}, {n:'Rock Slide',p:75,t:2}, {n:'Stone Edge',p:100,t:3}],
-        'ghost': [{n:'Lick',p:30,t:1}, {n:'Shadow Punch',p:60,t:2}, {n:'Shadow Ball',p:80,t:3}],
-        'dragon': [{n:'Twister',p:40,t:1}, {n:'Dragon Claw',p:80,t:2}, {n:'Outrage',p:120,t:3}],
-        'steel': [{n:'Metal Claw',p:50,t:1}, {n:'Iron Head',p:80,t:2}, {n:'Flash Cannon',p:80,t:3}],
-        'fairy': [{n:'Fairy Wind',p:40,t:1}, {n:'Dazzling Gleam',p:80,t:2}, {n:'Moonblast',p:95,t:3}]
+        'ice': [{name:'Powder Snow',power:40,t:1}, {name:'Aurora Beam',power:65,t:2}, {name:'Ice Beam',power:90,t:3}],
+        'fighting': [{name:'Karate Chop',power:50,t:1}, {name:'Brick Break',power:75,t:2}, {name:'Close Combat',power:120,t:3}],
+        'poison': [{name:'Poison Sting',power:15,t:1}, {name:'Venoshock',power:65,t:2}, {name:'Sludge Bomb',power:90,t:3}],
+        'ground': [{name:'Mud Slap',power:20,t:1}, {name:'Mud Shot',power:55,t:2}, {name:'Earthquake',power:100,t:3}],
+        'flying': [{name:'Peck',power:35,t:1}, {name:'Wing Attack',power:60,t:2}, {name:'Brave Bird',power:120,t:3}],
+        'psychic': [{name:'Confusion',power:50,t:1}, {name:'Psybeam',power:65,t:2}, {name:'Psychic',power:90,t:3}],
+        'bug': [{name:'Bug Bite',power:60,t:1}, {name:'Signal Beam',power:75,t:2}, {name:'Bug Buzz',power:90,t:3}],
+        'rock': [{name:'Rock Throw',power:50,t:1}, {name:'Rock Slide',power:75,t:2}, {name:'Stone Edge',power:100,t:3}],
+        'ghost': [{name:'Lick',power:30,t:1}, {name:'Shadow Punch',power:60,t:2}, {name:'Shadow Ball',power:80,t:3}],
+        'dragon': [{name:'Twister',power:40,t:1}, {name:'Dragon Claw',power:80,t:2}, {name:'Outrage',power:120,t:3}],
+        'steel': [{name:'Metal Claw',power:50,t:1}, {name:'Iron Head',power:80,t:2}, {name:'Flash Cannon',power:80,t:3}],
+        'fairy': [{name:'Fairy Wind',power:40,t:1}, {name:'Dazzling Gleam',power:80,t:2}, {name:'Moonblast',power:95,t:3}]
     };
 
     const SPECIAL_TYPES = ['fire', 'water', 'grass', 'electric', 'psychic', 'ice', 'dragon', 'fairy', 'ghost'];
@@ -300,21 +295,19 @@
     function calculateStat(base, iv, level) { return Math.floor(((2 * base + iv) * level) / 100) + 5; }
     function recalcStats(p) { let bHp=p.baseHp||45, bAtk=p.baseAtk||49, bDef=p.baseDef||49, bSpA=p.baseSpA||65, bSpD=p.baseSpD||65, bSpd=p.baseSpd||45; p.maxHp=calculateMaxHp(bHp,p.iv,p.level); p.atk=calculateStat(bAtk,p.iv,p.level); p.def=calculateStat(bDef,p.iv,p.level); p.spA=calculateStat(bSpA,p.iv,p.level); p.spD=calculateStat(bSpD,p.iv,p.level); p.spd=calculateStat(bSpd,p.iv,p.level); if(p.hp>p.maxHp) p.hp=p.maxHp; }
 
-    // --- LEARNSET LOGIC (v2.0) ---
+    // --- LEARNSET LOGIC (v2.1 FIXED) ---
     function learnMoves(p) {
         let level = p.level;
         let pool = MOVES_TIER[p.types[0]] || MOVES_TIER['normal'];
         let normalPool = MOVES_TIER['normal'];
         let moves = [];
 
-        // Logic: Low levels get Tier 1 moves. High levels get mixed.
         let availableTiers = [1];
         if (level >= 16) availableTiers.push(2);
         if (level >= 36) availableTiers.push(3);
 
         function pick(typePool, tierCap) {
             let candidates = typePool.filter(m => m.t <= tierCap);
-            // Bias towards higher tier if available
             if(tierCap > 1) {
                 let highTier = candidates.filter(m => m.t === tierCap);
                 if(highTier.length > 0 && Math.random() < 0.6) return highTier[Math.floor(Math.random()*highTier.length)];
@@ -322,11 +315,8 @@
             return candidates[Math.floor(Math.random()*candidates.length)];
         }
 
-        // Slot 1: Main Type (Max Tier)
         moves.push({ ...pick(pool, Math.max(...availableTiers)), type: p.types[0] });
-        // Slot 2: Normal (Max Tier)
         moves.push({ ...pick(normalPool, Math.max(...availableTiers)), type: 'normal' });
-        // Slot 3 & 4: Filler (Random Tier)
         while(moves.length < 4) {
             let useType = Math.random() < 0.5;
             let m = pick(useType ? pool : normalPool, availableTiers[Math.floor(Math.random()*availableTiers.length)]);
@@ -337,7 +327,10 @@
 
     function ensureDataIntegrity(p) {
         if(!p.spA || !p.spD) { p.baseSpA=p.baseAtk||50; p.baseSpD=p.baseDef||50; recalcStats(p); }
-        if(!p.moves || p.moves.length === 0) { learnMoves(p); }
+        // FIX UNDEFINED SKILL: Check if moves exist OR if the move object is missing the 'name' property (old save conflict)
+        if(!p.moves || p.moves.length === 0 || !p.moves[0].name) { 
+            learnMoves(p); 
+        }
     }
 
     // --- AUTH & SAVE ---
@@ -375,7 +368,7 @@
     function openBattleModal(idx) { selectedBattleIdx = idx; let p = myBag[idx]; document.getElementById('battle-my-poke').innerText = `${p.name} (Lv.${p.level})`; document.getElementById('battle-select-screen').style.display = 'block'; document.getElementById('battle-combat-screen').style.display = 'none'; let gymData = GYM_DB[gymProgress] || {name: "All Cleared", type: "none"}; const gymBtn = document.getElementById('gym-btn'); if(gymProgress < GYM_DB.length) { gymBtn.innerHTML = `<span>HARD: ${gymData.name} (${gymData.type.toUpperCase()})</span> <span>Badge: ${gymData.badge}</span>`; gymBtn.disabled = false; } else { gymBtn.innerHTML = `<span>CHAMPION! Đã thắng hết Gym.</span>`; gymBtn.disabled = true; } document.getElementById('battle-modal').style.display = 'flex'; }
     function closeBattle() { document.getElementById('battle-modal').style.display = 'none'; }
     
-    // --- BATTLE LOGIC ENGINE v2.0 ---
+    // --- BATTLE LOGIC ENGINE v2.1 ---
     async function startBattle(difficulty) {
         let p = myBag[selectedBattleIdx];
         ensureDataIntegrity(p); 
@@ -400,16 +393,14 @@
         } else {
             gymData = GYM_DB[gymProgress];
             enemyName = `${gymData.name}'s Boss`; 
-            // Random Strong Pokemon for Gym
             let id = Math.floor(Math.random()*151)+1; 
             let res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); enemyData = await res.json();
             enemySprite = enemyData.sprites.front_default;
             enemyLevel = p.level + 5; 
         }
 
-        // GENERATE ENEMY STATS FROM REAL DATA (v2.0)
         let stats = {}; enemyData.stats.forEach(s => { stats[s.stat.name] = s.base_stat; });
-        let eIv = difficulty === 'easy' ? 5 : 20; // Easy = Low IV, Hard = High IV
+        let eIv = difficulty === 'easy' ? 5 : 20;
 
         let enemy = {
             name: enemyName, level: enemyLevel, types: enemyData.types.map(t=>t.type.name), img: enemySprite,
@@ -417,7 +408,7 @@
             iv: eIv
         };
         recalcStats(enemy);
-        learnMoves(enemy); // Enemy gets fair moves based on its level
+        learnMoves(enemy);
         enemy.hp = enemy.maxHp;
 
         battleState = {
@@ -427,7 +418,6 @@
             rewards: { xp: difficulty==='easy'?50: (difficulty==='medium'?150:1000), coin: difficulty==='medium'?100: (difficulty==='hard'?500:0) }
         };
 
-        // Render UI
         document.getElementById('enemy-name').innerText = battleState.enemy.name;
         document.getElementById('enemy-lv').innerText = `Lv.${battleState.enemy.level}`;
         document.getElementById('enemy-sprite').src = battleState.enemy.img;
@@ -449,8 +439,11 @@
         let moves = battleState.player.moves;
         for(let i=0; i<4; i++) {
             let btn = document.getElementById(`move-btn-${i}`);
+            // Fix: Use 'name' and 'power' (or 'p')
             if(moves[i]) {
-                btn.innerHTML = `<span class="move-name">${moves[i].n}</span><span class="move-type" style="color:${getColorForType(moves[i].type)}">${moves[i].type} | PWR: ${moves[i].p}</span>`;
+                let mName = moves[i].name || moves[i].n; // Compat
+                let mPower = moves[i].power || moves[i].p; // Compat
+                btn.innerHTML = `<span class="move-name">${mName}</span><span class="move-type" style="color:${getColorForType(moves[i].type)}">${moves[i].type} | PWR: ${mPower}</span>`;
                 btn.style.visibility = 'visible';
             } else { btn.style.visibility = 'hidden'; }
         }
@@ -479,9 +472,10 @@
         if(battleState.player.hp <= 0) return;
         let p = battleState.player; let e = battleState.enemy;
         if(action === 'attack') {
-            logBattle(`<b>${p.name}</b> dùng ${move.n}!`);
+            let mName = move.name || move.n;
+            logBattle(`<b>${p.name}</b> dùng ${mName}!`);
             let typeMod = getEffectiveness(move.type, e.types);
-            let dmg = calculateDamage(p, e, move, typeMod, true); // True = Player
+            let dmg = calculateDamage(p, e, move, typeMod, true); 
             document.getElementById('player-sprite').style.transform = "translateX(20px)"; setTimeout(()=>document.getElementById('player-sprite').style.transform="translateX(0)", 200);
             await sleep(500);
             if(typeMod > 1) logBattle(`<span style="color:#f1c40f">Siêu hiệu quả! (x${typeMod})</span>`);
@@ -496,10 +490,11 @@
     async function doEnemyAction() {
         if(battleState.enemy.hp <= 0) return;
         let p = battleState.player; let e = battleState.enemy;
-        let move = e.moves[Math.floor(Math.random() * e.moves.length)]; // Pick random learned move
-        logBattle(`Địch dùng ${move.n}!`);
+        let move = e.moves[Math.floor(Math.random() * e.moves.length)]; 
+        let mName = move.name || move.n;
+        logBattle(`Địch dùng ${mName}!`);
         let typeMod = getEffectiveness(move.type, p.types);
-        let dmg = calculateDamage(e, p, move, typeMod, false); // False = Enemy
+        let dmg = calculateDamage(e, p, move, typeMod, false); 
         document.getElementById('enemy-sprite').style.transform = "translateX(-20px)"; setTimeout(()=>document.getElementById('enemy-sprite').style.transform="translateX(0)", 200);
         await sleep(500);
         applyDamage(p, dmg, 'player');
@@ -510,10 +505,9 @@
         let isSpecial = SPECIAL_TYPES.includes(move.type);
         let atk = isSpecial ? attacker.spA : attacker.atk;
         let def = isSpecial ? defender.spD : defender.def;
-        // STAB Calculation: 1.5x if move type matches pokemon type
         let stab = attacker.types.includes(move.type) ? 1.5 : 1;
-        // Formula: ( (2*Lv/5 + 2) * Pwr * A/D ) / 50 + 2
-        let base = ((((2 * attacker.level / 5 + 2) * move.p * (atk / def)) / 50) + 2);
+        let pwr = move.power || move.p; // Compat
+        let base = ((((2 * attacker.level / 5 + 2) * pwr * (atk / def)) / 50) + 2);
         return Math.floor(base * typeMod * stab * (Math.random() * 0.15 + 0.85)); 
     }
 
@@ -533,39 +527,16 @@
     function processWin() { let r = battleState.rewards; let p = battleState.player; p.xp += r.xp; coins += r.coin; if(battleState.difficulty === 'hard') { userStats.hardWins++; gymProgress++; logBattle(`Nhận Badge! Nhận ${r.coin} xu.`); } else { logBattle(`+${r.xp} XP | +${r.coin} xu.`); } if(p.xp >= p.maxXp) { p.level++; p.xp -= p.maxXp; p.maxXp = Math.floor(p.maxXp * 1.2); recalcStats(p); learnMoves(p); logBattle(`🆙 Lên cấp ${p.level}! Stats tăng!`); } updateQuestProgress('win', 1); saveGame(); }
     function endBattle() { document.getElementById('battle-modal').style.display = 'none'; updateStats(); openBag(); }
     function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-    
-    // --- DAILY, DAYCARE, ETC (Reused) ---
-    function openDaily() { if(currentWild) return; checkDailyQuestGen(); checkDailyQuestUI(); document.getElementById('daily-modal').style.display = 'flex'; }
-    function closeDaily() { document.getElementById('daily-modal').style.display = 'none'; }
-    function checkDailyQuestGen() { const today = new Date().toDateString(); if(lastDailyDate !== today) { document.getElementById('btn-claim-daily').disabled = false; document.getElementById('btn-claim-daily').innerText = "Nhận 500💰"; } else { document.getElementById('btn-claim-daily').disabled = true; document.getElementById('btn-claim-daily').innerText = "Đã nhận"; } if(dailyQuests.length === 0 || dailyQuests[0].date !== today) { dailyQuests = []; let rE = Math.random(); if(rE < 0.33) dailyQuests.push({date: today, type: 'mine', target: 50 + Math.floor(Math.random()*21), progress: 0, reward: {type:'item', id:'poke-ball', qty:20}, difficulty: 0, text: "Đào mỏ", claimed: false}); else if(rE < 0.66) dailyQuests.push({date: today, type: 'catch', target: 15 + Math.floor(Math.random()*6), progress: 0, reward: {type:'item', id:'great-ball', qty:8}, difficulty: 0, text: "Bắt Pokemon", claimed: false}); else dailyQuests.push({date: today, type: 'spend', target: 5000 + Math.floor(Math.random()*2000), progress: 0, reward: {type:'item', id:'potion', qty:5}, difficulty: 0, text: "Tiêu Coins", claimed: false}); let rM = Math.random(); if(rM < 0.33) dailyQuests.push({date: today, type: 'mine', target: 150 + Math.floor(Math.random()*51), progress: 0, reward: {type:'item', id:'stardust', qty:10}, difficulty: 1, text: "Đào mỏ", claimed: false}); else if(rM < 0.66) dailyQuests.push({date: today, type: 'catch', target: 30 + Math.floor(Math.random()*11), progress: 0, reward: {type:'item', id:'ultra-ball', qty:5}, difficulty: 1, text: "Bắt Pokemon", claimed: false}); else dailyQuests.push({date: today, type: 'win', target: 8 + Math.floor(Math.random()*4), progress: 0, reward: {type:'item', id:'rare-candy', qty:2}, difficulty: 1, text: "Thắng Arena", claimed: false}); let rH = Math.random(); if(rH < 0.33) dailyQuests.push({date: today, type: 'win', target: 20 + Math.floor(Math.random()*6), progress: 0, reward: {type:'item', id:'master-ball', qty:1}, difficulty: 2, text: "Thắng Arena", claimed: false}); else if(rH < 0.66) dailyQuests.push({date: today, type: 'spend', target: 100000 + Math.floor(Math.random()*20001), progress: 0, reward: {type:'item', id:'nugget', qty:3}, difficulty: 2, text: "Tiêu Coins", claimed: false}); else dailyQuests.push({date: today, type: 'catch', target: 50 + Math.floor(Math.random()*21), progress: 0, reward: {type:'item', id:'bag-upgrade', qty:2}, difficulty: 2, text: "Bắt Pokemon", claimed: false}); dailyQuests.forEach(q => { if(q.type === 'mine') q.text = `Đào mỏ ${q.target} lần`; if(q.type === 'catch') q.text = `Bắt ${q.target} Pokemon`; if(q.type === 'spend') q.text = `Tiêu ${q.target.toLocaleString()} Coins`; if(q.type === 'win') q.text = `Thắng ${q.target} trận đấu`; }); saveGame(); } }
-    function checkDailyQuestUI() { const container = document.getElementById('daily-quests-container'); container.innerHTML = dailyQuests.map((q, i) => { let pct = Math.min(100, Math.floor((q.progress / q.target) * 100)); let diffClass = q.difficulty === 0 ? 'diff-0' : (q.difficulty === 1 ? 'diff-1' : 'diff-2'); let diffName = q.difficulty === 0 ? 'EASY' : (q.difficulty === 1 ? 'MEDIUM' : 'HARD'); let btn = ''; if(q.claimed) btn = `<button class="btn-auth" style="background:#555; font-size:0.7em; padding:5px" disabled>Đã nhận</button>`; else if(q.progress >= q.target) btn = `<button class="btn-auth" style="background:#3ba55c; font-size:0.7em; padding:5px" onclick="claimQuest(${i})">NHẬN</button>`; else btn = `<button class="btn-auth" style="background:#555; font-size:0.7em; padding:5px" disabled>${q.progress}/${q.target}</button>`; return `<div class="quest-item"><div class="quest-header"><span class="difficulty-tag ${diffClass}">${diffName}</span><span style="font-size:0.9em; font-weight:bold">${q.text}</span></div><div class="quest-progress-bar"><div class="quest-progress-fill" style="width:${pct}%"></div></div><div style="display:flex; justify-content:flex-end; margin-top:5px">${btn}</div></div>`; }).join(''); }
-    function claimDailyReward() { const today = new Date().toDateString(); if(lastDailyDate===today) return; coins+=500; lastDailyDate=today; saveGame(); updateStats(); openDaily(); alert("Đã nhận 500 Coins điểm danh!"); }
-    function claimQuest(index) { let q = dailyQuests[index]; if(q.claimed || q.progress < q.target) return; q.claimed = true; let r = q.reward; if(r.type === 'item') { if(!inventory[r.id]) inventory[r.id]=0; inventory[r.id]+=r.qty; alert(`Hoàn thành nhiệm vụ! Nhận ${r.qty}x ${r.id.toUpperCase()}`); } saveGame(); updateStats(); openDaily(); }
-    function updateQuestProgress(type, amount) { let changed = false; dailyQuests.forEach(q => { if(!q.claimed && q.type === type) { q.progress += amount; changed = true; } }); if(changed) saveGame(); }
-    function openDaycare() { if(currentWild) return; updateDaycareUI(); document.getElementById('daycare-modal').style.display = 'flex'; }
-    function closeDaycare() { document.getElementById('daycare-modal').style.display = 'none'; }
-    function updateDaycareUI() { const listDiv = document.getElementById('daycare-list'); listDiv.innerHTML = ''; daycare.slots.forEach((slot, index) => { let content = ''; if(slot.pokemon) { let now = Date.now(); let diffMins = Math.floor((now - slot.depositTime) / 60000); let pendingXP = diffMins * 50; content = `<div style="flex:1"><div style="font-weight:bold">${slot.pokemon.name} <span style="font-size:0.8em;color:#aaa">Lv.${slot.pokemon.level}</span></div><div style="font-size:0.8em; color:#3ba55c">+${pendingXP} XP (${diffMins}m)</div></div><button class="btn-auth" style="width:auto; padding:5px 10px; font-size:0.8em; background:#ed4245" onclick="withdrawPokemon(${index})">Rút</button>`; } else { let validMons = myBag.map((p, i) => ({...p, originalIdx: i})).filter(p => !p.isEgg); if(validMons.length > 0) { let opts = validMons.map(p => `<option value="${p.originalIdx}">${p.name} (Lv.${p.level})</option>`).join(''); content = `<div style="flex:1"><select id="daycare-select-${index}" class="login-input" style="margin:0; padding:5px; width:100%; font-size:0.9em">${opts}</select></div><button class="btn-auth" style="width:auto; padding:5px 10px; font-size:0.8em; background:#3ba55c; margin-left:5px" onclick="depositPokemon(${index})">Gửi</button>`; } else { content = `<div style="color:#aaa; font-size:0.9em">Không có Pokemon để gửi</div>`; } } listDiv.innerHTML += `<div class="daycare-row"><div style="width:20px; font-weight:bold; color:#7289da">#${index+1}</div>${content}</div>`; }); const btnBuy = document.getElementById('btn-buy-slot'); if(daycare.unlocked < 5) { let price = DAYCARE_PRICES[daycare.unlocked]; btnBuy.style.display = 'block'; btnBuy.innerText = `Mở Slot ${daycare.unlocked + 1} (${price.toLocaleString()}💰)`; } else { btnBuy.style.display = 'none'; } }
-    function depositPokemon(slotIndex) { let select = document.getElementById(`daycare-select-${slotIndex}`); if(!select) return; let bagIdx = select.value; daycare.slots[slotIndex].pokemon = myBag[bagIdx]; daycare.slots[slotIndex].depositTime = Date.now(); myBag.splice(bagIdx, 1); saveGame(); updateDaycareUI(); }
-    function withdrawPokemon(slotIndex) { let slot = daycare.slots[slotIndex]; if(!slot.pokemon) return; let p = slot.pokemon; let now = Date.now(); let diffMins = Math.floor((now - slot.depositTime) / 60000); let earnedXP = diffMins * 50; if(earnedXP > 0) { p.xp += earnedXP; while(p.xp >= p.maxXp) { p.level++; p.xp -= p.maxXp; p.maxXp = Math.floor(p.maxXp * 1.2); recalcStats(p); learnMoves(p); } alert(`Rút ${p.name} về! Nhận được ${earnedXP} XP!`); } else { alert(`Chưa đủ 1 phút, chưa có XP.`); } myBag.push(p); slot.pokemon = null; slot.depositTime = 0; saveGame(); updateDaycareUI(); }
-    function buyDaycareSlot() { if(daycare.unlocked >= 5) return; let price = DAYCARE_PRICES[daycare.unlocked]; if(coins >= price) { coins -= price; daycare.unlocked++; daycare.slots.push({pokemon: null, depositTime: 0}); saveGame(); updateStats(); updateDaycareUI(); alert("Đã mở rộng Daycare thành công!"); } else { alert("Không đủ tiền!"); } }
-    function openJobs() { if(currentWild) return; updateMiningUI(); document.getElementById('job-modal').style.display = 'flex'; document.getElementById('job-menu').style.display = 'block'; document.getElementById('quiz-ui').style.display = 'none'; }
-    function closeJobs() { document.getElementById('job-modal').style.display = 'none'; }
-    function openAchieve() { if(currentWild) return; const list = document.getElementById('achieve-list'); list.innerHTML = ACHIEVEMENT_DB.map(a => { let isDone = completedAchievements.includes(a.id); let canClaim = !isDone && a.req(userStats); let btn = isDone ? `<button class="achieve-btn achieve-done">Đã nhận</button>` : (canClaim ? `<button class="achieve-btn achieve-claim" onclick="claimAchieve('${a.id}')">NHẬN</button>` : `<button class="achieve-btn" style="opacity:0.5">Chưa đạt</button>`); return `<div class="achieve-row" onclick="previewAchieve('${a.id}')"><div class="achieve-info"><b>${a.name}</b><div style="font-size:0.8em;color:#bbb">${a.desc}</div></div>${btn}</div>`; }).join(''); document.getElementById('achieve-modal').style.display = 'flex'; }
-    function closeAchieve() { document.getElementById('achieve-modal').style.display = 'none'; }
-    function previewAchieve(id) { const a = ACHIEVEMENT_DB.find(x => x.id === id); if(a) alert(`Phần thưởng: ${a.reward.qty}x ${a.reward.id.toUpperCase()}`); }
-    function claimAchieve(id) { if(completedAchievements.includes(id)) return; const a = ACHIEVEMENT_DB.find(x => x.id === id); if(a) { completedAchievements.push(id); if(a.reward.type === 'item') { if(!inventory[a.reward.id]) inventory[a.reward.id]=0; inventory[a.reward.id]+=a.reward.qty; } saveGame(); openAchieve(); } }
-    function openRepairModal() { document.getElementById('job-modal').style.display = 'none'; const today = new Date().toDateString(); if(dailyRepairs.date !== today) { dailyRepairs = {date: today, count: 0}; saveGame(); } if(dailyRepairs.count >= 10) { alert("Hôm nay bạn đã sửa 10 lần! Hãy quay lại vào ngày mai."); openJobs(); return; } document.getElementById('repair-limit-text').innerText = `Lượt sửa hôm nay: ${dailyRepairs.count}/10`; let a = Math.floor(Math.random() * 10) + 1; let b = Math.floor(Math.random() * 10) + 1; repairAnswer = a + b; document.getElementById('repair-question').innerText = `${a} + ${b} = ?`; let opts = [repairAnswer]; while(opts.length < 4) { let fake = Math.floor(Math.random() * 20) + 1; if(!opts.includes(fake)) opts.push(fake); } opts.sort(() => Math.random() - 0.5); document.getElementById('repair-options').innerHTML = opts.map(n => `<button class="btn-auth" onclick="submitRepair(${n})">${n}</button>`).join(''); document.getElementById('repair-modal').style.display = 'flex'; }
-    function submitRepair(ans) { document.getElementById('repair-modal').style.display = 'none'; if(ans === repairAnswer) { pickaxe.durability = pickaxe.max; dailyRepairs.count++; alert("Sửa thành công!"); saveGame(); openJobs(); } else { alert("Sai rồi! Cúp vẫn gãy. Thử lại sau."); setTimeout(() => openJobs(), 2000); } }
-    function startQuiz() { document.getElementById('job-menu').style.display = 'none'; document.getElementById('quiz-ui').style.display = 'block'; document.getElementById('quiz-options').innerHTML = 'Loading...'; (async () => { let id = Math.floor(Math.random() * 386) + 1; let res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); let data = await res.json(); quizAnswer = data.name; document.getElementById('quiz-image').src = data.sprites.front_default; document.getElementById('quiz-image').classList.remove('revealed'); let opts = [quizAnswer]; while(opts.length<4) { let r = await fetch(`https://pokeapi.co/api/v2/pokemon/${Math.floor(Math.random()*386)+1}`); let d = await r.json(); if(!opts.includes(d.name)) opts.push(d.name); } opts.sort(()=>Math.random()-0.5); document.getElementById('quiz-options').innerHTML = opts.map(n => `<div class="quiz-opt" onclick="submitQuiz('${n}', this)">${n.toUpperCase()}</div>`).join(''); })(); }
-    function submitQuiz(ans, btnElement) { const allBtns = document.querySelectorAll('.quiz-opt'); allBtns.forEach(b => b.onclick = null); document.getElementById('quiz-image').classList.add('revealed'); if(ans===quizAnswer) { btnElement.style.background = '#2ecc71'; coins+=50; log(`<span style="color:#3ba55c">Quiz: Đúng! +50💰</span>`); } else { btnElement.style.background = '#e74c3c'; log(`<span style="color:#ed4245">Quiz: Sai!</span>`); allBtns.forEach(b => { if(b.innerText === quizAnswer.toUpperCase()) b.style.background = '#2ecc71'; }); } incrementEggSteps(); saveGame(); updateStats(); setTimeout(()=>{ openJobs() }, 2000); }
-    function updateMiningUI() { if(pickaxe.durability <= 0) { document.getElementById('btn-mining').style.display = 'none'; document.getElementById('btn-repair').style.display = 'flex'; } else { document.getElementById('btn-mining').style.display = 'flex'; document.getElementById('btn-repair').style.display = 'none'; let percent = (pickaxe.durability / pickaxe.max) * 100; document.getElementById('durability-bar-fill').style.width = percent + '%'; document.getElementById('durability-text').innerText = `${pickaxe.durability}/${pickaxe.max}`; } }
-    function startMining() { if(pickaxe.durability <= 0) return updateMiningUI(); pickaxe.durability--; userStats.mining++; let r = Math.random(); let earned = Math.floor(Math.random() * 6) + 10; coins += earned; if (r < 0.005) { inventory['nugget']++; } else if (r < 0.03) { inventory['stardust']++; } incrementEggSteps(); updateQuestProgress('mine', 1); saveGame(); updateStats(); updateMiningUI(); const btn = document.getElementById('btn-mining'); const old = btn.innerHTML; btn.innerHTML = `<div style="color:#2ecc71; font-size:1.2em; text-align:center">+${earned}💰</div>`; btn.disabled = true; setTimeout(() => { btn.innerHTML = old; btn.disabled = false; updateMiningUI(); }, 600); }
-    function claimEmergency() { if(confirm("Nhận trợ cấp?")) { coins += 200; inventory['poke-ball'] += 5; saveGame(); updateStats(); openJobs(); alert("Đã nhận 200 Coins & 5 Poke Balls."); } }
-    function closeBuy() { document.getElementById('buy-modal').style.display = 'none'; }
-    function closePokedex() { document.getElementById('dex-modal').style.display = 'none'; }
-    function showPokedex() { document.getElementById('dex-count').innerText = pokedex.size; document.getElementById('dex-modal').style.display = 'flex'; }
-    function run() { currentWild=null; showMenu(); log("Bỏ chạy."); }
-    function checkEvolution(idx, btn) { btn.innerHTML = "⏳"; btn.classList.add('loading'); (async () => { let p = myBag[idx]; try { let res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${p.id}`); let data = await res.json(); let chain = await (await fetch(data.evolution_chain.url)).json(); let node = findNodeInChain(chain.chain, data.name); if(!node || node.evolves_to.length === 0) { btn.innerHTML="Max"; btn.classList.remove('loading'); return; } let nextEvo = node.evolves_to[0]; let details = nextEvo.evolution_details[0]; let reqType = details ? details.trigger.name : 'level-up'; let canEvolve = false; if (reqType === "level-up") { let minLv = (details && details.min_level) ? details.min_level : 25; if (p.level >= minLv) canEvolve = true; } else if (reqType === "use-item") { if (inventory['evo-stone'] > 0) canEvolve = true; } else { if (p.level >= 25) canEvolve = true; } if(canEvolve) { if(reqType === "use-item") inventory['evo-stone']--; let newId = nextEvo.species.name; let d2 = await (await fetch(`https://pokeapi.co/api/v2/pokemon/${newId}`)).json(); p.id = d2.id; p.name = d2.name.toUpperCase(); p.img = d2.sprites.other['official-artwork'].front_default; p.types = d2.types.map(t=>t.type.name); p.baseHp = d2.stats.find(s=>s.stat.name==='hp').base_stat; p.baseAtk = d2.stats.find(s=>s.stat.name==='attack').base_stat; p.baseDef = d2.stats.find(s=>s.stat.name==='defense').base_stat; p.baseSpA = d2.stats.find(s=>s.stat.name==='special-attack').base_stat; p.baseSpD = d2.stats.find(s=>s.stat.name==='special-defense').base_stat; p.baseSpd = d2.stats.find(s=>s.stat.name==='speed').base_stat; recalcStats(p); learnMoves(p); saveGame(); openBag(); log(`<div class="embed" style="border-left-color:#9b59b6"><div class="embed-header"><div><span class="embed-title">TIẾN HÓA!</span><div class="embed-desc"><b>${p.name}</b><br>HP: ${p.maxHp} | ATK: ${p.atk}</div></div><img class="poke-sprite" src="${p.img}"></div></div>`); } else { btn.innerHTML = "Evo"; btn.classList.remove('loading'); let reqText = reqType === 'use-item' ? 'Cần Evo Stone' : `Cần Level ${(details && details.min_level) || 25}`; alert(`Chưa đủ điều kiện!\n${reqText}`); } } catch(e) { console.log(e); btn.innerHTML="Err"; btn.classList.remove('loading'); } })(); }
+    function checkEvolution(idx, btn) { btn.innerHTML = "⏳"; btn.classList.add('loading'); (async () => { let p = myBag[idx]; try { let res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${p.id}`); let data = await res.json(); let chain = await (await fetch(data.evolution_chain.url)).json(); let node = findNodeInChain(chain.chain, data.name); if(!node || node.evolves_to.length === 0) { btn.innerHTML="Max"; btn.classList.remove('loading'); return; } let nextEvo = node.evolves_to[0]; let details = nextEvo.evolution_details[0]; let reqType = details ? details.trigger.name : 'level-up'; let canEvolve = false; if (reqType === "level-up") { let minLv = (details && details.min_level) ? details.min_level : 25; if (p.level >= minLv) canEvolve = true; } else if (reqType === "use-item") { if (inventory['evo-stone'] > 0) canEvolve = true; } else { if (p.level >= 25) canEvolve = true; } if(canEvolve) { if(reqType === "use-item") inventory['evo-stone']--; let newId = nextEvo.species.name; let d2 = await (await fetch(`https://pokeapi.co/api/v2/pokemon/${newId}`)).json(); p.id = d2.id; p.name = d2.name.toUpperCase(); p.img = d2.sprites.other['official-artwork'].front_default; p.types = d2.types.map(t=>t.type.name); 
+    p.baseHp = d2.stats.find(s=>s.stat.name==='hp').base_stat; 
+    p.baseAtk = d2.stats.find(s=>s.stat.name==='attack').base_stat; 
+    p.baseDef = d2.stats.find(s=>s.stat.name==='defense').base_stat; 
+    p.baseSpA = d2.stats.find(s=>s.stat.name==='special-attack').base_stat; 
+    p.baseSpD = d2.stats.find(s=>s.stat.name==='special-defense').base_stat; 
+    p.baseSpd = d2.stats.find(s=>s.stat.name==='speed').base_stat; 
+    recalcStats(p); 
+    learnMoves(p); 
+    saveGame(); openBag(); log(`<div class="embed" style="border-left-color:#9b59b6"><div class="embed-header"><div><span class="embed-title">TIẾN HÓA!</span><div class="embed-desc"><b>${p.name}</b><br>HP: ${p.maxHp} | ATK: ${p.atk}</div></div><img class="poke-sprite" src="${p.img}"></div></div>`); } else { btn.innerHTML = "Evo"; btn.classList.remove('loading'); let reqText = reqType === 'use-item' ? 'Cần Evo Stone' : `Cần Level ${(details && details.min_level) || 25}`; alert(`Chưa đủ điều kiện!\n${reqText}`); } } catch(e) { console.log(e); btn.innerHTML="Err"; btn.classList.remove('loading'); } })(); }
     function findNodeInChain(node, name) { if (node.species.name === name) return node; for (let child of node.evolves_to) { let f = findNodeInChain(child, name); if (f) return f; } return null; }
 </script>
 </body>
