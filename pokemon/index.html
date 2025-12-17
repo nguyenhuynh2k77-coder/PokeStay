@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PokeStay v1.9.1 - Bug Fixed</title>
+    <title>PokeStay v1.9.2 - Full Images</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png">
     
     <style>
         /* --- 1. CORE CSS --- */
         * { box-sizing: border-box; }
-        body { background: #202225; color: #dcddde; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
-        #app { display: none; width: 100%; max-width: 500px; background-color: rgba(47, 49, 54, 0.95); flex-direction: column; height: 100vh; position: relative; border-left:1px solid #333; border-right:1px solid #333;}
+        /* KHÔI PHỤC BACKGROUND GỐC */
+        body { background: url('wp2595124.jpg') no-repeat center center fixed; background-size: cover; color: #dcddde; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
+        
+        #app { display: none; width: 100%; max-width: 500px; background-color: rgba(47, 49, 54, 0.95); backdrop-filter: blur(8px); flex-direction: column; height: 100vh; border-left: 1px solid rgba(0,0,0,0.5); border-right: 1px solid rgba(0,0,0,0.5); box-shadow: 0 0 50px rgba(0,0,0,0.8); position: relative; }
         
         /* LAYOUT */
         header { flex: 0 0 auto; background-color: rgba(32, 34, 37, 0.9); padding: 15px; border-bottom: 1px solid #202225; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
@@ -21,14 +23,18 @@
         #controls { flex: 0 0 auto; padding: 10px; background-color: rgba(64, 68, 75, 0.95); display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: wrap; border-top: 1px solid rgba(255,255,255,0.1); min-height: 80px; }
         .btn { padding: 10px 0; border: none; border-radius: 3px; font-weight: bold; cursor: pointer; color: white; width: calc(33.33% - 4px); font-size: 0.85em; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; }
         .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
-        .btn-hunt { width: 32% !important; background: #2ecc71; text-shadow: 0 0 3px black; border: 2px solid #27ae60; }
+        
+        /* KHÔI PHỤC NÚT SĂN TÌM GỐC */
+        .btn-hunt { width: 32% !important; background: url('image_1.png') no-repeat center center; background-size: cover; text-shadow: 0 0 3px black, 0 0 3px black; border: 2px solid #2ecc71; }
+        
         .btn-shop { background: #faa61a; color: #202225; } .btn-bag { background: #5865f2; }
         .btn-job { background: #7289da; } .btn-achieve { background: #f1c40f; color:#202225; } .btn-daycare { background: #e91e63; }
         .btn-daily { background: #eb459e; } .btn-dex { background: #3498db; } .btn-center { background: #ff7675; color: white; }
 
         /* MOBILE */
         @media (max-width: 768px) {
-            #app { max-width: 100%; border: none; height: 100dvh; position: fixed; top: 0; left: 0; }
+            body { background: #202225; } /* Mobile fallback color if image heavy */
+            #app { max-width: 100%; border: none; box-shadow: none; height: 100dvh; position: fixed; top: 0; left: 0; }
             #controls { padding-bottom: 20px; gap: 5px; }
             .btn { padding: 14px 0; font-size: 1em; width: 48%; }
             .btn-hunt { width: 100% !important; margin-bottom: 5px; font-size: 1.2em; }
@@ -43,6 +49,13 @@
         #donate-modal, #update-modal, #shop-modal, #buy-modal, #battle-modal, #job-modal, #achieve-modal, #daycare-modal, #repair-modal, #dex-modal, #daily-modal { display: none; z-index: 1000; }
         .box-style { background: #2f3136; padding: 20px; border-radius: 10px; border: 2px solid #faa61a; text-align: center; width: 90%; max-width: 350px; box-shadow: 0 0 20px rgba(0,0,0,0.5); max-height: 80vh; display: flex; flex-direction: column; overflow-y: auto;}
         
+        /* KHÔI PHỤC BACKGROUND CÁC MODAL */
+        #buy-modal .box-style { background: url('image_3.png') no-repeat center center; background-size: cover; }
+        #dex-modal .box-style { background: url('image_4.png') no-repeat center center; background-size: cover; color: #eee; }
+        #achieve-modal .box-style { background: url('image_5.png') no-repeat center center; background-size: cover; }
+        #battle-modal .box-style { width: 100%; max-width: 450px; height: 100%; max-height: 100%; border:none; background: linear-gradient(to bottom, #2c3e50, #000); justify-content: flex-start; padding: 10px; }
+        .inner-box { background: rgba(0, 0, 0, 0.7); padding: 15px; border-radius: 8px; height: 100%; display: flex; flex-direction: column; width:100%; }
+
         .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; width: 100%; }
         .shop-card { background: rgba(64, 68, 75, 0.6); padding: 10px; border-radius: 5px; border: 1px solid #202225; cursor: pointer; display:flex; flex-direction:column; align-items:center; transition: 0.2s; }
         .shop-card:hover { background: rgba(64, 68, 75, 0.9); border-color: #faa61a; }
@@ -103,8 +116,8 @@
 <div id="login-screen">
     <div class="box-style">
         <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto">
-        <h2 style="color: white; margin: 10px 0;">POKESTAY v1.9.1</h2>
-        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Bug Fixed Edition</div>
+        <h2 style="color: white; margin: 10px 0;">POKESTAY v1.9.2</h2>
+        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Full Images + Bug Fixes</div>
         <div style="width:100%">
             <input type="text" id="username-input" class="login-input" placeholder="Tên..." onkeypress="handleEnter(event)">
             <input type="password" id="password-input" class="login-input" placeholder="Mật khẩu..." onkeypress="handleEnter(event)">
@@ -119,7 +132,7 @@
         <div style="display:flex; flex-direction:column">
             <div style="display:flex; align-items:center; gap:5px">
                 <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/113.png" width="24" height="24">
-                <span>PokeStay v1.9.1</span>
+                <span>PokeStay v1.9.2</span>
             </div>
             <span id="display-username" style="font-size:0.8em; color:#bbb">TRAINER</span>
         </div>
@@ -146,16 +159,18 @@
 
 <div id="buy-modal">
     <div class="box-style">
-        <h3 style="color: #faa61a; margin: 5px 0;" id="buy-name">Item</h3>
-        <img id="buy-img" src="" width="60" style="margin: 10px auto; display:block">
-        <div style="margin-bottom: 10px; color:#bbb">Giá: <span id="buy-price" style="color:white; font-weight:bold">0</span>💰</div>
-        <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin: 10px 0;">
-            <input type="number" id="buy-qty" class="login-input" style="width:60px; margin:0" value="1" min="1" oninput="calcTotal()">
-        </div>
-        <div style="font-size: 1.1em; margin-bottom: 15px;">Tổng: <span id="buy-total" style="color:#3ba55c; font-weight:bold">0</span>💰</div>
-        <div style="display:flex; gap:10px; width:100%">
-            <button class="btn-auth" style="background:#7f8c8d; margin:0" onclick="closeBuy()">HỦY</button>
-            <button class="btn-auth btn-login" style="margin:0" onclick="submitBuy()">MUA</button>
+        <div class="inner-box">
+            <h3 style="color: #faa61a; margin: 5px 0;" id="buy-name">Item</h3>
+            <img id="buy-img" src="" width="60" style="margin: 10px auto; display:block">
+            <div style="margin-bottom: 10px; color:#bbb">Giá: <span id="buy-price" style="color:white; font-weight:bold">0</span>💰</div>
+            <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin: 10px 0;">
+                <input type="number" id="buy-qty" class="login-input" style="width:60px; margin:0" value="1" min="1" oninput="calcTotal()">
+            </div>
+            <div style="font-size: 1.1em; margin-bottom: 15px;">Tổng: <span id="buy-total" style="color:#3ba55c; font-weight:bold">0</span>💰</div>
+            <div style="display:flex; gap:10px; width:100%">
+                <button class="btn-auth" style="background:#7f8c8d; margin:0" onclick="closeBuy()">HỦY</button>
+                <button class="btn-auth btn-login" style="margin:0" onclick="submitBuy()">MUA</button>
+            </div>
         </div>
     </div>
 </div>
@@ -224,29 +239,34 @@
 
 <div id="achieve-modal">
     <div class="box-style">
-        <h2 style="color: #f1c40f;">🏆 Thành Tựu</h2>
-        <div style="font-size:0.7em; color:#aaa; margin-bottom:10px">Bấm vào để xem phần thưởng</div>
-        <div id="achieve-list" style="overflow-y:auto; flex:1; width:100%; max-height:60vh"></div>
-        <button class="btn-close" onclick="closeAchieve()">Đóng</button>
+        <div class="inner-box">
+            <h2 style="color: #f1c40f;">🏆 Thành Tựu</h2>
+            <div style="font-size:0.7em; color:#aaa; margin-bottom:10px">Bấm vào để xem phần thưởng</div>
+            <div id="achieve-list" style="overflow-y:auto; flex:1; width:100%; max-height:60vh"></div>
+            <button class="btn-close" onclick="closeAchieve()">Đóng</button>
+        </div>
     </div>
 </div>
 
 <div id="dex-modal">
     <div class="box-style">
-        <h2 style="color: #3498db;">📖 Pokedex</h2>
-        <div style="font-size: 1.2em; margin-bottom: 20px;">
-            Đã bắt: <span style="color: #f1c40f; font-weight: bold;" id="dex-count">0</span> / 649
+        <div class="inner-box">
+            <h2 style="color: #3498db;">📖 Pokedex</h2>
+            <div style="font-size: 1.2em; margin-bottom: 20px;">
+                Đã bắt: <span style="color: #f1c40f; font-weight: bold;" id="dex-count">0</span> / 649
+            </div>
+            <button class="btn-close" onclick="closePokedex()">Đóng</button>
         </div>
-        <button class="btn-close" onclick="closePokedex()">Đóng</button>
     </div>
 </div>
 
 <div id="battle-modal">
-    <div class="box-style" style="width:95%; max-width:450px; background: linear-gradient(to bottom, #2c3e50, #000); padding:10px; border:none">
+    <div class="box-style">
         <div id="battle-select-screen" style="width:100%; text-align:center">
             <h2 style="color: #e74c3c; margin-bottom: 15px;">🔥 ĐẤU TRƯỜNG</h2>
             <div class="battle-card" style="width:100%; margin-bottom:10px; padding:10px; background:rgba(0,0,0,0.5); border-radius:5px">
                 <span id="battle-my-poke" style="color:#3ba55c; font-weight:bold">My Pokemon</span>
+                <div style="font-size:0.8em; color:#bbb">Ready for battle!</div>
             </div>
             <button class="difficulty-btn diff-easy btn-auth" style="background:#2ecc71" onclick="startBattle('easy')"><span>EASY: Wild</span></button>
             <button class="difficulty-btn diff-med btn-auth" style="background:#f1c40f; color:black" onclick="startBattle('medium')"><span>MEDIUM: Trainer</span></button>
@@ -301,12 +321,11 @@
         <h2 style="color: #faa61a;">📜 Update Log</h2>
         <div class="update-list" style="text-align:left; width:100%">
              <div style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px">
-                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.9.1</span> 
-                <span style="color:#bbb; font-size:0.8em; float:right">Fixed</span>
+                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.9.2</span> 
+                <span style="color:#bbb; font-size:0.8em; float:right">Restore</span>
                 <ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde">
-                    <li><b>Fixed Shop:</b> Đã có thể mua đồ.</li>
-                    <li><b>Fixed Sell:</b> Đã có thể bán Pokemon.</li>
-                    <li><b>Fixed UI:</b> Sửa lỗi hiển thị máu Undefined.</li>
+                    <li><b>Fixed Shop/Sell:</b> Giữ nguyên tính năng đã sửa ở 1.9.1</li>
+                    <li><b>Graphics:</b> Khôi phục toàn bộ hình ảnh nền.</li>
                 </ul>
             </div>
         </div>
@@ -317,6 +336,7 @@
 <div id="donate-modal">
     <div class="box-style" style="background:white; color:black">
         <h3 style="color: #6c38c6; margin:0 0 10px 0">Ủng Hộ Dev</h3>
+        <img src="38b84fc99acb15954cda.jpg" class="donate-qr" style="width:100%; border-radius:5px; border:1px solid #ddd">
         <div style="font-size:0.9em; margin-top:10px; font-weight:bold">TPBank QR</div>
         <button class="btn-close" onclick="closeDonate()">Đóng</button>
     </div>
