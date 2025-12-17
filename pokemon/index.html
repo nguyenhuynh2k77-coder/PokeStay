@@ -506,32 +506,82 @@
     }
 
     function handleEnter(e) { if(e.key === 'Enter') login(); }
-    function register() { const u = document.getElementById('username-input').value.trim(), p = document.getElementById('password-input').value.trim(); if(!u||!p) return alert("Thiếu thông tin!"); if(localStorage.getItem(AUTH_KEY+u)) return alert("Tên tồn tại!"); localStorage.setItem(AUTH_KEY+u, p); alert("Đăng ký xong!"); }
+    async function register() {
+    const u = document.getElementById('username-input').value.trim();
+    const p = document.getElementById('password-input').value.trim();
+    
+    if (!u || !p) return alert("Thiếu thông tin!");
+
+    // 1. Kiểm tra xem tên này đã có trên mạng chưa
+    const snapshot = await firebase.database().ref('accounts/' + u).once('value');
+    
+    if (snapshot.exists()) {
+        alert("Tên này đã có người dùng! Hãy chọn tên khác.");
+    } else {
+        // 2. Nếu chưa có, tạo tài khoản mới trên Firebase
+        await firebase.database().ref('accounts/' + u).set({
+            password: p,
+            createdAt: Date.now()
+        });
+        
+        // Lưu tạm vào máy để nhớ lần sau (tùy chọn)
+        localStorage.setItem(AUTH_KEY + u, p);
+        
+        alert("Đăng ký thành công! Hãy đăng nhập.");
+    }
+}
     // Thay thế hàm login cũ bằng hàm này
 // --- CẬP NHẬT HÀM LOGIN ĐỂ CHỜ DỮ LIỆU ---
 async function login() {
     const u = document.getElementById('username-input').value.trim();
     const p = document.getElementById('password-input').value.trim();
-    
-    // Kiểm tra mật khẩu (vẫn dùng localStorage hoặc bạn có thể nâng cấp sau)
-    if (localStorage.getItem(AUTH_KEY + u) === p) {
-        currentUser = u;
-        document.getElementById('display-username').innerText = u.toUpperCase();
-        
-        // Hiện thông báo đang đăng nhập...
-        const btn = document.querySelector('.btn-login');
-        if(btn) btn.innerText = "Đang tải...";
-        
-        // CHỜ loadGame tải xong dữ liệu từ Firebase
-        await loadGame(); 
-        
-        // Tải xong mới tắt màn hình đăng nhập
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app').style.display = 'flex';
-        if(btn) btn.innerText = "ĐĂNG NHẬP"; // Trả lại tên nút cũ
-        
-    } else {
-        alert("Sai thông tin đăng nhập!");
+    const btn = document.querySelector('.btn-login');
+
+    if (!u || !p) return alert("Vui lòng nhập tên và mật khẩu!");
+
+    if(btn) btn.innerText = "Đang kiểm tra...";
+
+    try {
+        // 1. Lấy mật khẩu từ Firebase về để so sánh
+        const snapshot = await firebase.database().ref('accounts/' + u).once('value');
+        const acc = snapshot.val();
+
+        // 2. Logic kiểm tra (Ưu tiên mạng -> Nếu mạng ko có thì check máy -> Nếu máy có thì đồng bộ lên mạng)
+        let isPassCorrect = false;
+
+        if (acc && acc.password === p) {
+            // Mật khẩu trên mạng đúng
+            isPassCorrect = true;
+        } else if (!acc && localStorage.getItem(AUTH_KEY + u) === p) {
+            // Trường hợp đặc biệt: Bạn là người cũ, mật khẩu chưa có trên mạng nhưng có trong máy
+            // -> Tự động cập nhật mật khẩu lên mạng luôn
+            await firebase.database().ref('accounts/' + u).set({ password: p });
+            isPassCorrect = true;
+            console.log("Đã đồng bộ mật khẩu cũ lên hệ thống.");
+        }
+
+        // 3. Xử lý kết quả
+        if (isPassCorrect) {
+            currentUser = u;
+            document.getElementById('display-username').innerText = u.toUpperCase();
+            
+            if(btn) btn.innerText = "Đang tải dữ liệu...";
+            
+            // Vào game và tải dữ liệu
+            await loadGame();
+            
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app').style.display = 'flex';
+            if(btn) btn.innerText = "ĐĂNG NHẬP";
+        } else {
+            alert("Sai mật khẩu hoặc tài khoản không tồn tại!");
+            if(btn) btn.innerText = "ĐĂNG NHẬP";
+        }
+
+    } catch (err) {
+        console.error(err);
+        alert("Lỗi kết nối: " + err.message);
+        if(btn) btn.innerText = "ĐĂNG NHẬP";
     }
 }
     function logout() { saveGame(); location.reload(); }
@@ -1635,6 +1685,7 @@ async function login() {
 </script>
 </body>
 </html>
+
 
 
 
