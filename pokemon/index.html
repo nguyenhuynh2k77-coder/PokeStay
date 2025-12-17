@@ -2,205 +2,173 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PokeStay v1.0 - Official Release</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png">
     
     <style>
         /* --- CORE CSS --- */
+        * { box-sizing: border-box; } /* Quan trọng: Tính toán kích thước chuẩn */
+        
         body { 
             background: url('wp2595124.jpg') no-repeat center center fixed; 
-            background-size: cover; color: #dcddde; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            display: flex; justify-content: center; height: 100vh; margin: 0; overflow: hidden; 
+            background-size: cover; 
+            color: #dcddde; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            height: 100vh; /* Fallback */
+            height: 100dvh; /* Chiều cao động cho mobile */
+            margin: 0; 
+            overflow: hidden; /* Chặn cuộn trang web */
         }
-        #app { display: none; width: 100%; max-width: 500px; background-color: rgba(47, 49, 54, 0.95); backdrop-filter: blur(8px); flex-direction: column; height: 100vh; border-left: 1px solid rgba(0,0,0,0.5); border-right: 1px solid rgba(0,0,0,0.5); box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+
+        #app { 
+            display: none; /* Sẽ hiện khi login */
+            width: 100%; 
+            max-width: 500px; 
+            background-color: rgba(47, 49, 54, 0.95); 
+            backdrop-filter: blur(8px); 
+            flex-direction: column; 
+            height: 100%; 
+            border-left: 1px solid rgba(0,0,0,0.5); 
+            border-right: 1px solid rgba(0,0,0,0.5); 
+            box-shadow: 0 0 50px rgba(0,0,0,0.8); 
+            position: relative;
+        }
         
+        /* --- LAYOUT STRUCTURE (Quan trọng để fix lỗi giao diện) --- */
+        header { 
+            flex: 0 0 auto; /* Không co giãn */
+            background-color: rgba(32, 34, 37, 0.9); 
+            padding: 10px 15px; 
+            border-bottom: 1px solid #202225; 
+            font-weight: bold; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+
+        #chat-area { 
+            flex: 1 1 auto; /* Tự động giãn để chiếm khoảng trống */
+            overflow-y: auto; /* Chỉ cuộn nội dung bên trong khu vực này */
+            padding: 15px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            scroll-behavior: smooth; 
+            min-height: 0; /* Fix cho Firefox/Flexbox */
+        }
+
+        #controls { 
+            flex: 0 0 auto; /* Không co giãn */
+            padding: 8px; 
+            background-color: rgba(64, 68, 75, 0.95); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 5px; 
+            flex-wrap: wrap; 
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 15px; /* Thêm đệm đáy cho điện thoại vuốt */
+        }
+
+        .footer { 
+            flex: 0 0 auto;
+            display: flex; 
+            justify-content: space-between; 
+            padding: 5px 10px; 
+            font-size: 0.8em;
+            background: #202225;
+        }
+
+        /* --- MOBILE SPECIFIC FIXES --- */
+        @media (max-width: 768px) {
+            #app {
+                max-width: 100%;
+                border: none;
+            }
+            
+            /* Nút bấm to hơn trên điện thoại */
+            .btn {
+                padding: 12px 0 !important;
+                font-size: 0.95em !important;
+            }
+            
+            /* Sắp xếp nút gọn gàng */
+            .btn-hunt { width: 100% !important; margin-bottom: 5px; }
+            .btn-shop, .btn-bag { width: 49% !important; }
+            .btn-job, .btn-achieve, .btn-daycare { width: 32% !important; font-size: 0.8em !important; }
+            .btn-daily, .btn-dex { width: 49% !important; }
+            .btn-log { width: 100% !important; margin-top: 5px; }
+        }
+
         /* POPUPS */
         #login-screen, #donate-modal, #update-modal, #buy-modal, #battle-modal, #job-modal, #achieve-modal, #daycare-modal, #repair-modal, #dex-modal, #daily-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         #donate-modal, #update-modal, #buy-modal, #battle-modal, #job-modal, #achieve-modal, #daycare-modal, #repair-modal, #dex-modal, #daily-modal { display: none; z-index: 1000; }
         
-        .box-style { background: #2f3136; padding: 25px; border-radius: 10px; border: 2px solid #faa61a; text-align: center; width: 320px; box-shadow: 0 0 20px rgba(0,0,0,0.5); max-height: 80vh; display: flex; flex-direction: column; }
-        .inner-box { background: rgba(0, 0, 0, 0.6); padding: 15px; border-radius: 8px; height: 100%; display: flex; flex-direction: column; }
+        .box-style { background: #2f3136; padding: 20px; border-radius: 10px; border: 2px solid #faa61a; text-align: center; width: 90%; max-width: 350px; box-shadow: 0 0 20px rgba(0,0,0,0.5); max-height: 80vh; display: flex; flex-direction: column; overflow-y: auto;}
         
-        /* MODAL BACKGROUNDS */
-        #buy-modal .box-style { background: url('image_3.png') no-repeat center center; background-size: cover; }
-        #dex-modal .box-style { background: url('image_4.png') no-repeat center center; background-size: cover; color: #eee; }
-        #achieve-modal .box-style { background: url('image_5.png') no-repeat center center; background-size: cover; }
-
-        /* RARITY & BADGES */
-        .rarity-tag { font-size: 0.65em; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-right: 5px; border: 1px solid rgba(255,255,255,0.2); display: inline-block; text-transform: uppercase; letter-spacing: 0.5px;}
-        .r-common { background: #95a5a6; color: #fff; } .r-uncommon { background: #2ecc71; color: #000; } 
-        .r-rare { background: #3498db; color: #fff; } .r-superrare { background: #9b59b6; color: #fff; box-shadow: 0 0 5px #9b59b6; } 
-        .r-legendary { background: linear-gradient(45deg, #f1c40f, #e67e22); color: #000; box-shadow: 0 0 8px #f1c40f; text-shadow: 0 0 2px white; } 
-        .r-shiny { background: #e74c3c; color: white; animation: shiny-pulse 1.5s infinite; }
-        @keyframes shiny-pulse { 0% { box-shadow: 0 0 0 #e74c3c; } 50% { box-shadow: 0 0 10px #e74c3c; } 100% { box-shadow: 0 0 0 #e74c3c; } }
-
-        .badge-item { font-size: 1.5em; cursor: help; filter: drop-shadow(0 0 5px gold); }
-        .badge-list { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; margin: 5px 0; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 5px; }
-
-        /* UI ELEMENTS */
-        .job-btn { width: 100%; padding: 15px; margin-bottom: 10px; border: none; border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; background: #40444b; color: white; font-weight: bold; text-align: left;}
-        .job-btn:hover { background: #50555e; transform: translateX(5px); }
-        .job-icon { font-size: 1.5em; }
-        .quiz-img { width: 120px; height: 120px; margin: 10px auto; filter: brightness(0); transition: filter 0.5s; image-rendering: pixelated;}
-        .quiz-img.revealed { filter: brightness(1); }
-        .quiz-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .quiz-opt { padding: 10px; background: #2f3136; border: 1px solid #444; color: white; cursor: pointer; border-radius: 4px; transition: 0.2s; }
-        
-        .achieve-row { background: rgba(0,0,0,0.5); padding: 10px; margin-bottom: 8px; border-radius: 5px; text-align: left; display: flex; justify-content: space-between; align-items: center; border: 1px solid #444; transition: 0.2s; cursor: pointer; }
-        .achieve-row:hover { background: rgba(255,255,255,0.1); }
-        .achieve-btn { padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8em; font-weight: bold; }
-        .achieve-claim { background: #3ba55c; color: white; animation: pulse 1s infinite; }
-        .achieve-done { background: #4f545c; color: #aaa; cursor: default; }
-        .daycare-slot { border: 2px dashed #7289da; border-radius: 10px; padding: 20px; margin: 10px 0; background: rgba(0,0,0,0.2); }
-        .bag-row.selected { background: rgba(235, 69, 158, 0.2); border-color: #eb459e; }
-        .egg-row { background: rgba(241, 196, 15, 0.1); border-color: #f1c40f; }
-
-        /* DAILY QUEST CSS */
-        .daily-section { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; margin-bottom: 10px; border: 1px solid #444; text-align: left; }
-        .quest-item { margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 10px; }
-        .quest-item:last-child { border-bottom: none; }
-        .quest-header { display: flex; justify-content: space-between; align-items: center; }
-        .difficulty-tag { font-size: 0.7em; padding: 2px 5px; border-radius: 3px; color: black; font-weight: bold; }
-        .diff-0 { background: #2ecc71; } /* Easy */
-        .diff-1 { background: #f1c40f; } /* Medium */
-        .diff-2 { background: #e74c3c; color: white; } /* Hard */
-        .quest-progress-bar { width: 100%; height: 8px; background: #202225; border-radius: 5px; margin-top: 5px; overflow: hidden; }
-        .quest-progress-fill { height: 100%; background: #3ba55c; width: 0%; transition: width 0.3s; }
-
-        /* BATTLE */
-        .battle-card { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; margin-bottom: 10px; border: 1px solid #444; }
-        .difficulty-btn { width: 100%; padding: 12px; margin-bottom: 8px; border: none; border-radius: 5px; font-weight: bold; color: white; cursor: pointer; text-align: left; display: flex; justify-content: space-between; transition: 0.2s; }
-        .diff-easy { background: #3ba55c; } .diff-med { background: #f1c40f; color: black; } .diff-hard { background: #ed4245; }
-        .gym-btn { background: linear-gradient(45deg, #e74c3c, #8e44ad); border: 2px solid gold; text-shadow: 1px 1px 2px black;}
-
-        /* HEADER & FOOTER */
-        header { background-color: rgba(32, 34, 37, 0.9); padding: 15px; border-bottom: 1px solid #202225; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-        .stats { color: #faa61a; display: flex; gap: 10px; align-items: center; }
-        #chat-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
+        /* OTHER STYLES */
         .embed { background-color: rgba(41, 43, 47, 0.8); border-left: 4px solid #00b0f4; padding: 10px; border-radius: 4px; position: relative; margin-bottom: 5px; }
         .embed-header { display: flex; justify-content: space-between; align-items: flex-start; }
-        .poke-sprite { width: 110px; height: 110px; image-rendering: pixelated; margin-left: 10px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
+        .poke-sprite { width: 90px; height: 90px; image-rendering: pixelated; margin-left: 5px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); } /* Giảm size ảnh xuống 90px cho gọn mobile */
         
-        #controls { padding: 10px; background-color: rgba(64, 68, 75, 0.95); min-height: 80px; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
         .btn { padding: 10px 0; border: none; border-radius: 3px; font-weight: bold; cursor: pointer; color: white; width: 30%; font-size: 0.85em; transition: 0.2s; }
         .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn:active { transform: translateY(0); }
+
+        /* COLORS */
         .btn-hunt { background: #3ba55c; } 
         .btn-shop { background: #faa61a; color: #202225; } 
         .btn-bag { background: #5865f2; } 
-        .btn-job { background: #7289da; width: 32% !important; } 
-        .btn-achieve { background: #f1c40f; color:#202225; width: 32% !important; } 
-        .btn-daycare { background: #e91e63; width: 32% !important; }
-        .btn-daily { background: #eb459e; width: 48% !important; } 
-        .btn-dex { background: #3498db; width: 48% !important; } 
-        .btn-log { background: #95a5a6; width: 48% !important; }
+        .btn-job { background: #7289da; } 
+        .btn-achieve { background: #f1c40f; color:#202225; } 
+        .btn-daycare { background: #e91e63; }
+        .btn-daily { background: #eb459e; } 
+        .btn-dex { background: #3498db; } 
+        .btn-log { background: #95a5a6; }
 
-        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .shop-card { background: rgba(64, 68, 75, 0.6); padding: 8px; border-radius: 5px; text-align: center; border: 1px solid #202225; cursor: pointer; }
-        .bag-row { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(32, 34, 37, 0.5); margin-bottom: 5px; border-radius: 3px; border: 1px solid #2f3136; position: relative;}
-        .bag-actions { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; width: 140px;}
-        .btn-small { padding: 4px 8px; font-size: 0.7em; border: none; border-radius: 3px; color: white; cursor: pointer; margin-bottom: 2px;}
-        .btn-sell { background: #ed4245; } .btn-battle { background: #e74c3c; width:100%} .btn-heal { background: #2ecc71; color: #202225; font-weight: bold; } .btn-candy { background: #3498db; color: white; font-weight: bold; }
-        .btn-evo { background: #9b59b6; animation: glow 2s infinite; } .btn-evo.loading { animation: spin 1s infinite linear; background: #555; pointer-events:none; }
-        
-        .xp-container, .hp-container { width: 100px; height: 5px; background: #202225; border-radius: 3px; margin-top: 3px; overflow: hidden; }
-        .xp-fill { height: 100%; background: #3498db; width: 0%; } .hp-fill { height: 100%; background: #e74c3c; width: 100%; transition: width 0.3s; }
-
-        .durability-bar { width: 100%; height: 8px; background: #202225; border-radius: 4px; margin-top: 5px; overflow: hidden; }
-        .durability-fill { height: 100%; background: #3ba55c; width: 100%; transition: width 0.2s; }
-
-        .ball-btn { background: #2f3136; border: 1px solid #202225; padding: 5px; border-radius: 5px; cursor: pointer; display: flex; flex-direction: column; align-items: center; min-width: 65px; position: relative; }
-        .ball-btn img { width: 30px; }
-        .rate-badge { position: absolute; top: -5px; right: -5px; background: #3ba55c; color: white; font-size: 0.75em; padding: 2px 4px; border-radius: 4px; font-weight: bold; box-shadow: 1px 1px 2px black;}
-        .ball-btn.disabled { opacity: 0.4; pointer-events: none; filter: grayscale(1); }
-        .footer { display: flex; justify-content: space-between; padding: 5px 10px; margin-bottom: 5px;}
+        /* MISC */
+        .login-input { width: 90%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #202225; background: #40444b; color: white; text-align: center; font-weight: bold; font-size: 16px; }
+        .btn-auth { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .btn-login { background: #3ba55c; color: white; } .btn-register { background: #e91e63; color: white; }
         .footer-link { text-align: center; font-size: 0.75em; color: #72767d; cursor: pointer; text-decoration: underline; margin-right: 10px; }
         .donate-btn-text { color: #eb459e; font-weight: bold; animation: pulse 2s infinite; cursor: pointer;}
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         
-        .login-input, .qty-input { width: 90%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #202225; background: #40444b; color: white; text-align: center; font-weight: bold; font-size: 16px;}
-        .qty-input { width: 60%; font-size: 1.2em; color: #faa61a; }
-        .btn-auth { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-login { background: #3ba55c; color: white; } .btn-register { background: #e91e63; color: white; }
-        .btn-close { background: #ed4245; color: white; padding: 8px 20px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; font-weight:bold;}
-        .donate-qr { width: 100%; max-width: 250px; border-radius: 5px; display: block; margin: 0 auto; border: 1px solid #ddd; }
-        /* --- MOBILE SPECIFIC UI (Giao diện riêng cho Điện Thoại) --- */
-        @media (max-width: 768px) {
-            /* 1. Ghim chặt khung game vào màn hình, không cho cuộn trang web */
-            #app {
-                position: fixed; /* Cố định vị trí */
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%; /* Chiếm 100% khung nhìn thực tế */
-                max-width: 100%;
-                border: none;
-                box-shadow: none;
-                border-radius: 0;
-            }
+        /* QUEST & BADGES */
+        .quest-item { margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px; text-align: left;}
+        .quest-header { display: flex; justify-content: space-between; font-size: 0.85em; margin-bottom: 3px;}
+        .quest-progress-bar { width: 100%; height: 6px; background: #202225; border-radius: 3px; overflow: hidden; }
+        .quest-progress-fill { height: 100%; background: #3ba55c; width: 0%; transition: width 0.3s; }
+        .difficulty-tag { padding: 1px 4px; border-radius: 3px; font-size: 0.7em; font-weight: bold; color:black;}
+        .diff-0 { background: #2ecc71; } .diff-1 { background: #f1c40f; } .diff-2 { background: #ed4245; color:white;}
 
-            /* 2. Nền tối cho body */
-            body {
-                background: #202225;
-                overflow: hidden; /* Ngăn cuộn body */
-            }
+        /* IN-GAME ELEMENTS */
+        .rarity-tag { font-size: 0.65em; padding: 2px 5px; border-radius: 3px; font-weight: bold; margin-right: 5px; display: inline-block; text-transform: uppercase; }
+        .r-common { background: #95a5a6; color: #fff; } .r-uncommon { background: #2ecc71; color: #000; } 
+        .r-rare { background: #3498db; color: #fff; } .r-superrare { background: #9b59b6; color: #fff; } 
+        .r-legendary { background: linear-gradient(45deg, #f1c40f, #e67e22); color: #000; } 
+        .r-shiny { background: #e74c3c; color: white; }
 
-            /* 3. Thu gọn Header và Footer */
-            header {
-                padding: 10px; /* Giảm khoảng cách */
-            }
-            .footer {
-                padding: 5px 10px; /* Giảm khoảng cách */
-                margin-bottom: 0;
-                font-size: 0.9em;
-            }
-
-            /* 4. Tối ưu khu vực Chat */
-            #chat-area {
-                padding: 10px;
-                font-size: 1em;
-                /* Khu vực này sẽ tự co giãn để lấp đầy khoảng trống */
-            }
-
-            /* 5. Tối ưu khu vực Nút điều khiển */
-            #controls {
-                padding: 8px; /* Giảm padding */
-                min-height: auto; /* Bỏ chiều cao tối thiểu */
-                gap: 4px; /* Giảm khoảng cách giữa các nút */
-            }
-
-            /* 6. Điều chỉnh kích thước nút bấm cho gọn */
-            .btn {
-                width: 49%; /* Chia đôi màn hình */
-                padding: 12px 0; /* Chiều cao nút vừa phải */
-                font-size: 0.9em;
-                margin-bottom: 0; /* Bỏ margin thừa */
-            }
-            
-            /* Nút Săn vẫn to nhất để dễ bấm */
-            .btn-hunt {
-                width: 100% !important;
-                padding: 15px 0;
-                font-size: 1.1em;
-            }
-
-            /* Các nút hàng 3 */
-            .btn-job, .btn-achieve, .btn-daycare {
-                width: 32.5% !important;
-                padding: 10px 0;
-            }
-            
-            /* Các nút hàng cuối */
-            .btn-daily, .btn-dex, .btn-log {
-                 padding: 10px 0;
-            }
-
-            /* 7. Tối ưu Modal trên điện thoại */
-            .box-style {
-                width: 92%;
-                padding: 15px;
-                max-height: 85vh;
-            }
-        }
-        }
+        .ball-btn { background: #2f3136; border: 1px solid #202225; padding: 5px; border-radius: 5px; cursor: pointer; display: flex; flex-direction: column; align-items: center; min-width: 60px; position: relative; width: 23%; margin-bottom:5px;}
+        .ball-btn img { width: 28px; }
+        .rate-badge { position: absolute; top: -5px; right: -5px; background: #3ba55c; color: white; font-size: 0.7em; padding: 1px 3px; border-radius: 3px; }
+        .ball-btn.disabled { opacity: 0.4; pointer-events: none; filter: grayscale(1); }
+        
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .shop-card { background: rgba(64, 68, 75, 0.6); padding: 8px; border-radius: 5px; border: 1px solid #202225; cursor: pointer; display:flex; flex-direction:column; align-items:center; }
+        .bag-row { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(32, 34, 37, 0.5); margin-bottom: 5px; border-radius: 3px; border: 1px solid #2f3136; }
+        .bag-actions { display: flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; width: 120px;}
+        .btn-small { padding: 3px 6px; font-size: 0.7em; border: none; border-radius: 3px; color: white; cursor: pointer; margin-bottom: 2px;}
+        .btn-battle { background: #e74c3c; width:100% } .btn-heal { background: #2ecc71; color:black} .btn-evo { background: #9b59b6; } .btn-sell { background: #ed4245; }
+        
+        /* QUIZ */
+        .quiz-img { width: 100px; height: 100px; margin: 10px auto; filter: brightness(0); transition: filter 0.5s; image-rendering: pixelated;}
+        .quiz-img.revealed { filter: brightness(1); }
+        .quiz-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .quiz-opt { padding: 10px; background: #2f3136; border: 1px solid #444; color: white; cursor: pointer; border-radius: 4px; transition: 0.2s; font-size: 0.9em; }
     </style>
 </head>
 <body>
@@ -219,62 +187,51 @@
 
 <div id="job-modal">
     <div class="box-style">
-        <h2 style="color: #7289da; margin: 0 0 15px 0;">💼 Job Center</h2>
-        <div id="job-menu">
-            <button id="btn-mining" class="job-btn" onclick="startMining()">
-                <span class="job-icon">⛏️</span> 
+        <h2 style="color: #7289da; margin: 0 0 10px 0;">💼 Job Center</h2>
+        <div id="job-menu" style="width:100%">
+            <button id="btn-mining" class="btn-auth" style="background:#40444b; text-align:left; display:flex; align-items:center; gap:10px" onclick="startMining()">
+                <span style="font-size:1.5em">⛏️</span> 
                 <div style="flex:1">
-                    <div style="display:flex; justify-content:space-between">
-                        <span>Đào Mỏ</span>
-                        <span id="durability-text" style="font-size:0.8em; color:#bbb">30/30</span>
-                    </div>
-                    <div class="durability-bar"><div id="durability-bar-fill" class="durability-fill"></div></div>
+                    <div style="display:flex; justify-content:space-between"><span>Đào Mỏ</span><span id="durability-text" style="font-size:0.8em; color:#bbb">30/30</span></div>
+                    <div class="quest-progress-bar"><div id="durability-bar-fill" class="quest-progress-fill" style="width:100%"></div></div>
                 </div>
             </button>
-            <button id="btn-repair" class="job-btn" style="background:#e74c3c; display:none; animation:pulse 1s infinite" onclick="openRepairModal()">
-                <span class="job-icon">🔧</span> <div><div>CÚP GÃY!</div><div style="font-size:0.7em; color:white">Bấm để sửa ngay</div></div>
+            <button id="btn-repair" class="btn-auth" style="background:#e74c3c; display:none; animation:pulse 1s infinite" onclick="openRepairModal()">
+                🔧 CÚP GÃY! Sửa ngay
             </button>
-            <button class="job-btn" onclick="startQuiz()">
-                <span class="job-icon">🎓</span> <div><div>Quiz Giáo Sư Oak</div><div style="font-size:0.7em; color:#bbb">Đoán tên Pokemon</div></div>
-            </button>
+            <button class="btn-auth" style="background:#40444b; margin-top:10px" onclick="startQuiz()">🎓 Quiz Giáo Sư Oak</button>
             <div id="emergency-aid" style="display:none; margin-top:10px; border-top:1px solid #555; padding-top:10px">
-                <button class="job-btn" style="background:#ed4245" onclick="claimEmergency()">
-                    <span class="job-icon">🆘</span> <div><div>Trợ cấp khẩn cấp</div><div style="font-size:0.7em; color:#fff">Nhận bóng & tiền miễn phí</div></div>
-                </button>
+                <button class="btn-auth" style="background:#ed4245" onclick="claimEmergency()">🆘 Trợ cấp khẩn cấp</button>
             </div>
         </div>
-        <div id="quiz-ui" style="display:none">
+        <div id="quiz-ui" style="display:none; width:100%">
             <div style="color:#bbb; font-size:0.9em">Who's that Pokemon?</div>
             <img id="quiz-image" class="quiz-img" src="">
             <div id="quiz-options" class="quiz-grid"></div>
         </div>
-        <button class="btn-close" onclick="closeJobs()">Đóng</button>
+        <button class="btn-close" style="margin-top:15px" onclick="closeJobs()">Đóng</button>
     </div>
 </div>
 
 <div id="daily-modal">
     <div class="box-style">
-        <h2 style="color: #eb459e; margin: 0 0 15px 0;">🎁 Daily Zone</h2>
-        
+        <h2 style="color: #eb459e; margin: 0 0 10px 0;">🎁 Daily Zone</h2>
         <div class="daily-section">
-            <div style="font-weight:bold; color:#f1c40f">📅 Điểm danh hàng ngày</div>
-            <div style="font-size:0.8em; color:#bbb; margin-bottom:5px">Nhận 500 Coins mỗi ngày</div>
-            <button id="btn-claim-daily" class="btn-auth btn-login" onclick="claimDailyReward()">Nhận 500💰</button>
+            <div style="font-weight:bold; color:#f1c40f">📅 Điểm danh</div>
+            <div style="font-size:0.8em; color:#bbb; margin-bottom:5px">Nhận 500 Coins</div>
+            <button id="btn-claim-daily" class="btn-small" style="background:#3ba55c; width:100%; padding:8px" onclick="claimDailyReward()">Nhận</button>
         </div>
-
-        <div class="daily-section">
-            <div style="font-weight:bold; color:#3498db; margin-bottom:10px">📜 Nhiệm vụ (Tự động reset 0h)</div>
-            <div id="daily-quests-container">
-                </div>
+        <div class="daily-section" style="margin-top:10px">
+            <div style="font-weight:bold; color:#3498db; margin-bottom:5px">📜 Nhiệm vụ ngày</div>
+            <div id="daily-quests-container"></div>
         </div>
-
-        <button class="btn-close" onclick="closeDaily()">Đóng</button>
+        <button class="btn-close" style="margin-top:15px" onclick="closeDaily()">Đóng</button>
     </div>
 </div>
 
 <div id="repair-modal">
     <div class="box-style">
-        <h2 style="color: #e67e22; margin: 0 0 10px 0;">🔧 Sửa Cúp</h2>
+        <h2 style="color: #e67e22;">🔧 Sửa Cúp</h2>
         <div style="margin-bottom:15px; color:#bbb">Trả lời câu hỏi:</div>
         <div id="repair-question" style="font-size: 2em; font-weight:bold; color:white; margin-bottom:15px">1 + 1 = ?</div>
         <div id="repair-options" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%"></div>
@@ -283,89 +240,75 @@
 </div>
 
 <div id="achieve-modal">
-    <div class="box-style" style="width:350px;">
-        <div class="inner-box">
-            <h2 style="color: #f1c40f; margin: 0 0 15px 0;">🏆 Thành Tựu</h2>
-            <div style="font-size:0.7em; color:#aaa; margin-bottom:10px">Bấm vào để xem phần thưởng</div>
-            <div id="achieve-list" style="overflow-y:auto; flex:1"></div>
-            <button class="btn-close" onclick="closeAchieve()">Đóng</button>
-        </div>
+    <div class="box-style">
+        <h2 style="color: #f1c40f;">🏆 Thành Tựu</h2>
+        <div style="font-size:0.7em; color:#aaa; margin-bottom:10px">Bấm vào để xem phần thưởng</div>
+        <div id="achieve-list" style="overflow-y:auto; flex:1; width:100%"></div>
+        <button class="btn-close" onclick="closeAchieve()">Đóng</button>
     </div>
 </div>
 
 <div id="daycare-modal">
     <div class="box-style">
-        <h2 style="color: #e91e63; margin: 0 0 5px 0;">🏡 Daycare</h2>
-        <div style="font-size:0.8em; color:#bbb; margin-bottom:10px">Gửi Pokemon để nhận EXP tự động (50 XP/phút)</div>
+        <h2 style="color: #e91e63;">🏡 Daycare</h2>
+        <div style="font-size:0.8em; color:#bbb; margin-bottom:10px">Gửi Pokemon nhận EXP (50 XP/phút)</div>
         <div id="daycare-content" class="daycare-slot"><div style="color:#aaa">Trống</div></div>
-        <div id="daycare-actions"></div>
+        <div id="daycare-actions" style="width:100%; margin-top:10px"></div>
         <button class="btn-close" onclick="closeDaycare()">Đóng</button>
     </div>
 </div>
 
 <div id="buy-modal">
     <div class="box-style">
-        <div class="inner-box">
-            <h3 style="color: #faa61a; margin: 5px 0;" id="buy-name">Item</h3>
-            <img id="buy-img" src="" width="60" style="margin: 10px auto; display:block">
-            <div style="margin-bottom: 10px; color:#bbb">Đơn giá: <span id="buy-price" style="color:white; font-weight:bold">0</span>💰</div>
-            <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin: 10px 0;">
-                <input type="number" id="buy-qty" class="qty-input" value="1" min="1" oninput="calcTotal()">
-            </div>
-            <div style="font-size: 1.1em; margin-bottom: 15px;">Tổng: <span id="buy-total" style="color:#3ba55c; font-weight:bold">0</span>💰</div>
-            <div style="display:flex; gap:10px">
-                <button class="btn-auth" style="background:#7f8c8d" onclick="closeBuy()">HỦY</button>
-                <button class="btn-auth btn-login" onclick="submitBuy()">MUA</button>
-            </div>
+        <h3 style="color: #faa61a; margin: 5px 0;" id="buy-name">Item</h3>
+        <img id="buy-img" src="" width="60" style="margin: 10px auto; display:block">
+        <div style="margin-bottom: 10px; color:#bbb">Giá: <span id="buy-price" style="color:white; font-weight:bold">0</span>💰</div>
+        <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin: 10px 0;">
+            <input type="number" id="buy-qty" class="login-input" style="width:60px; margin:0" value="1" min="1" oninput="calcTotal()">
+        </div>
+        <div style="font-size: 1.1em; margin-bottom: 15px;">Tổng: <span id="buy-total" style="color:#3ba55c; font-weight:bold">0</span>💰</div>
+        <div style="display:flex; gap:10px; width:100%">
+            <button class="btn-auth" style="background:#7f8c8d; margin:0" onclick="closeBuy()">HỦY</button>
+            <button class="btn-auth btn-login" style="margin:0" onclick="submitBuy()">MUA</button>
         </div>
     </div>
 </div>
 
 <div id="dex-modal">
     <div class="box-style">
-        <div class="inner-box">
-            <h2 style="color: #3498db; margin: 0 0 15px 0;">📖 Pokedex</h2>
-            <div style="font-size: 1.2em; margin-bottom: 20px;">
-                Đã bắt: <span style="color: #f1c40f; font-weight: bold;" id="dex-count">0</span> / 649
-            </div>
-            <button class="btn-close" onclick="closePokedex()">Đóng</button>
+        <h2 style="color: #3498db;">📖 Pokedex</h2>
+        <div style="font-size: 1.2em; margin-bottom: 20px;">
+            Đã bắt: <span style="color: #f1c40f; font-weight: bold;" id="dex-count">0</span> / 649
         </div>
+        <button class="btn-close" onclick="closePokedex()">Đóng</button>
     </div>
 </div>
 
 <div id="battle-modal">
     <div class="box-style">
-        <h2 style="color: #e74c3c; margin: 0;">🔥 ĐẤU TRƯỜNG 🔥</h2>
-        <div class="battle-card">
+        <h2 style="color: #e74c3c;">🔥 ĐẤU TRƯỜNG</h2>
+        <div class="battle-card" style="width:100%; margin-bottom:10px">
             <span id="battle-my-poke" style="color:#3ba55c; font-weight:bold">My Pokemon</span>
-            <div style="font-size:0.8em; color:#bbb">Chọn đối thủ để thi đấu</div>
-            <div id="battle-hp-warn" style="font-size:0.8em; color:#e74c3c; display:none">⚠️ Máu thấp! Hãy hồi phục.</div>
+            <div style="font-size:0.8em; color:#bbb">Chọn đối thủ</div>
+            <div id="battle-hp-warn" style="font-size:0.8em; color:#e74c3c; display:none">⚠️ Máu thấp!</div>
         </div>
-        
-        <button class="difficulty-btn diff-easy" onclick="commitBattle('easy')">
-            <span>Easy: Wild Pokemon</span> <span>Win 90%</span>
-        </button>
-        <button class="difficulty-btn diff-med" onclick="commitBattle('medium')">
-            <span>Medium: Trainer</span> <span>Win 50%</span>
-        </button>
-        <button id="gym-btn" class="difficulty-btn gym-btn" onclick="commitBattle('hard')">
-            <span>HARD: GYM LEADER</span> <span>Win ?%</span>
-        </button>
-        
+        <button class="difficulty-btn diff-easy" onclick="commitBattle('easy')"><span>Easy: Wild</span> <span>90%</span></button>
+        <button class="difficulty-btn diff-med" onclick="commitBattle('medium')"><span>Medium: Trainer</span> <span>50%</span></button>
+        <button id="gym-btn" class="difficulty-btn gym-btn" onclick="commitBattle('hard')"><span>HARD: GYM</span> <span>?%</span></button>
         <button class="btn-close" onclick="closeBattle()">Thoát</button>
     </div>
 </div>
 
 <div id="update-modal">
-    <div class="box-style" style="text-align: left; width: 350px;">
-        <h2 style="color: #faa61a; text-align:center; margin:0">📜 Update Log</h2>
-        <div class="update-list">
-             <div class="update-item">
-                <span class="update-ver">v1.0</span> <span class="update-tag tag-fix">Release</span>
-                <span class="update-date">Official</span>
-                <ul class="update-content">
+    <div class="box-style">
+        <h2 style="color: #faa61a;">📜 Update Log</h2>
+        <div class="update-list" style="text-align:left; width:100%">
+             <div style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px">
+                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.0</span> 
+                <span style="color:#bbb; font-size:0.8em; float:right">Official</span>
+                <ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde">
                     <li><b>Official Launch:</b> PokeStay 1.0!</li>
-                    <li><b>Daily Quests:</b> Hệ thống 3 nhiệm vụ mỗi ngày (Easy/Med/Hard).</li>
+                    <li><b>Daily Quests:</b> 3 nhiệm vụ mỗi ngày (Easy/Med/Hard).</li>
                     <li><b>Gameplay:</b> Cân bằng tỉ lệ bắt và kinh tế.</li>
                 </ul>
             </div>
@@ -375,10 +318,10 @@
 </div>
 
 <div id="donate-modal">
-    <div class="box-style donate-box">
+    <div class="box-style" style="background:white; color:black">
         <h3 style="color: #6c38c6; margin:0 0 10px 0">Ủng Hộ Dev</h3>
-        <img src="38b84fc99acb15954cda.jpg" class="donate-qr" alt="QR Code">
-        <div style="font-size:0.9em; color:#333; margin-top:10px; font-weight:bold">TPBank QR</div>
+        <img src="38b84fc99acb15954cda.jpg" class="donate-qr" style="width:100%; border-radius:5px; border:1px solid #ddd">
+        <div style="font-size:0.9em; margin-top:10px; font-weight:bold">TPBank QR</div>
         <button class="btn-close" onclick="closeDonate()">Đóng</button>
     </div>
 </div>
@@ -387,20 +330,20 @@
     <header>
         <div style="display:flex; flex-direction:column">
             <div style="display:flex; align-items:center; gap:5px">
-                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png" width="30" height="30">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png" width="24" height="24">
                 <span>PokeStay v1.0</span>
             </div>
             <span id="display-username" style="font-size:0.8em; color:#bbb">TRAINER</span>
         </div>
-        <div class="stats"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/nugget.png" style="width:24px"> <span id="coin-display">0</span></div>
+        <div class="stats"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/nugget.png" style="width:20px"> <span id="coin-display">0</span></div>
     </header>
     <div id="badge-bar" class="badge-list" style="display:none"></div>
     <div id="buff-bar" style="padding: 5px 15px; font-size: 0.75em; display: flex; gap: 10px; background: rgba(0,0,0,0.3); min-height: 20px;"></div>
     <div id="chat-area"></div>
     <div id="controls"></div>
     <div class="footer">
-        <div><span class="footer-link" onclick="logout()">[Thoát]</span><span class="footer-link" onclick="resetGame()">[Xóa dữ liệu]</span></div>
-        <div class="footer-link donate-btn-text" onclick="showDonate()">💖 Ủng hộ Dev</div>
+        <div><span class="footer-link" onclick="logout()">[Thoát]</span><span class="footer-link" onclick="resetGame()">[Xóa]</span></div>
+        <div class="footer-link donate-btn-text" onclick="showDonate()">💖 Ủng hộ</div>
     </div>
 </div>
 
@@ -673,7 +616,7 @@
     }
     function useItem(id) { inventory[id]--; saveGame(); if(id==='razz-berry') activeBuffs.berry=true; if(id==='lucky-egg') activeBuffs.egg=true; if(id==='incense') { spawnPokemon(); return; } updateStats(); renderBattleControls(); }
     
-    // --- DAILY SYSTEM (V1.0) ---
+    // --- DAILY SYSTEM (V1.0 HARDCORE) ---
     function openDaily() {
         if(currentWild) return;
         checkDailyQuestGen();
@@ -696,23 +639,23 @@
         // Gen 3 Harder Quests
         if(dailyQuests.length === 0 || dailyQuests[0].date !== today) {
             dailyQuests = [];
-            // Easy
+            // Easy (Increased difficulty)
             let rE = Math.random();
-            if(rE < 0.33) dailyQuests.push({date: today, type: 'mine', target: 40 + Math.floor(Math.random()*21), progress: 0, reward: {type:'item', id:'poke-ball', qty:15}, difficulty: 0, text: "Đào mỏ", claimed: false});
-            else if(rE < 0.66) dailyQuests.push({date: today, type: 'catch', target: 10 + Math.floor(Math.random()*6), progress: 0, reward: {type:'item', id:'great-ball', qty:5}, difficulty: 0, text: "Bắt Pokemon", claimed: false});
-            else dailyQuests.push({date: today, type: 'spend', target: 2000 + Math.floor(Math.random()*1000), progress: 0, reward: {type:'item', id:'potion', qty:5}, difficulty: 0, text: "Tiêu Coins", claimed: false});
+            if(rE < 0.33) dailyQuests.push({date: today, type: 'mine', target: 30 + Math.floor(Math.random()*21), progress: 0, reward: {type:'item', id:'poke-ball', qty:15}, difficulty: 0, text: "Đào mỏ", claimed: false});
+            else if(rE < 0.66) dailyQuests.push({date: today, type: 'catch', target: 15 + Math.floor(Math.random()*6), progress: 0, reward: {type:'item', id:'great-ball', qty:5}, difficulty: 0, text: "Bắt Pokemon", claimed: false});
+            else dailyQuests.push({date: today, type: 'spend', target: 5000 + Math.floor(Math.random()*2000), progress: 0, reward: {type:'item', id:'potion', qty:5}, difficulty: 0, text: "Tiêu Coins", claimed: false});
 
-            // Medium
+            // Medium (Harder)
             let rM = Math.random();
-            if(rM < 0.33) dailyQuests.push({date: today, type: 'mine', target: 100 + Math.floor(Math.random()*51), progress: 0, reward: {type:'item', id:'stardust', qty:5}, difficulty: 1, text: "Đào mỏ", claimed: false});
-            else if(rM < 0.66) dailyQuests.push({date: today, type: 'catch', target: 25 + Math.floor(Math.random()*11), progress: 0, reward: {type:'item', id:'ultra-ball', qty:3}, difficulty: 1, text: "Bắt Pokemon", claimed: false});
-            else dailyQuests.push({date: today, type: 'win', target: 5 + Math.floor(Math.random()*4), progress: 0, reward: {type:'item', id:'rare-candy', qty:1}, difficulty: 1, text: "Thắng Arena", claimed: false});
+            if(rM < 0.33) dailyQuests.push({date: today, type: 'mine', target: 80 + Math.floor(Math.random()*41), progress: 0, reward: {type:'item', id:'stardust', qty:5}, difficulty: 1, text: "Đào mỏ", claimed: false});
+            else if(rM < 0.66) dailyQuests.push({date: today, type: 'catch', target: 30 + Math.floor(Math.random()*11), progress: 0, reward: {type:'item', id:'ultra-ball', qty:3}, difficulty: 1, text: "Bắt Pokemon", claimed: false});
+            else dailyQuests.push({date: today, type: 'win', target: 8 + Math.floor(Math.random()*4), progress: 0, reward: {type:'item', id:'rare-candy', qty:1}, difficulty: 1, text: "Thắng Arena", claimed: false});
 
-            // Hard
+            // Hard (Hardcore)
             let rH = Math.random();
-            if(rH < 0.33) dailyQuests.push({date: today, type: 'win', target: 15 + Math.floor(Math.random()*6), progress: 0, reward: {type:'item', id:'master-ball', qty:1}, difficulty: 2, text: "Thắng Arena", claimed: false});
-            else if(rH < 0.66) dailyQuests.push({date: today, type: 'spend', target: 30000 + Math.floor(Math.random()*20001), progress: 0, reward: {type:'item', id:'nugget', qty:2}, difficulty: 2, text: "Tiêu Coins", claimed: false});
-            else dailyQuests.push({date: today, type: 'catch', target: 50 + Math.floor(Math.random()*21), progress: 0, reward: {type:'item', id:'bag-upgrade', qty:1}, difficulty: 2, text: "Bắt Pokemon", claimed: false});
+            if(rH < 0.33) dailyQuests.push({date: today, type: 'win', target: 20 + Math.floor(Math.random()*6), progress: 0, reward: {type:'item', id:'master-ball', qty:1}, difficulty: 2, text: "Thắng Arena", claimed: false});
+            else if(rH < 0.66) dailyQuests.push({date: today, type: 'spend', target: 50000 + Math.floor(Math.random()*20001), progress: 0, reward: {type:'item', id:'nugget', qty:2}, difficulty: 2, text: "Tiêu Coins", claimed: false});
+            else dailyQuests.push({date: today, type: 'catch', target: 60 + Math.floor(Math.random()*21), progress: 0, reward: {type:'item', id:'bag-upgrade', qty:1}, difficulty: 2, text: "Bắt Pokemon", claimed: false});
 
             // Update texts
             dailyQuests.forEach(q => {
@@ -910,6 +853,4 @@
     function findNodeInChain(node, name) { if (node.species.name === name) return node; for (let child of node.evolves_to) { let f = findNodeInChain(child, name); if (f) return f; } return null; }
 </script>
 </body>
-
 </html>
-
