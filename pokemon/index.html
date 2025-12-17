@@ -197,19 +197,37 @@
     // --- DATA & CONFIG ---
     let currentUser = "";
     // --- AUDIO SYSTEM (NEW) ---
+    // --- AUDIO SYSTEM (CLEAN FIX) ---
     let isMuted = false;
     const AUDIO_SRC = {
-        // Nhạc chiến đấu (kịch tính)
         bgm_battle: "https://upload.wikimedia.org/wikipedia/commons/c/c4/Urgent_Stop.ogg", 
-        // Nhạc nền map (nhẹ nhàng, thư giãn)
         bgm_map: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Erik_Satie_-_Gymnop%C3%A9die_No._1.ogg", 
-        
         sfx_level: "https://upload.wikimedia.org/wikipedia/commons/1/13/7550_-_sfx_level_up_2.wav",
         sfx_catch: "https://upload.wikimedia.org/wikipedia/commons/3/3a/Cat_meow.ogg" 
     };
     
+    // Khai báo biến Audio 1 lần duy nhất
     let currentBGM = new Audio();
     currentBGM.loop = true;
+
+    function toggleMute() {
+        isMuted = !isMuted;
+        document.getElementById('btn-mute').innerText = isMuted ? "🔇" : "🔊";
+        if(isMuted) { 
+            currentBGM.pause(); 
+        } else {
+            // Nếu đang trong trận thì bật nhạc battle, không thì nhạc map
+            if(battleState.active) playBGM('battle');
+            else playBGM('map');
+        }
+    }
+
+    function playCry(id) {
+        if(isMuted) return;
+        let audio = new Audio(`https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`);
+        audio.volume = 0.6;
+        audio.play().catch(e => console.log("Audio play error:", e));
+    }
 
     function playBGM(type) {
         if(isMuted) return;
@@ -219,45 +237,16 @@
 
         if(type === 'battle') {
             newSrc = AUDIO_SRC.bgm_battle;
-            newVol = 0.3; // Nhạc battle to vừa phải
+            newVol = 0.3; 
         } else if (type === 'map') {
             newSrc = AUDIO_SRC.bgm_map;
-            newVol = 0.15; // Nhạc nền map nhỏ nhẹ (15%) để không đau đầu
+            newVol = 0.15; 
         }
         
         // Chỉ đổi nhạc nếu bài mới khác bài cũ
         if(currentBGM.src !== newSrc) {
             currentBGM.src = newSrc;
             currentBGM.volume = newVol;
-            currentBGM.play().catch(e => console.log("BGM error:", e));
-        }
-    }
-    
-    let currentBGM = new Audio();
-    currentBGM.loop = true;
-
-    function toggleMute() {
-        isMuted = !isMuted;
-        document.getElementById('btn-mute').innerText = isMuted ? "🔇" : "🔊";
-        if(isMuted) { currentBGM.pause(); } 
-        else if(battleState.active) { playBGM('battle'); }
-    }
-
-    function playCry(id) {
-        if(isMuted) return;
-        // API LẤY TIẾNG POKEMON TỰ ĐỘNG
-        let audio = new Audio(`https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`);
-        audio.volume = 0.6;
-        audio.play().catch(e => console.log("Audio play error:", e));
-    }
-
-    function playBGM(type) {
-        if(isMuted) return;
-        if(type === 'battle') currentBGM.src = AUDIO_SRC.bgm_battle;
-        else currentBGM.src = ""; // Stop music
-        
-        if(currentBGM.src) {
-            currentBGM.volume = 0.3;
             currentBGM.play().catch(e => console.log("BGM error:", e));
         }
     }
@@ -1538,6 +1527,7 @@
 </script>
 </body>
 </html>
+
 
 
 
