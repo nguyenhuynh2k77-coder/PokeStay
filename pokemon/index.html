@@ -506,73 +506,149 @@
 
     function handleEnter(e) { if(e.key === 'Enter') login(); }
     function register() { const u = document.getElementById('username-input').value.trim(), p = document.getElementById('password-input').value.trim(); if(!u||!p) return alert("Thiếu thông tin!"); if(localStorage.getItem(AUTH_KEY+u)) return alert("Tên tồn tại!"); localStorage.setItem(AUTH_KEY+u, p); alert("Đăng ký xong!"); }
-    function login() { const u = document.getElementById('username-input').value.trim(), p = document.getElementById('password-input').value.trim(); if(localStorage.getItem(AUTH_KEY+u)===p) { currentUser = u; document.getElementById('display-username').innerText = u.toUpperCase(); document.getElementById('login-screen').style.display='none'; document.getElementById('app').style.display='flex'; loadGame(); showMenu(); } else alert("Sai thông tin!"); }
+    // Thay thế hàm login cũ bằng hàm này
+async function login() {
+    const u = document.getElementById('username-input').value.trim();
+    const p = document.getElementById('password-input').value.trim();
+    
+    // Vẫn dùng LocalStorage để check pass (hoặc bạn có thể đổi sang Firebase Auth sau này)
+    if (localStorage.getItem(AUTH_KEY + u) === p) {
+        currentUser = u;
+        document.getElementById('display-username').innerText = u.toUpperCase();
+        
+        // Ẩn màn hình đăng nhập ngay
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
+        
+        // CHỜ loadGame chạy xong rồi mới hiện menu
+        await loadGame(); 
+        
+    } else {
+        alert("Sai thông tin!");
+    }
+}
     function logout() { saveGame(); location.reload(); }
 
-    function saveGame() { if(!currentUser) return; localStorage.setItem(BASE_SAVE_KEY+currentUser, JSON.stringify({ coins, myBag, pokedex: Array.from(pokedex), inventory, lastDailyDate, userStats, completedAchievements, daycare, gymProgress, maxBagSize, pickaxe, dailyRepairs, dailyQuests })); }
+   function saveGame() {
+    if (!currentUser) return;
+
+    // Chuẩn bị dữ liệu để lưu
+    const dataToSave = {
+        coins: coins,
+        myBag: myBag,
+        pokedex: Array.from(pokedex), // Firebase không lưu được Set, phải chuyển sang Array
+        inventory: inventory,
+        lastDailyDate: lastDailyDate,
+        userStats: userStats,
+        completedAchievements: completedAchievements,
+        daycare: daycare,
+        gymProgress: gymProgress,
+        maxBagSize: maxBagSize,
+        pickaxe: pickaxe,
+        dailyRepairs: dailyRepairs,
+        dailyQuests: dailyQuests
+    };
+
+    // Gửi lên Firebase
+    // db đã được khai báo ở bước trước: const db = firebase.database();
+    firebase.database().ref('users/' + currentUser).set(dataToSave)
+        .then(() => {
+            console.log("Đã lưu game lên Firebase thành công!");
+        })
+        .catch((error) => {
+            console.error("Lỗi khi lưu game:", error);
+            alert("Lỗi lưu dữ liệu! Kiểm tra kết nối mạng.");
+        });
+}
     
-    function loadGame() {
-        if(!currentUser) return;
-        const s = localStorage.getItem(BASE_SAVE_KEY + currentUser);
-        if(s) { 
-            const d = JSON.parse(s); 
-            coins=d.coins; myBag=d.myBag; pokedex=new Set(d.pokedex); inventory={...inventory,...d.inventory}; lastDailyDate=d.lastDailyDate; 
-            if(d.userStats) userStats = d.userStats; if(d.completedAchievements) completedAchievements = d.completedAchievements; if(d.gymProgress) gymProgress = d.gymProgress; if(d.maxBagSize) maxBagSize = d.maxBagSize; if(d.pickaxe) pickaxe = d.pickaxe; if(d.dailyRepairs) dailyRepairs = d.dailyRepairs;
-            if(d.dailyQuests && Array.isArray(d.dailyQuests)) dailyQuests = d.dailyQuests; else dailyQuests = [];
-            if(d.daycare) { if(d.daycare.slots) { daycare = d.daycare; } else { daycare = { unlocked: 1, slots: [{ pokemon: d.daycare.pokemon, depositTime: d.daycare.depositTime }] }; } }
+   async function loadGame() {
+    if (!currentUser) return;
+
+    // Hiện thông báo đang tải (vì mạng có thể chậm)
+    controls.innerHTML = '<div style="color:yellow">Đang tải dữ liệu từ máy chủ...</div>';
+
+    try {
+        // Lấy dữ liệu từ Firebase về
+        const snapshot = await firebase.database().ref('users/' + currentUser).once('value');
+        const d = snapshot.val();
+
+        if (d) {
+            // Nạp dữ liệu vào biến
+            coins = d.coins || 0;
+            myBag = d.myBag || [];
+            // Chuyển lại từ Array thành Set
+            pokedex = new Set(d.pokedex || []);
+            inventory = { ...inventory, ...d.inventory };
+            lastDailyDate = d.lastDailyDate || "";
+            
+            if (d.userStats) userStats = d.userStats;
+            if (d.completedAchievements) completedAchievements = d.completedAchievements;
+            if (d.gymProgress) gymProgress = d.gymProgress;
+            if (d.maxBagSize) maxBagSize = d.maxBagSize;
+            if (d.pickaxe) pickaxe = d.pickaxe;
+            if (d.dailyRepairs) dailyRepairs = d.dailyRepairs;
+            
+            if (d.dailyQuests && Array.isArray(d.dailyQuests)) dailyQuests = d.dailyQuests; 
+            else dailyQuests = [];
+
+            if (d.daycare) {
+                if (d.daycare.slots) { daycare = d.daycare; } 
+                else { daycare = { unlocked: 1, slots: [{ pokemon: d.daycare.pokemon, depositTime: d.daycare.depositTime }] }; }
+            }
+        } else {
+            console.log("Người chơi mới hoặc chưa có dữ liệu trên Firebase.");
         }
+
+        // --- GIỮ NGUYÊN LOGIC FIX DỮ LIỆU CŨ CỦA BẠN ---
         myBag = myBag.filter(p => p && p.name && p.name !== 'undefined');
-        if(!userStats.mining) userStats.mining = 0; if(!userStats.shinies) userStats.shinies = 0;
-        
+        if (!userStats.mining) userStats.mining = 0;
+        if (!userStats.shinies) userStats.shinies = 0;
+
         let fixCount = 0;
+        let upgradedCount = 0;
+
         myBag.forEach(p => {
-            if(!p.isEgg) {
-                if(isNaN(p.hp)) { p.hp = p.maxHp; fixCount++; }
-                if(isNaN(p.maxHp)) { recalcStats(p); fixCount++; }
+            // Fix Stats
+            if (!p.isEgg) {
+                if (isNaN(p.hp)) { p.hp = p.maxHp; fixCount++; }
+                if (isNaN(p.maxHp)) { recalcStats(p); fixCount++; }
+            }
+            // Fix logic mới: Stages & Status
+            if (!p.stages) p.stages = { atk: 0, def: 0, spA: 0, spD: 0, spd: 0, acc: 0 };
+            if (!p.status) p.status = null;
+            
+            // Logic nâng cấp lên LV 5
+            if (p.level < 5) {
+                p.level = 5;
+                recalcStats(p);
+                p.hp = p.maxHp;
+                upgradedCount++;
+            } else {
+                recalcStats(p); // Tính lại để đồng bộ
+            }
+
+            // Fix moves priority
+            if (p.moves && p.moves.length > 0 && typeof p.moves[0].priority === 'undefined') {
+                assignMoves(p);
             }
         });
-        if(fixCount > 0) { console.log(`Fixed ${fixCount} broken Pokemon data.`); saveGame(); }
 
-        // --- ĐOẠN CODE MỚI: NÂNG CẤP POKEMON CŨ LÊN LV 5 ---
-    let upgradedCount = 0;
-    myBag.forEach(p => {
-        if (p.level < 5) {
-            p.level = 5;       // Ép lên cấp 5
-            recalcStats(p);    // Tính lại chỉ số Máu/Công/Thủ theo cấp 5
-            p.hp = p.maxHp;    // Hồi đầy máu luôn cho khỏe
-            upgradedCount++;
-        }
-    });
-    if (upgradedCount > 0) {
-        alert(`Đã nâng cấp ${upgradedCount} Pokemon cũ trong túi lên Lv.5!`);
-        saveGame(); // Lưu lại ngay
-    }
-    // ----------------------------------------------------
-        // --- SỬA LỖI DỮ LIỆU CŨ (FIX DATA) ---
-    myBag.forEach(p => {
-        // 1. Nếu chưa có stages (chỉ số buff), tạo mới
-        if (!p.stages) {
-            p.stages = { atk: 0, def: 0, spA: 0, spD: 0, spd: 0, acc: 0 };
-        }
-        // 2. Nếu chưa có status (trạng thái), tạo mới
-        if (!p.status) {
-            p.status = null;
-        }
-        // 3. Tính toán lại để đảm bảo mọi thứ đồng bộ
-        recalcStats(p);
+        if (upgradedCount > 0) console.log(`Đã nâng cấp ${upgradedCount} Pokemon lên Lv.5`);
         
-        // 4. Nếu Pokemon chưa có chiêu thức mới (có priority), gán lại chiêu
-        if (p.moves && p.moves.length > 0 && typeof p.moves[0].priority === 'undefined') {
-            assignMoves(p);
-        }
-    });
-    
-    saveGame(); // Lưu lại ngay để lần sau không phải sửa nữa
-    console.log("Đã cập nhật dữ liệu Pokemon cũ thành công!");
+        // --- KẾT THÚC LOGIC FIX ---
+
         checkDailyQuestGen();
         updateStats();
         playBGM('map');
+        
+        // Hiện lại menu sau khi tải xong
+        showMenu(); 
+
+    } catch (error) {
+        console.error("Lỗi tải game:", error);
+        alert("Không thể tải dữ liệu! Vui lòng F5 lại.");
     }
+}
     
     function resetGame() { if(confirm("Xóa dữ liệu?")) { localStorage.removeItem(BASE_SAVE_KEY+currentUser); logout(); } }
 
@@ -1565,3 +1641,4 @@
 </script>
 </body>
 </html>
+
