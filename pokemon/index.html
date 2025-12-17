@@ -122,6 +122,60 @@
         .btn-login { background: #3ba55c; color: white; } .btn-register { background: #e91e63; color: white; }
         .btn-close { background: #ed4245; color: white; padding: 8px 20px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; font-weight:bold;}
         .donate-qr { width: 100%; max-width: 250px; border-radius: 5px; display: block; margin: 0 auto; border: 1px solid #ddd; }
+        /* --- MOBILE SPECIFIC UI (Giao diện riêng cho Điện Thoại) --- */
+        @media (max-width: 768px) {
+            /* 1. Full màn hình, bỏ viền */
+            #app { 
+                max-width: 100%; 
+                border: none; 
+                box-shadow: none; 
+                height: 100vh; /* Chiếm trọn chiều cao */
+            }
+
+            /* 2. Nền body đổi thành màu tối thay vì ảnh nền (để load nhanh hơn & đỡ rối) */
+            body {
+                background: #202225; 
+            }
+
+            /* 3. Tăng kích thước nút bấm (Dễ bấm bằng ngón cái) */
+            .btn {
+                width: 48%; /* Chia đôi màn hình thay vì chia 3 */
+                padding: 15px 0; /* Nút cao hơn */
+                font-size: 1em; /* Chữ to hơn */
+                margin-bottom: 5px;
+            }
+            
+            /* Điều chỉnh lại các nút chức năng nhỏ */
+            .btn-job, .btn-achieve, .btn-daycare {
+                width: 32% !important; /* Giữ nguyên 3 nút này */
+                font-size: 0.8em;
+                padding: 12px 0;
+            }
+
+            /* 4. Điều chỉnh khung Chat/Log để dễ đọc hơn */
+            #chat-area {
+                font-size: 1.1em; /* Chữ to hơn */
+            }
+
+            /* 5. Ẩn thanh cuộn xấu xí trên mobile */
+            #chat-area::-webkit-scrollbar {
+                width: 5px;
+            }
+            
+            /* 6. Tối ưu Modal (Bảng thông báo) */
+            .box-style {
+                width: 90%; /* Chiếm 90% chiều ngang điện thoại */
+                padding: 15px;
+            }
+            
+            /* 7. Nút Hunt (Săn) to nhất để dễ spam */
+            .btn-hunt {
+                width: 100% !important;
+                padding: 20px 0;
+                font-size: 1.2em;
+                margin-bottom: 10px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -831,4 +885,5 @@
     function findNodeInChain(node, name) { if (node.species.name === name) return node; for (let child of node.evolves_to) { let f = findNodeInChain(child, name); if (f) return f; } return null; }
 </script>
 </body>
+
 </html>
