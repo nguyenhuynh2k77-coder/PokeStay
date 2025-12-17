@@ -199,9 +199,15 @@
     // --- AUDIO SYSTEM (NEW) ---
     // --- AUDIO SYSTEM (CLEAN FIX) ---
     let isMuted = false;
+    // --- AUDIO SYSTEM (FIXED SOURCE MP3) ---
+    let isMuted = false;
     const AUDIO_SRC = {
-        bgm_battle: "https://upload.wikimedia.org/wikipedia/commons/c/c4/Urgent_Stop.ogg", 
-        bgm_map: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Erik_Satie_-_Gymnop%C3%A9die_No._1.ogg", 
+        // Nhạc Battle: Pokemon Red/Blue - Wild Battle (MP3)
+        bgm_battle: "https://ia800605.us.archive.org/32/items/PokemonGBS/107-battle%20%28vs%20wild%20pokemon%29.mp3", 
+        
+        // Nhạc Map: Pokemon Red/Blue - Pallet Town (MP3)
+        bgm_map: "https://ia800605.us.archive.org/32/items/PokemonGBS/102-pallet%20town%20theme.mp3", 
+        
         sfx_level: "https://upload.wikimedia.org/wikipedia/commons/1/13/7550_-_sfx_level_up_2.wav",
         sfx_catch: "https://upload.wikimedia.org/wikipedia/commons/3/3a/Cat_meow.ogg" 
     };
@@ -229,25 +235,38 @@
         audio.play().catch(e => console.log("Audio play error:", e));
     }
 
+    // Khai báo biến Audio toàn cục
+    let currentBGM = new Audio();
+    currentBGM.loop = true; // Cho phép lặp lại liên tục
+    currentBGM.volume = 0.5; // Âm lượng mặc định
+
     function playBGM(type) {
         if(isMuted) return;
         
         let newSrc = "";
-        let newVol = 0.5;
-
-        if(type === 'battle') {
-            newSrc = AUDIO_SRC.bgm_battle;
-            newVol = 0.3; 
-        } else if (type === 'map') {
-            newSrc = AUDIO_SRC.bgm_map;
-            newVol = 0.15; 
-        }
+        // Chọn link nhạc
+        if(type === 'battle') newSrc = AUDIO_SRC.bgm_battle;
+        else if (type === 'map') newSrc = AUDIO_SRC.bgm_map;
         
-        // Chỉ đổi nhạc nếu bài mới khác bài cũ
-        if(currentBGM.src !== newSrc) {
+        // Nếu link mới khác link đang hát, hoặc nhạc đang bị tắt
+        if(currentBGM.src !== newSrc || currentBGM.paused) {
             currentBGM.src = newSrc;
-            currentBGM.volume = newVol;
-            currentBGM.play().catch(e => console.log("BGM error:", e));
+            
+            // Chỉnh âm lượng tùy bài
+            if(type === 'battle') currentBGM.volume = 0.3;
+            else currentBGM.volume = 0.4;
+            
+            // Lệnh phát nhạc
+            let playPromise = currentBGM.play();
+
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    console.log("Đang phát nhạc: " + type);
+                })
+                .catch(error => {
+                    console.warn("Chưa thể phát nhạc tự động. Hãy click vào màn hình.");
+                });
+            }
         }
     }
 
@@ -1527,6 +1546,7 @@
 </script>
 </body>
 </html>
+
 
 
 
