@@ -1028,7 +1028,10 @@
     }
 
     function updateBattleUI() {
-        let p = battleState.player; let e = battleState.enemy;
+        let p = battleState.player; 
+        let e = battleState.enemy;
+
+        // 1. Cập nhật Thanh Máu (HP Bar)
         let pHpPct = Math.max(0, (p.hp / p.maxHp) * 100);
         let eHpPct = Math.max(0, (e.hp / e.maxHp) * 100);
         
@@ -1039,6 +1042,28 @@
         
         document.getElementById('enemy-hp-bar').style.width = eHpPct + '%';
         document.getElementById('enemy-hp-bar').style.background = getHpColor(eHpPct);
+
+        // 2. CẬP NHẬT TRẠNG THÁI (Status Icons) - MỚI
+        // Gọi hàm phụ để vẽ lại tên kèm icon
+        renderStatusIcon(p, 'player-name');
+        renderStatusIcon(e, 'enemy-name');
+    }
+
+    // Hàm phụ trợ giúp vẽ icon đẹp hơn
+    function renderStatusIcon(pokemon, elementId) {
+        let el = document.getElementById(elementId);
+        let statusHtml = "";
+        
+        if (pokemon.status === 'brn') {
+            statusHtml = `<span style="background:#e74c3c; color:white; font-size:0.7em; padding:1px 4px; border-radius:3px; margin-left:5px">🔥 BRN</span>`;
+        } else if (pokemon.status === 'par') {
+            statusHtml = `<span style="background:#f1c40f; color:black; font-size:0.7em; padding:1px 4px; border-radius:3px; margin-left:5px">⚡ PAR</span>`;
+        } else if (pokemon.status === 'slp') {
+            statusHtml = `<span style="background:#34495e; color:white; font-size:0.7em; padding:1px 4px; border-radius:3px; margin-left:5px">💤 SLP</span>`;
+        }
+        
+        // Gán lại tên + icon (Nếu status là null thì icon biến mất)
+        el.innerHTML = `${pokemon.name} ${statusHtml}`;
     }
 
     function logBattle(msg) {
@@ -1133,6 +1158,7 @@
             if(Math.random() < 0.33) { // 33% dậy
                 attacker.status = null;
                 logBattle(`${attacker.name} đã tỉnh dậy!`);
+                updateBattleUI(); // <--- THÊM DÒNG NÀY: Để xóa icon ZZZ ngay lập tức
             } else {
                 await sleep(500); return; // Mất lượt
             }
@@ -1482,6 +1508,7 @@
 </script>
 </body>
 </html>
+
 
 
 
