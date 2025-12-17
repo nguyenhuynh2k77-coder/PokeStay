@@ -231,7 +231,7 @@
     function playCry(id) {
         if(isMuted) return;
         let audio = new Audio(`https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`);
-        audio.volume = 0.3;
+        audio.volume = 0.15;
         audio.play().catch(e => console.log("Audio play error:", e));
     }
 
@@ -1551,6 +1551,7 @@
 </script>
 </body>
 </html>
+
 
 
 
