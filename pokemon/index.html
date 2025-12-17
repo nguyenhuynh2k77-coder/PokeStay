@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PokeStay v1.0 - Official Release</title>
+    <title>PokeStay v1.1 - Hybrid UI</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png">
     
     <style>
-        /* --- CORE CSS --- */
-        * { box-sizing: border-box; } /* Quan trọng: Tính toán kích thước chuẩn */
+        /* --- 1. CORE CSS (MẶC ĐỊNH CHO MÁY TÍNH) --- */
+        * { box-sizing: border-box; }
         
         body { 
             background: url('wp2595124.jpg') no-repeat center center fixed; 
@@ -17,109 +17,98 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             display: flex; 
             justify-content: center; 
-            height: 100vh; /* Fallback */
-            height: 100dvh; /* Chiều cao động cho mobile */
+            height: 100vh; 
             margin: 0; 
-            overflow: hidden; /* Chặn cuộn trang web */
+            overflow: hidden; 
         }
 
         #app { 
-            display: none; /* Sẽ hiện khi login */
+            display: none; 
             width: 100%; 
-            max-width: 500px; 
+            max-width: 500px; /* PC: Giới hạn chiều rộng như điện thoại */
             background-color: rgba(47, 49, 54, 0.95); 
             backdrop-filter: blur(8px); 
             flex-direction: column; 
-            height: 100%; 
+            height: 100vh; 
             border-left: 1px solid rgba(0,0,0,0.5); 
             border-right: 1px solid rgba(0,0,0,0.5); 
             box-shadow: 0 0 50px rgba(0,0,0,0.8); 
             position: relative;
         }
         
-        /* --- LAYOUT STRUCTURE (Quan trọng để fix lỗi giao diện) --- */
-        header { 
-            flex: 0 0 auto; /* Không co giãn */
-            background-color: rgba(32, 34, 37, 0.9); 
-            padding: 10px 15px; 
-            border-bottom: 1px solid #202225; 
-            font-weight: bold; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-        }
+        /* Layout chuẩn PC */
+        header { flex: 0 0 auto; background-color: rgba(32, 34, 37, 0.9); padding: 15px; border-bottom: 1px solid #202225; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        #chat-area { flex: 1 1 auto; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
+        .footer { flex: 0 0 auto; display: flex; justify-content: space-between; padding: 5px 10px; font-size: 0.8em; background: #202225; }
 
-        #chat-area { 
-            flex: 1 1 auto; /* Tự động giãn để chiếm khoảng trống */
-            overflow-y: auto; /* Chỉ cuộn nội dung bên trong khu vực này */
-            padding: 15px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px; 
-            scroll-behavior: smooth; 
-            min-height: 0; /* Fix cho Firefox/Flexbox */
-        }
-
+        /* Nút bấm chuẩn PC (Hàng 3 nút) */
         #controls { 
-            flex: 0 0 auto; /* Không co giãn */
-            padding: 8px; 
+            flex: 0 0 auto; 
+            padding: 10px; 
             background-color: rgba(64, 68, 75, 0.95); 
             display: flex; 
             align-items: center; 
-            justify-content: center; 
+            justify-content: center; /* Căn giữa */
             gap: 5px; 
             flex-wrap: wrap; 
             border-top: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 15px; /* Thêm đệm đáy cho điện thoại vuốt */
+            min-height: 80px;
         }
 
-        .footer { 
-            flex: 0 0 auto;
-            display: flex; 
-            justify-content: space-between; 
-            padding: 5px 10px; 
-            font-size: 0.8em;
-            background: #202225;
+        .btn { 
+            padding: 10px 0; 
+            border: none; 
+            border-radius: 3px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            color: white; 
+            width: 32%; /* PC: 3 nút 1 hàng */
+            font-size: 0.85em; 
+            transition: 0.2s; 
         }
-
-        /* --- MOBILE SPECIFIC FIXES --- */
-        @media (max-width: 768px) {
-            #app {
-                max-width: 100%;
-                border: none;
-            }
-            
-            /* Nút bấm to hơn trên điện thoại */
-            .btn {
-                padding: 12px 0 !important;
-                font-size: 0.95em !important;
-            }
-            
-            /* Sắp xếp nút gọn gàng */
-            .btn-hunt { width: 100% !important; margin-bottom: 5px; }
-            .btn-shop, .btn-bag { width: 49% !important; }
-            .btn-job, .btn-achieve, .btn-daycare { width: 32% !important; font-size: 0.8em !important; }
-            .btn-daily, .btn-dex { width: 49% !important; }
-            .btn-log { width: 100% !important; margin-top: 5px; }
-        }
-
-        /* POPUPS */
-        #login-screen, #donate-modal, #update-modal, #buy-modal, #battle-modal, #job-modal, #achieve-modal, #daycare-modal, #repair-modal, #dex-modal, #daily-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        #donate-modal, #update-modal, #buy-modal, #battle-modal, #job-modal, #achieve-modal, #daycare-modal, #repair-modal, #dex-modal, #daily-modal { display: none; z-index: 1000; }
         
-        .box-style { background: #2f3136; padding: 20px; border-radius: 10px; border: 2px solid #faa61a; text-align: center; width: 90%; max-width: 350px; box-shadow: 0 0 20px rgba(0,0,0,0.5); max-height: 80vh; display: flex; flex-direction: column; overflow-y: auto;}
-        
-        /* OTHER STYLES */
-        .embed { background-color: rgba(41, 43, 47, 0.8); border-left: 4px solid #00b0f4; padding: 10px; border-radius: 4px; position: relative; margin-bottom: 5px; }
-        .embed-header { display: flex; justify-content: space-between; align-items: flex-start; }
-        .poke-sprite { width: 90px; height: 90px; image-rendering: pixelated; margin-left: 5px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); } /* Giảm size ảnh xuống 90px cho gọn mobile */
-        
-        .btn { padding: 10px 0; border: none; border-radius: 3px; font-weight: bold; cursor: pointer; color: white; width: 30%; font-size: 0.85em; transition: 0.2s; }
         .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
-        .btn:active { transform: translateY(0); }
 
-        /* COLORS */
-        .btn-hunt { background: #3ba55c; } 
+        /* --- 2. MOBILE SPECIFIC (GIAO DIỆN RIÊNG CHO ĐIỆN THOẠI) --- */
+        @media (max-width: 768px) {
+            body {
+                background: #202225; /* Mobile: Nền tối cho nhẹ */
+            }
+
+            #app {
+                max-width: 100%; /* Mobile: Full màn hình */
+                border: none;
+                box-shadow: none;
+                height: 100dvh; /* Chiều cao động fix lỗi thanh địa chỉ */
+                position: fixed; /* Ghim chặt */
+                top: 0; left: 0;
+            }
+
+            #controls {
+                padding-bottom: 20px; /* Thêm khoảng trống dưới đáy để vuốt */
+                gap: 5px;
+            }
+
+            /* Mobile: Nút to hơn và xếp lại */
+            .btn {
+                padding: 14px 0; /* Nút cao hơn dễ bấm */
+                font-size: 1em;
+                width: 48%; /* Mobile: 2 nút 1 hàng */
+            }
+
+            /* Mobile: Săn tìm to nhất */
+            .btn-hunt { width: 100% !important; margin-bottom: 5px; font-size: 1.2em; }
+            
+            /* Mobile: Các nút chức năng nhỏ */
+            .btn-job, .btn-achieve, .btn-daycare { 
+                width: 32% !important; 
+                font-size: 0.8em; 
+                padding: 10px 0;
+            }
+        }
+
+        /* --- COLORS & ASSETS --- */
+        .btn-hunt { background: url('image_1.png') no-repeat center center; background-size: cover; text-shadow: 0 0 3px black, 0 0 3px black; border: 2px solid #2ecc71; } 
         .btn-shop { background: #faa61a; color: #202225; } 
         .btn-bag { background: #5865f2; } 
         .btn-job { background: #7289da; } 
@@ -129,46 +118,58 @@
         .btn-dex { background: #3498db; } 
         .btn-log { background: #95a5a6; }
 
-        /* MISC */
+        /* POPUPS & COMMON UI */
+        #login-screen, #donate-modal, #update-modal, #buy-modal, #battle-modal, #job-modal, #achieve-modal, #daycare-modal, #repair-modal, #dex-modal, #daily-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        #donate-modal, #update-modal, #buy-modal, #battle-modal, #job-modal, #achieve-modal, #daycare-modal, #repair-modal, #dex-modal, #daily-modal { display: none; z-index: 1000; }
+        .box-style { background: #2f3136; padding: 20px; border-radius: 10px; border: 2px solid #faa61a; text-align: center; width: 90%; max-width: 350px; box-shadow: 0 0 20px rgba(0,0,0,0.5); max-height: 80vh; display: flex; flex-direction: column; overflow-y: auto;}
+        
+        /* Modal Backgrounds */
+        #buy-modal .box-style { background: url('image_3.png') no-repeat center center; background-size: cover; }
+        #dex-modal .box-style { background: url('image_4.png') no-repeat center center; background-size: cover; color: #eee; }
+        #achieve-modal .box-style { background: url('image_5.png') no-repeat center center; background-size: cover; }
+        .inner-box { background: rgba(0, 0, 0, 0.7); padding: 15px; border-radius: 8px; height: 100%; display: flex; flex-direction: column; }
+
+        /* Misc Elements */
+        .embed { background-color: rgba(41, 43, 47, 0.8); border-left: 4px solid #00b0f4; padding: 10px; border-radius: 4px; position: relative; margin-bottom: 5px; }
+        .embed-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .poke-sprite { width: 110px; height: 110px; image-rendering: pixelated; margin-left: 5px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
+        @media (max-width: 768px) { .poke-sprite { width: 90px; height: 90px; } } /* Mobile thu nhỏ ảnh lại xíu cho đỡ vướng */
+
         .login-input { width: 90%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #202225; background: #40444b; color: white; text-align: center; font-weight: bold; font-size: 16px; }
         .btn-auth { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
         .btn-login { background: #3ba55c; color: white; } .btn-register { background: #e91e63; color: white; }
+        .btn-close { background: #ed4245; color: white; padding: 8px 20px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; font-weight:bold;}
         .footer-link { text-align: center; font-size: 0.75em; color: #72767d; cursor: pointer; text-decoration: underline; margin-right: 10px; }
         .donate-btn-text { color: #eb459e; font-weight: bold; animation: pulse 2s infinite; cursor: pointer;}
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         
-        /* QUEST & BADGES */
+        /* Game UI Components */
+        .rarity-tag { font-size: 0.65em; padding: 2px 5px; border-radius: 3px; font-weight: bold; margin-right: 5px; display: inline-block; text-transform: uppercase; }
+        .r-common { background: #95a5a6; color: #fff; } .r-uncommon { background: #2ecc71; color: #000; } .r-rare { background: #3498db; color: #fff; } .r-superrare { background: #9b59b6; color: #fff; } .r-legendary { background: linear-gradient(45deg, #f1c40f, #e67e22); color: #000; } .r-shiny { background: #e74c3c; color: white; }
         .quest-item { margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px; text-align: left;}
         .quest-header { display: flex; justify-content: space-between; font-size: 0.85em; margin-bottom: 3px;}
-        .quest-progress-bar { width: 100%; height: 6px; background: #202225; border-radius: 3px; overflow: hidden; }
+        .quest-progress-bar, .durability-bar, .xp-container, .hp-container { width: 100%; height: 6px; background: #202225; border-radius: 3px; overflow: hidden; margin-top:3px; }
         .quest-progress-fill { height: 100%; background: #3ba55c; width: 0%; transition: width 0.3s; }
+        .xp-fill { height: 100%; background: #3498db; width: 0%; } .hp-fill { height: 100%; background: #e74c3c; width: 100%; transition: width 0.3s; }
+        .durability-fill { height: 100%; background: #3ba55c; width: 100%; transition: width 0.2s; }
         .difficulty-tag { padding: 1px 4px; border-radius: 3px; font-size: 0.7em; font-weight: bold; color:black;}
         .diff-0 { background: #2ecc71; } .diff-1 { background: #f1c40f; } .diff-2 { background: #ed4245; color:white;}
-
-        /* IN-GAME ELEMENTS */
-        .rarity-tag { font-size: 0.65em; padding: 2px 5px; border-radius: 3px; font-weight: bold; margin-right: 5px; display: inline-block; text-transform: uppercase; }
-        .r-common { background: #95a5a6; color: #fff; } .r-uncommon { background: #2ecc71; color: #000; } 
-        .r-rare { background: #3498db; color: #fff; } .r-superrare { background: #9b59b6; color: #fff; } 
-        .r-legendary { background: linear-gradient(45deg, #f1c40f, #e67e22); color: #000; } 
-        .r-shiny { background: #e74c3c; color: white; }
-
+        
         .ball-btn { background: #2f3136; border: 1px solid #202225; padding: 5px; border-radius: 5px; cursor: pointer; display: flex; flex-direction: column; align-items: center; min-width: 60px; position: relative; width: 23%; margin-bottom:5px;}
         .ball-btn img { width: 28px; }
         .rate-badge { position: absolute; top: -5px; right: -5px; background: #3ba55c; color: white; font-size: 0.7em; padding: 1px 3px; border-radius: 3px; }
         .ball-btn.disabled { opacity: 0.4; pointer-events: none; filter: grayscale(1); }
-        
         .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
         .shop-card { background: rgba(64, 68, 75, 0.6); padding: 8px; border-radius: 5px; border: 1px solid #202225; cursor: pointer; display:flex; flex-direction:column; align-items:center; }
         .bag-row { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(32, 34, 37, 0.5); margin-bottom: 5px; border-radius: 3px; border: 1px solid #2f3136; }
         .bag-actions { display: flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; width: 120px;}
         .btn-small { padding: 3px 6px; font-size: 0.7em; border: none; border-radius: 3px; color: white; cursor: pointer; margin-bottom: 2px;}
         .btn-battle { background: #e74c3c; width:100% } .btn-heal { background: #2ecc71; color:black} .btn-evo { background: #9b59b6; } .btn-sell { background: #ed4245; }
-        
-        /* QUIZ */
         .quiz-img { width: 100px; height: 100px; margin: 10px auto; filter: brightness(0); transition: filter 0.5s; image-rendering: pixelated;}
         .quiz-img.revealed { filter: brightness(1); }
         .quiz-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
         .quiz-opt { padding: 10px; background: #2f3136; border: 1px solid #444; color: white; cursor: pointer; border-radius: 4px; transition: 0.2s; font-size: 0.9em; }
+        .battle-card { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; margin-bottom: 10px; border: 1px solid #444; }
     </style>
 </head>
 <body>
@@ -176,8 +177,8 @@
 <div id="login-screen">
     <div class="box-style">
         <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto">
-        <h2 style="color: white; margin: 10px 0;">POKESTAY v1.0</h2>
-        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Official Release</div>
+        <h2 style="color: white; margin: 10px 0;">POKESTAY v1.1</h2>
+        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Hybrid UI</div>
         <input type="text" id="username-input" class="login-input" placeholder="Tên..." onkeypress="handleEnter(event)">
         <input type="password" id="password-input" class="login-input" placeholder="Mật khẩu..." onkeypress="handleEnter(event)">
         <button class="btn-auth btn-login" onclick="login()">ĐĂNG NHẬP</button>
@@ -193,7 +194,7 @@
                 <span style="font-size:1.5em">⛏️</span> 
                 <div style="flex:1">
                     <div style="display:flex; justify-content:space-between"><span>Đào Mỏ</span><span id="durability-text" style="font-size:0.8em; color:#bbb">30/30</span></div>
-                    <div class="quest-progress-bar"><div id="durability-bar-fill" class="quest-progress-fill" style="width:100%"></div></div>
+                    <div class="durability-bar"><div id="durability-bar-fill" class="durability-fill"></div></div>
                 </div>
             </button>
             <button id="btn-repair" class="btn-auth" style="background:#e74c3c; display:none; animation:pulse 1s infinite" onclick="openRepairModal()">
@@ -241,10 +242,12 @@
 
 <div id="achieve-modal">
     <div class="box-style">
-        <h2 style="color: #f1c40f;">🏆 Thành Tựu</h2>
-        <div style="font-size:0.7em; color:#aaa; margin-bottom:10px">Bấm vào để xem phần thưởng</div>
-        <div id="achieve-list" style="overflow-y:auto; flex:1; width:100%"></div>
-        <button class="btn-close" onclick="closeAchieve()">Đóng</button>
+        <div class="inner-box">
+            <h2 style="color: #f1c40f;">🏆 Thành Tựu</h2>
+            <div style="font-size:0.7em; color:#aaa; margin-bottom:10px">Bấm vào để xem phần thưởng</div>
+            <div id="achieve-list" style="overflow-y:auto; flex:1; width:100%"></div>
+            <button class="btn-close" onclick="closeAchieve()">Đóng</button>
+        </div>
     </div>
 </div>
 
@@ -260,27 +263,31 @@
 
 <div id="buy-modal">
     <div class="box-style">
-        <h3 style="color: #faa61a; margin: 5px 0;" id="buy-name">Item</h3>
-        <img id="buy-img" src="" width="60" style="margin: 10px auto; display:block">
-        <div style="margin-bottom: 10px; color:#bbb">Giá: <span id="buy-price" style="color:white; font-weight:bold">0</span>💰</div>
-        <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin: 10px 0;">
-            <input type="number" id="buy-qty" class="login-input" style="width:60px; margin:0" value="1" min="1" oninput="calcTotal()">
-        </div>
-        <div style="font-size: 1.1em; margin-bottom: 15px;">Tổng: <span id="buy-total" style="color:#3ba55c; font-weight:bold">0</span>💰</div>
-        <div style="display:flex; gap:10px; width:100%">
-            <button class="btn-auth" style="background:#7f8c8d; margin:0" onclick="closeBuy()">HỦY</button>
-            <button class="btn-auth btn-login" style="margin:0" onclick="submitBuy()">MUA</button>
+        <div class="inner-box">
+            <h3 style="color: #faa61a; margin: 5px 0;" id="buy-name">Item</h3>
+            <img id="buy-img" src="" width="60" style="margin: 10px auto; display:block">
+            <div style="margin-bottom: 10px; color:#bbb">Giá: <span id="buy-price" style="color:white; font-weight:bold">0</span>💰</div>
+            <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin: 10px 0;">
+                <input type="number" id="buy-qty" class="login-input" style="width:60px; margin:0" value="1" min="1" oninput="calcTotal()">
+            </div>
+            <div style="font-size: 1.1em; margin-bottom: 15px;">Tổng: <span id="buy-total" style="color:#3ba55c; font-weight:bold">0</span>💰</div>
+            <div style="display:flex; gap:10px; width:100%">
+                <button class="btn-auth" style="background:#7f8c8d; margin:0" onclick="closeBuy()">HỦY</button>
+                <button class="btn-auth btn-login" style="margin:0" onclick="submitBuy()">MUA</button>
+            </div>
         </div>
     </div>
 </div>
 
 <div id="dex-modal">
     <div class="box-style">
-        <h2 style="color: #3498db;">📖 Pokedex</h2>
-        <div style="font-size: 1.2em; margin-bottom: 20px;">
-            Đã bắt: <span style="color: #f1c40f; font-weight: bold;" id="dex-count">0</span> / 649
+        <div class="inner-box">
+            <h2 style="color: #3498db;">📖 Pokedex</h2>
+            <div style="font-size: 1.2em; margin-bottom: 20px;">
+                Đã bắt: <span style="color: #f1c40f; font-weight: bold;" id="dex-count">0</span> / 649
+            </div>
+            <button class="btn-close" onclick="closePokedex()">Đóng</button>
         </div>
-        <button class="btn-close" onclick="closePokedex()">Đóng</button>
     </div>
 </div>
 
@@ -304,12 +311,17 @@
         <h2 style="color: #faa61a;">📜 Update Log</h2>
         <div class="update-list" style="text-align:left; width:100%">
              <div style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px">
-                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.0</span> 
+                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.1</span> 
                 <span style="color:#bbb; font-size:0.8em; float:right">Official</span>
                 <ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde">
-                    <li><b>Official Launch:</b> PokeStay 1.0!</li>
-                    <li><b>Daily Quests:</b> 3 nhiệm vụ mỗi ngày (Easy/Med/Hard).</li>
-                    <li><b>Gameplay:</b> Cân bằng tỉ lệ bắt và kinh tế.</li>
+                    <li><b>Hybrid UI:</b> Tối ưu riêng cho PC và Điện thoại.</li>
+                    <li><b>Fix:</b> Giao diện không còn bị lệch hay che khuất.</li>
+                </ul>
+            </div>
+             <div style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px">
+                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.0</span> 
+                <ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde">
+                    <li><b>Launch:</b> Bản chính thức với 3 nhiệm vụ ngày.</li>
                 </ul>
             </div>
         </div>
@@ -407,15 +419,7 @@
     
     let currentWild = null; let streakBonus = 0; let activeBuffs = { berry: false, egg: false }; let selectedItemId = null; let selectedBattleIdx = null;
 
-    function getRarity(p) { 
-        if(p.isEgg) return {label:'Egg',class:'r-common',val:0}; 
-        if(p.isShiny) return {label:'Shiny',class:'r-shiny',val:5}; 
-        if(LEGENDARY_IDS.includes(p.id)) return {label:'Legendary',class:'r-legendary',val:4}; 
-        if(p.baseXp>=200) return {label:'Super Rare',class:'r-superrare',val:3}; 
-        if(p.baseXp>=140) return {label:'Rare',class:'r-rare',val:2}; 
-        if(p.baseXp>=60) return {label:'Uncommon',class:'r-uncommon',val:1}; 
-        return {label:'Common',class:'r-common',val:0}; 
-    }
+    function getRarity(p) { if(p.isEgg) return {label:'Egg',class:'r-common',val:0}; if(p.isShiny) return {label:'Shiny',class:'r-shiny',val:5}; if(LEGENDARY_IDS.includes(p.id)) return {label:'Legendary',class:'r-legendary',val:4}; if(p.baseXp>=200) return {label:'SR',class:'r-superrare',val:3}; if(p.baseXp>=140) return {label:'Rare',class:'r-rare',val:2}; if(p.baseXp>=60) return {label:'UC',class:'r-uncommon',val:1}; return {label:'C',class:'r-common',val:0}; }
 
     function handleEnter(e) { if(e.key === 'Enter') login(); }
     function register() { const u = document.getElementById('username-input').value.trim(), p = document.getElementById('password-input').value.trim(); if(!u||!p) return alert("Thiếu thông tin!"); if(localStorage.getItem(AUTH_KEY+u)) return alert("Tên tồn tại!"); localStorage.setItem(AUTH_KEY+u, p); alert("Đăng ký xong!"); }
@@ -830,6 +834,7 @@
     function sell(i,p) { myBag.splice(i,1); coins+=p; saveGame(); updateStats(); openBag(); }
     function showPokedex() { document.getElementById('dex-count').innerText = pokedex.size; document.getElementById('dex-modal').style.display = 'flex'; }
     function run() { currentWild=null; showMenu(); log("Bỏ chạy."); }
+    function claimDaily() { const today = new Date().toDateString(); if(lastDailyDate===today) return; coins+=500; lastDailyDate=today; saveGame(); updateStats(); showMenu(); log(`<div style="text-align:center; color:#eb459e">🎁 Nhận 500 Coins!</div>`); }
     function checkEvolution(idx, btn) { 
         btn.innerHTML = "⏳"; btn.classList.add('loading');
         (async () => {
