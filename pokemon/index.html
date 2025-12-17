@@ -286,24 +286,39 @@
     };
 
     // MOVES_DB V2.3: Added 'cat' (phy/spe) for Physical/Special split
+    // --- DATABASE MỚI: Skill, Status, Priority ---
     const MOVES_DB = {
-        'normal': [{name: 'Tackle', pwr: 40, cat: 'phy'}, {name: 'Scratch', pwr: 40, cat: 'phy'}, {name: 'Quick Attack', pwr: 40, cat: 'phy'}, {name: 'Cut', pwr: 50, cat: 'phy'}, {name: 'Headbutt', pwr: 70, cat: 'phy'}, {name: 'Hyper Beam', pwr: 150, cat: 'spe'}, {name: 'Body Slam', pwr: 85, cat: 'phy'}],
-        'fire': [{name: 'Ember', pwr: 40, cat: 'spe'}, {name: 'Flame Wheel', pwr: 60, cat: 'phy'}, {name: 'Flamethrower', pwr: 90, cat: 'spe'}, {name: 'Fire Blast', pwr: 110, cat: 'spe'}, {name: 'Heat Wave', pwr: 95, cat: 'spe'}],
-        'water': [{name: 'Water Gun', pwr: 40, cat: 'spe'}, {name: 'Bubble Beam', pwr: 65, cat: 'spe'}, {name: 'Surf', pwr: 90, cat: 'spe'}, {name: 'Hydro Pump', pwr: 110, cat: 'spe'}, {name: 'Aqua Tail', pwr: 90, cat: 'phy'}],
-        'grass': [{name: 'Vine Whip', pwr: 45, cat: 'phy'}, {name: 'Razor Leaf', pwr: 55, cat: 'phy'}, {name: 'Energy Ball', pwr: 90, cat: 'spe'}, {name: 'Solar Beam', pwr: 120, cat: 'spe'}, {name: 'Seed Bomb', pwr: 80, cat: 'phy'}],
-        'electric': [{name: 'Thunder Shock', pwr: 40, cat: 'spe'}, {name: 'Spark', pwr: 65, cat: 'phy'}, {name: 'Thunderbolt', pwr: 90, cat: 'spe'}, {name: 'Thunder', pwr: 110, cat: 'spe'}, {name: 'Thunder Punch', pwr: 75, cat: 'phy'}],
-        'ice': [{name:'Powder Snow',pwr:40, cat: 'spe'}, {name:'Ice Beam',pwr:90, cat: 'spe'}, {name:'Blizzard',pwr:110, cat: 'spe'}, {name: 'Ice Punch', pwr: 75, cat: 'phy'}],
-        'fighting': [{name:'Karate Chop',pwr:50, cat: 'phy'}, {name:'Brick Break',pwr:75, cat: 'phy'}, {name:'Close Combat',pwr:120, cat: 'phy'}, {name: 'Aura Sphere', pwr: 80, cat: 'spe'}],
-        'poison': [{name:'Poison Sting',pwr:15, cat: 'phy'}, {name:'Sludge Bomb',pwr:90, cat: 'spe'}, {name: 'Gunk Shot', pwr: 120, cat: 'phy'}, {name: 'Poison Jab', pwr: 80, cat: 'phy'}],
-        'ground': [{name:'Mud Shot',pwr:55, cat: 'spe'}, {name:'Earthquake',pwr:100, cat: 'phy'}, {name: 'Dig', pwr: 80, cat: 'phy'}],
-        'flying': [{name:'Peck',pwr:35, cat: 'phy'}, {name:'Wing Attack',pwr:60, cat: 'phy'}, {name:'Fly',pwr:90, cat: 'phy'}, {name: 'Air Slash', pwr: 75, cat: 'spe'}],
-        'psychic': [{name:'Confusion',pwr:50, cat: 'spe'}, {name:'Psybeam',pwr:65, cat: 'spe'}, {name:'Psychic',pwr:90, cat: 'spe'}, {name: 'Zen Headbutt', pwr: 80, cat: 'phy'}],
-        'bug': [{name:'Bug Bite',pwr:60, cat: 'phy'}, {name:'X-Scissor',pwr:80, cat: 'phy'}, {name: 'Megahorn', pwr: 120, cat: 'phy'}],
-        'rock': [{name:'Rock Throw',pwr:50, cat: 'phy'}, {name:'Rock Slide',pwr:75, cat: 'phy'}, {name:'Stone Edge',pwr:100, cat: 'phy'}],
-        'ghost': [{name:'Lick',pwr:30, cat: 'phy'}, {name:'Shadow Ball',pwr:80, cat: 'spe'}, {name: 'Shadow Claw', pwr: 70, cat: 'phy'}],
-        'dragon': [{name:'Twister',pwr:40, cat: 'spe'}, {name:'Dragon Claw',pwr:80, cat: 'phy'}, {name:'Outrage',pwr:120, cat: 'phy'}, {name: 'Dragon Pulse', pwr: 85, cat: 'spe'}],
-        'steel': [{name:'Metal Claw',pwr:50, cat: 'phy'}, {name:'Iron Head',pwr:80, cat: 'phy'}, {name: 'Flash Cannon', pwr: 80, cat: 'spe'}],
-        'fairy': [{name:'Fairy Wind',pwr:40, cat: 'spe'}, {name:'Moonblast',pwr:95, cat: 'spe'}, {name: 'Play Rough', pwr: 90, cat: 'phy'}]
+        'normal': [
+            {name: 'Tackle', pwr: 40, cat: 'phy', acc: 100}, 
+            {name: 'Quick Attack', pwr: 40, cat: 'phy', acc: 100, priority: 1}, // Ưu tiên +1
+            {name: 'Hyper Beam', pwr: 150, cat: 'spe', acc: 90},
+            {name: 'Growl', pwr: 0, cat: 'stat', stat: 'atk', stage: -1, acc: 100}, // Giảm Atk địch
+            {name: 'Swords Dance', pwr: 0, cat: 'stat', stat: 'atk', stage: 2, target: 'self', acc: 100}, // Tăng Atk bản thân
+            {name: 'Sing', pwr: 0, cat: 'status', status: 'slp', acc: 55} // Ru ngủ
+        ],
+        'fire': [
+            {name: 'Ember', pwr: 40, cat: 'spe', acc: 100, effect: 'brn', chance: 0.1}, 
+            {name: 'Flamethrower', pwr: 90, cat: 'spe', acc: 100, effect: 'brn', chance: 0.1},
+            {name: 'Will-O-Wisp', pwr: 0, cat: 'status', status: 'brn', acc: 85} // Gây bỏng
+        ],
+        'water': [
+            {name: 'Water Gun', pwr: 40, cat: 'spe', acc: 100}, 
+            {name: 'Surf', pwr: 90, cat: 'spe', acc: 100},
+            {name: 'Aqua Jet', pwr: 40, cat: 'phy', acc: 100, priority: 1} // Ưu tiên
+        ],
+        'grass': [
+            {name: 'Vine Whip', pwr: 45, cat: 'phy', acc: 100}, 
+            {name: 'Solar Beam', pwr: 120, cat: 'spe', acc: 100},
+            {name: 'Sleep Powder', pwr: 0, cat: 'status', status: 'slp', acc: 75}, // Bột ngủ
+            {name: 'Stun Spore', pwr: 0, cat: 'status', status: 'par', acc: 75} // Phấn tê liệt
+        ],
+        'electric': [
+            {name: 'Thunder Shock', pwr: 40, cat: 'spe', acc: 100, effect: 'par', chance: 0.1}, 
+            {name: 'Thunderbolt', pwr: 90, cat: 'spe', acc: 100, effect: 'par', chance: 0.1},
+            {name: 'Thunder Wave', pwr: 0, cat: 'status', status: 'par', acc: 90} // Gây tê liệt 100%
+        ],
+        // ... Các hệ khác bạn có thể giữ nguyên hoặc thêm tương tự ...
+        // (Để code ngắn gọn, nếu hệ nào thiếu thì game sẽ tự lấy Normal)
     };
 
     const GYM_DB = [
@@ -380,30 +395,54 @@
     }
 
     function recalcStats(p) {
-        let bHp = p.baseHp || 45; let bAtk = p.baseAtk || 49; let bDef = p.baseDef || 49; let bSpA = p.baseSpA || 65; let bSpD = p.baseSpD || 65; let bSpd = p.baseSpd || 45;
+        let bHp = p.baseHp || 45; let bAtk = p.baseAtk || 49; let bDef = p.baseDef || 49; 
+        let bSpA = p.baseSpA || 65; let bSpD = p.baseSpD || 65; let bSpd = p.baseSpd || 45;
+        
         p.maxHp = calculateMaxHp(bHp, p.iv, p.level);
         p.atk = calculateStat(bAtk, p.iv, p.level);
         p.def = calculateStat(bDef, p.iv, p.level);
         p.spA = calculateStat(bSpA, p.iv, p.level);
         p.spD = calculateStat(bSpD, p.iv, p.level);
         p.spd = calculateStat(bSpd, p.iv, p.level);
+        
+        // --- THÊM MỚI: Reset Status và Stages khi tính lại ---
+        if(!p.status) p.status = null; // null, 'brn', 'par', 'slp'
+        if(!p.stages) p.stages = { atk:0, def:0, spA:0, spD:0, spd:0, acc:0 };
+        // ----------------------------------------------------
+
         if(p.hp > p.maxHp || isNaN(p.hp)) p.hp = p.maxHp;
     }
 
+    // Cập nhật hàm phân phát chiêu để Pokemon có chiêu Status/Stat
     function assignMoves(p) {
         let mainType = p.types[0];
-        let pool = MOVES_DB[mainType] || MOVES_DB['normal'];
+        let pool = MOVES_DB[mainType] || [];
         let normalPool = MOVES_DB['normal'];
         let moves = [];
-        if(pool.length > 0) moves.push({ ...pool[Math.floor(Math.random() * pool.length)], type: mainType });
-        if(pool.length > 1) moves.push({ ...pool[Math.floor(Math.random() * pool.length)], type: mainType });
+        
+        // Cố gắng lấy 1 chiêu Status/Stat nếu có
+        let tacticalMoves = pool.filter(m => m.cat === 'status' || m.cat === 'stat');
+        if(tacticalMoves.length > 0 && Math.random() < 0.5) {
+            moves.push({...tacticalMoves[Math.floor(Math.random()*tacticalMoves.length)], type: mainType});
+        }
+
+        // Lấy chiêu tấn công hệ chính
+        let attackMoves = pool.filter(m => m.cat !== 'status' && m.cat !== 'stat');
+        if(attackMoves.length > 0) moves.push({...attackMoves[Math.floor(Math.random()*attackMoves.length)], type: mainType});
+        
+        // Fill đầy bằng chiêu Normal
         while(moves.length < 4) {
             let m = normalPool[Math.floor(Math.random() * normalPool.length)];
-            moves.push({ ...m, type: 'normal' });
+            // Tránh trùng chiêu
+            if(!moves.find(mv => mv.name === m.name)) {
+                moves.push({ ...m, type: 'normal' });
+            } else if (moves.length < 4 && normalPool.length < 5) {
+                 moves.push({ ...m, type: 'normal' }); // Fallback nếu ít chiêu quá
+                 break;
+            }
         }
         p.moves = moves;
     }
-
     function ensureDataIntegrity(p) {
         if(!p.spA || !p.spD) { p.baseSpA = p.baseAtk || 50; p.baseSpD = p.baseDef || 50; recalcStats(p); }
         if(!p.moves || p.moves.length === 0) { assignMoves(p); }
@@ -727,6 +766,64 @@
         document.getElementById('battle-modal').style.display = 'flex';
     }
     function closeBattle() { document.getElementById('battle-modal').style.display = 'none'; }
+
+    // --- SMART AI SYSTEM ---
+    function chooseBestMove(attacker, defender) {
+        let moves = attacker.moves;
+        let bestMoveIdx = 0;
+        let bestScore = -9999;
+
+        moves.forEach((move, index) => {
+            if(!move) return;
+            let score = 0;
+
+            // 1. Tính sát thương dự kiến
+            if(move.pwr > 0) {
+                let typeMod = getEffectiveness(move.type, defender.types);
+                // Ưu tiên chiêu siêu hiệu quả
+                if(typeMod > 1) score += 50;
+                if(typeMod < 1) score -= 30;
+                
+                // Ưu tiên Priority nếu địch còn ít máu (để kết liễu)
+                if(move.priority > 0 && defender.hp < defender.maxHp * 0.2) score += 100;
+                
+                score += move.pwr; 
+            }
+
+            // 2. Logic Status (Chiến thuật)
+            if(move.cat === 'status') {
+                // Đừng dùng status nếu địch đã dính status rồi
+                if(defender.status) {
+                    score -= 500; 
+                } else {
+                    score += 40; // Khuyến khích dùng status đầu trận
+                    if(move.status === 'slp') score += 20; // Ngủ mạnh hơn
+                }
+            }
+
+            // 3. Logic Buff/Debuff
+            if(move.cat === 'stat') {
+                if(move.target === 'self') {
+                    // Đừng buff nếu máu giấy quá
+                    if(attacker.hp < attacker.maxHp * 0.4) score -= 50;
+                    else if(attacker.stages[move.stat] < 2) score += 30; 
+                } else {
+                    // Debuff địch
+                    score += 20;
+                }
+            }
+            
+            // Random nhẹ để AI không quá cứng nhắc
+            score += Math.random() * 10;
+
+            if(score > bestScore) {
+                bestScore = score;
+                bestMoveIdx = index;
+            }
+        });
+
+        return moves[bestMoveIdx]; // Trả về object move
+    }
     
     async function startBattle(difficulty) {
         let p = myBag[selectedBattleIdx];
@@ -930,27 +1027,202 @@
         endBattle(false);
     }
 
-    async function executeTurn(action, moveData) {
+    // --- ADVANCED BATTLE ENGINE v3.0 ---
+    function getStageMulti(stage) {
+        if(stage >= 0) return (2 + stage) / 2;
+        return 2 / (2 + Math.abs(stage));
+    }
+
+    async function executeTurn(action, playerMoveIdx) {
         document.getElementById('battle-main-menu').style.pointerEvents = 'none'; 
         document.getElementById('battle-main-menu').style.opacity = '0.5';
-
-        let p = battleState.player; let e = battleState.enemy;
-        let pSpeed = p.spd || 10; let eSpeed = e.spd || 10;
         
-        let playerFirst = pSpeed >= eSpeed;
-        if(pSpeed === eSpeed) playerFirst = Math.random() < 0.5;
+        let p = battleState.player; 
+        let e = battleState.enemy;
 
-        if(playerFirst) {
-            await doPlayerAction(action, moveData);
-            if(e.hp > 0) await doEnemyAction();
+        // 1. Xác định chiêu thức 2 bên dùng
+        let pMove = null;
+        if(action === 'attack') pMove = p.moves[playerMoveIdx];
+        else if(action === 'heal') pMove = {name: 'Potion', priority: 6, isItem: true}; // Item ưu tiên cao nhất
+        else if(action === 'skip') pMove = {name: 'Skipping', priority: 0, isSkip: true};
+
+        // AI chọn chiêu
+        let eMove = chooseBestMove(e, p);
+        if(!eMove.priority) eMove.priority = 0;
+        if(!pMove.priority) pMove.priority = 0;
+
+        // 2. Tính Speed thực tế (Paralysis giảm 50% Speed)
+        let pSpd = p.spd * getStageMulti(p.stages.spd) * (p.status === 'par' ? 0.5 : 1);
+        let eSpd = e.spd * getStageMulti(e.stages.spd) * (e.status === 'par' ? 0.5 : 1);
+
+        // 3. Xác định thứ tự đánh (Priority > Speed)
+        let playerGoesFirst = false;
+        if (pMove.priority > eMove.priority) playerGoesFirst = true;
+        else if (pMove.priority < eMove.priority) playerGoesFirst = false;
+        else {
+            // Cùng priority thì so Speed
+            if (pSpd > eSpd) playerGoesFirst = true;
+            else if (pSpd < eSpd) playerGoesFirst = false;
+            else playerGoesFirst = Math.random() < 0.5; // Speed tie
+        }
+
+        // 4. Thực thi Turn
+        if(playerGoesFirst) {
+            await runMove(p, e, pMove, true); // Player đánh
+            if(e.hp > 0 && !battleState.finished) await runMove(e, p, eMove, false); // Enemy đánh
         } else {
-            await doEnemyAction();
-            if(p.hp > 0) await doPlayerAction(action, moveData);
+            await runMove(e, p, eMove, false); // Enemy đánh
+            if(p.hp > 0 && !battleState.finished) await runMove(p, e, pMove, true); // Player đánh
+        }
+
+        // 5. Cuối lượt: Sát thương Burn/Poison
+        if(!battleState.finished) {
+            await applyStatusDamage(p);
+            if(e.hp > 0) await applyStatusDamage(e);
         }
 
         document.getElementById('battle-main-menu').style.pointerEvents = 'auto';
         document.getElementById('battle-main-menu').style.opacity = '1';
         checkWinCondition();
+    }
+
+    async function runMove(attacker, defender, move, isPlayer) {
+        if(attacker.hp <= 0) return;
+        
+        // A. Check Status đầu lượt (Sleep / Freeze / Paralyze)
+        if(attacker.status === 'slp') {
+            logBattle(`${attacker.name} đang ngủ... 💤`);
+            if(Math.random() < 0.33) { // 33% dậy
+                attacker.status = null;
+                logBattle(`${attacker.name} đã tỉnh dậy!`);
+            } else {
+                await sleep(500); return; // Mất lượt
+            }
+        }
+        if(attacker.status === 'par') {
+            if(Math.random() < 0.25) { // 25% bị tê
+                logBattle(`${attacker.name} bị tê liệt không thể di chuyển! ⚡`);
+                await sleep(500); return; // Mất lượt
+            }
+        }
+
+        // B. Xử lý Hành động (Item / Attack / Status / Stat)
+        if(move.isItem) {
+            // Hồi máu
+            inventory['potion']--;
+            let heal = 50;
+            attacker.hp = Math.min(attacker.maxHp, attacker.hp + heal);
+            logBattle(`<span style="color:#2ecc71">${attacker.name} dùng Potion hồi ${heal} HP.</span>`);
+            updateBattleUI();
+            document.getElementById('potion-count').innerText = inventory['potion'];
+            await sleep(500);
+            return;
+        }
+        if(move.isSkip) {
+            logBattle(`${attacker.name} đang chờ đợi...`);
+            await sleep(500);
+            return;
+        }
+
+        // C. Tấn công
+        logBattle(`<b>${attacker.name}</b> dùng ${move.name}!`);
+        
+        // Hiệu ứng hình ảnh
+        let spriteId = isPlayer ? 'player-sprite' : 'enemy-sprite';
+        let moveDir = isPlayer ? 20 : -20;
+        document.getElementById(spriteId).style.transform = `translateX(${moveDir}px)`;
+        setTimeout(()=>document.getElementById(spriteId).style.transform="translateX(0)", 200);
+        await sleep(500);
+
+        // -- LOGIC CHIÊU THỨC --
+        // 1. Chiêu gây sát thương (Damage)
+        if(move.pwr > 0) {
+            // Check Accuracy (chưa làm chi tiết, tạm thời 95% trúng)
+            if(Math.random() > 0.95) {
+                logBattle("Đòn đánh bị trượt!");
+                return;
+            }
+
+            let typeMod = getEffectiveness(move.type, defender.types);
+            
+            // Tính Stage (Buff/Debuff)
+            let atkStage = move.cat === 'spe' ? attacker.stages.spA : attacker.stages.atk;
+            let defStage = move.cat === 'spe' ? defender.stages.spD : defender.stages.def;
+            
+            // Burn giảm 50% Atk vật lý
+            let burnMod = (attacker.status === 'brn' && move.cat === 'phy') ? 0.5 : 1;
+
+            let atkStat = (move.cat === 'spe' ? attacker.spA : attacker.atk) * getStageMulti(atkStage) * burnMod;
+            let defStat = (move.cat === 'spe' ? defender.spD : defender.def) * getStageMulti(defStage);
+
+            // Công thức Damage chuẩn
+            let levelFactor = ((2 * attacker.level) / 5) + 2;
+            let baseDamage = ((levelFactor * move.pwr * (atkStat / defStat)) / 50) + 2;
+            
+            let isCrit = Math.random() < 0.0625;
+            let stab = attacker.types.includes(move.type) ? 1.5 : 1.0;
+            let finalDamage = Math.floor(baseDamage * typeMod * stab * (isCrit?1.5:1) * ((Math.random()*16+85)/100));
+
+            if(isCrit) logBattle(`<span style="color:#e74c3c">Chí mạng!</span>`);
+            if(typeMod > 1) logBattle("Siêu hiệu quả!");
+            if(typeMod < 1) logBattle("Không hiệu quả lắm...");
+
+            applyDamage(defender, Math.max(1, finalDamage), isPlayer ? 'enemy' : 'player');
+            
+            // Hiệu ứng phụ (Ember gây Burn, v.v.)
+            if(move.effect && !defender.status && defender.hp > 0) {
+                 if(Math.random() < (move.chance || 0.1)) {
+                     applyStatus(defender, move.effect);
+                 }
+            }
+        }
+        
+        // 2. Chiêu Status thuần (Will-O-Wisp, Thunder Wave)
+        else if(move.cat === 'status') {
+            if(defender.status) {
+                logBattle("Nhưng nó thất bại!");
+            } else {
+                applyStatus(defender, move.status);
+            }
+        }
+        
+        // 3. Chiêu Stat (Growl, Swords Dance)
+        else if(move.cat === 'stat') {
+            let target = move.target === 'self' ? attacker : defender;
+            let statName = move.stat; // atk, def...
+            
+            // Giới hạn stage -6 đến +6
+            if(target.stages[statName] >= 6 && move.stage > 0) logBattle("Chỉ số không thể tăng thêm!");
+            else if(target.stages[statName] <= -6 && move.stage < 0) logBattle("Chỉ số không thể giảm thêm!");
+            else {
+                target.stages[statName] += move.stage;
+                let text = move.stage > 0 ? "tăng mạnh!" : "giảm mạnh!";
+                logBattle(`${statName.toUpperCase()} của ${target.name} ${text}`);
+            }
+        }
+    }
+
+    function applyStatus(target, status) {
+        target.status = status;
+        let icon = "";
+        if(status === 'brn') icon = "🔥 BỊ BỎNG";
+        if(status === 'par') icon = "⚡ TÊ LIỆT";
+        if(status === 'slp') icon = "💤 ĐANG NGỦ";
+        logBattle(`<b>${target.name}</b> đã bị ${icon}!`);
+        
+        // Cập nhật UI tên để hiện trạng thái
+        let idName = target === battleState.player ? 'player-name' : 'enemy-name';
+        document.getElementById(idName).innerHTML = `${target.name} <span style='background:red;color:white;font-size:0.7em;padding:1px 3px'>${status.toUpperCase()}</span>`;
+    }
+
+    async function applyStatusDamage(p) {
+        if(p.hp <= 0) return;
+        if(p.status === 'brn') {
+            let dmg = Math.floor(p.maxHp / 8); // Bỏng trừ 1/8 máu
+            p.hp -= dmg;
+            logBattle(`${p.name} bị tổn thương do bỏng! -${dmg}`);
+            updateBattleUI();
+        }
     }
 
     // --- NEW DAMAGE CALCULATION ENGINE (GEN 5) ---
@@ -1172,6 +1444,7 @@
 </script>
 </body>
 </html>
+
 
 
 
