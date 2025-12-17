@@ -492,7 +492,27 @@
         saveGame(); // Lưu lại ngay
     }
     // ----------------------------------------------------
+        // --- SỬA LỖI DỮ LIỆU CŨ (FIX DATA) ---
+    myBag.forEach(p => {
+        // 1. Nếu chưa có stages (chỉ số buff), tạo mới
+        if (!p.stages) {
+            p.stages = { atk: 0, def: 0, spA: 0, spD: 0, spd: 0, acc: 0 };
+        }
+        // 2. Nếu chưa có status (trạng thái), tạo mới
+        if (!p.status) {
+            p.status = null;
+        }
+        // 3. Tính toán lại để đảm bảo mọi thứ đồng bộ
+        recalcStats(p);
         
+        // 4. Nếu Pokemon chưa có chiêu thức mới (có priority), gán lại chiêu
+        if (p.moves && p.moves.length > 0 && typeof p.moves[0].priority === 'undefined') {
+            assignMoves(p);
+        }
+    });
+    
+    saveGame(); // Lưu lại ngay để lần sau không phải sửa nữa
+    console.log("Đã cập nhật dữ liệu Pokemon cũ thành công!");
         checkDailyQuestGen();
         updateStats();
     }
@@ -1462,6 +1482,7 @@
 </script>
 </body>
 </html>
+
 
 
 
