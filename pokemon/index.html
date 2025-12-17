@@ -3,169 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PokeStay v1.7 - UI Grid Fix</title>
-    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png">
+    <title>PokeStay v1.5 - HP Rebalance</title>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png">
     
     <style>
-        /* --- CORE CSS --- */
+        /* --- 1. CORE CSS --- */
         * { box-sizing: border-box; }
-        body { 
-            background: url('wp2595124.jpg') no-repeat center center fixed; 
-            background-size: cover; color: #dcddde; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            display: flex; justify-content: center; height: 100vh; margin: 0; overflow: hidden; 
-        }
-
-        #app { 
-            display: none; width: 100%; max-width: 500px; 
-            background-color: rgba(47, 49, 54, 0.95); backdrop-filter: blur(8px); 
-            flex-direction: column; height: 100vh; 
-            border-left: 1px solid rgba(0,0,0,0.5); border-right: 1px solid rgba(0,0,0,0.5); 
-            box-shadow: 0 0 50px rgba(0,0,0,0.8); position: relative; 
-        }
+        body { background: url('wp2595124.jpg') no-repeat center center fixed; background-size: cover; color: #dcddde; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
+        #app { display: none; width: 100%; max-width: 500px; background-color: rgba(47, 49, 54, 0.95); backdrop-filter: blur(8px); flex-direction: column; height: 100vh; border-left: 1px solid rgba(0,0,0,0.5); border-right: 1px solid rgba(0,0,0,0.5); box-shadow: 0 0 50px rgba(0,0,0,0.8); position: relative; }
         
+        /* LAYOUT */
         header { flex: 0 0 auto; background-color: rgba(32, 34, 37, 0.9); padding: 15px; border-bottom: 1px solid #202225; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
         #chat-area { flex: 1 1 auto; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
         .footer { flex: 0 0 auto; display: flex; justify-content: space-between; padding: 5px 10px; font-size: 0.8em; background: #202225; }
 
-        /* --- SMART GRID CONTROLS (HỆ THỐNG NÚT BẤM) --- */
-        #controls { 
-            flex: 0 0 auto; 
-            padding: 10px; 
-            background-color: rgba(64, 68, 75, 0.95); 
-            border-top: 1px solid rgba(255,255,255,0.1);
-            min-height: 80px;
-            
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr; /* PC: 3 Cột đều nhau */
-            gap: 8px; /* Khoảng cách giữa các nút */
-        }
-
-        .btn { 
-            padding: 12px 0; border: none; border-radius: 4px; 
-            font-weight: bold; cursor: pointer; color: white; 
-            width: 100%; /* Luôn lấp đầy ô grid */
-            font-size: 0.85em; transition: 0.2s; 
-            display: flex; align-items: center; justify-content: center; gap: 5px; 
-            margin: 0 !important; /* Xóa margin thừa */
-        }
+        /* CONTROLS */
+        #controls { flex: 0 0 auto; padding: 10px; background-color: rgba(64, 68, 75, 0.95); display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: wrap; border-top: 1px solid rgba(255,255,255,0.1); min-height: 80px; }
+        .btn { padding: 10px 0; border: none; border-radius: 3px; font-weight: bold; cursor: pointer; color: white; width: calc(33.33% - 4px); font-size: 0.85em; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; }
         .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn-hunt { width: 32% !important; background: url('image_1.png') no-repeat center center; background-size: cover; text-shadow: 0 0 3px black, 0 0 3px black; border: 2px solid #2ecc71; }
+        .btn-shop { background: #faa61a; color: #202225; } .btn-bag { background: #5865f2; }
+        .btn-job { background: #7289da; } .btn-achieve { background: #f1c40f; color:#202225; } .btn-daycare { background: #e91e63; }
+        .btn-daily { background: #eb459e; } .btn-dex { background: #3498db; } .btn-log { background: #95a5a6; }
 
-        /* --- MOBILE RESPONSIVE (6 CỘT ẢO) --- */
+        /* MOBILE */
         @media (max-width: 768px) {
             body { background: #202225; }
-            #app { max-width: 100%; border: none; height: 100dvh; position: fixed; top: 0; left: 0; }
-            
-            #controls { 
-                padding-bottom: 25px; /* Thêm đệm đáy */
-                grid-template-columns: repeat(6, 1fr); /* Chia nhỏ thành 6 cột để ghép hình */
-                gap: 5px;
-            }
-            
-            .btn { padding: 14px 0; font-size: 0.95em; }
-
-            /* QUY TẮC XẾP HÌNH MOBILE */
-            .btn-hunt { grid-column: span 6; font-size: 1.2em; height: 50px; } /* Full hàng */
-            .btn-shop { grid-column: span 3; } /* 1 nửa */
-            .btn-bag  { grid-column: span 3; } /* 1 nửa */
-            
-            .btn-job     { grid-column: span 2; font-size: 0.8em; } /* 1/3 hàng */
-            .btn-achieve { grid-column: span 2; font-size: 0.8em; } /* 1/3 hàng */
-            .btn-daycare { grid-column: span 2; font-size: 0.8em; } /* 1/3 hàng */
-            
-            .btn-daily { grid-column: span 3; }
-            .btn-dex   { grid-column: span 3; }
-            
-            .btn-log { grid-column: span 6; background: #636e72 !important; margin-top:5px !important;}
+            #app { max-width: 100%; border: none; box-shadow: none; height: 100dvh; position: fixed; top: 0; left: 0; }
+            #controls { padding-bottom: 20px; gap: 5px; }
+            .btn { padding: 14px 0; font-size: 1em; width: 48%; }
+            .btn-hunt { width: 100% !important; margin-bottom: 5px; font-size: 1.2em; }
+            .btn-shop, .btn-bag { width: 49% !important; }
+            .btn-job, .btn-achieve, .btn-daycare { width: 32% !important; font-size: 0.8em; padding: 10px 0; }
+            .btn-daily, .btn-dex { width: 49% !important; }
+            .btn-log { width: 100% !important; margin-top: 5px; }
         }
 
-        /* --- MÀU SẮC NÚT --- */
-        .btn-hunt { background: url('image_1.png') no-repeat center center; background-size: cover; text-shadow: 0 0 3px black, 0 0 3px black; border: 2px solid #2ecc71; }
-        .btn-shop { background: #faa61a; color: #202225; } 
-        .btn-bag { background: #5865f2; }
-        .btn-job { background: #7289da; } 
-        .btn-achieve { background: #f1c40f; color:#202225; } 
-        .btn-daycare { background: #e91e63; }
-        .btn-daily { background: #eb459e; } 
-        .btn-dex { background: #3498db; } 
-        .btn-log { background: #95a5a6; }
-
-        /* --- LOGIN FORM --- */
-        #login-form-container { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top:10px; }
-        .login-input { width: 100%; padding: 15px; border-radius: 5px; border: 1px solid #444; background: #40444b; color: white; text-align: center; font-weight: bold; font-size: 16px; margin: 0; }
-        .btn-auth { width: 100%; padding: 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin: 0; font-size: 1em; }
-        .btn-login { background: #3ba55c; color: white; } .btn-register { background: #e91e63; color: white; }
-
-        /* MODALS & MISC */
+        /* MODALS */
         #login-screen, #donate-modal, #update-modal, #buy-modal, #battle-modal, #job-modal, #achieve-modal, #daycare-modal, #repair-modal, #dex-modal, #daily-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .box-style { background: #2f3136; padding: 25px; border-radius: 10px; border: 2px solid #faa61a; text-align: center; width: 90%; max-width: 350px; box-shadow: 0 0 20px rgba(0,0,0,0.5); max-height: 85vh; display: flex; flex-direction: column; overflow-y: auto;}
-        
-        .hp-wrapper { display: flex; align-items: center; gap: 5px; margin-top: 3px; }
-        .hp-container { flex: 1; height: 8px; background: #202225; border-radius: 4px; overflow: hidden; border: 1px solid #444; }
-        .hp-fill { height: 100%; width: 0%; transition: width 0.3s, background-color 0.3s; }
-        
-        .achieve-row { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 8px; background: rgba(0,0,0,0.5); padding:10px; border-radius:5px; border: 1px solid #444; }
-        .achieve-info { text-align: left; flex: 1; margin-right: 10px; }
-        .achieve-btn { padding: 5px 10px; border: none; border-radius: 3px; font-weight: bold; cursor: pointer; white-space: nowrap; }
-        .achieve-claim { background: #3ba55c; color: white; animation: pulse 1s infinite; }
-        .achieve-done { background: #4f545c; color: #aaa; cursor: default; }
-
-        .battle-card { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #444; text-align:center; }
-        .difficulty-btn { width: 100%; padding: 15px; margin-bottom: 10px; border: none; border-radius: 5px; font-weight: bold; color: white; cursor: pointer; text-align: left; display: flex; justify-content: space-between; transition: 0.2s; font-size: 1em; }
-        .diff-easy { background: linear-gradient(90deg, #2ecc71, #27ae60); }
-        .diff-med { background: linear-gradient(90deg, #f1c40f, #f39c12); color: black; }
-        .gym-btn { background: linear-gradient(90deg, #e74c3c, #c0392b); border: 2px solid gold; }
-
+        #donate-modal, #update-modal, #buy-modal, #battle-modal, #job-modal, #achieve-modal, #daycare-modal, #repair-modal, #dex-modal, #daily-modal { display: none; z-index: 1000; }
+        .box-style { background: #2f3136; padding: 20px; border-radius: 10px; border: 2px solid #faa61a; text-align: center; width: 90%; max-width: 350px; box-shadow: 0 0 20px rgba(0,0,0,0.5); max-height: 80vh; display: flex; flex-direction: column; overflow-y: auto;}
         #buy-modal .box-style { background: url('image_3.png') no-repeat center center; background-size: cover; }
         #dex-modal .box-style { background: url('image_4.png') no-repeat center center; background-size: cover; color: #eee; }
         #achieve-modal .box-style { background: url('image_5.png') no-repeat center center; background-size: cover; }
-        .inner-box { background: rgba(0, 0, 0, 0.7); padding: 15px; border-radius: 8px; height: 100%; width:100%; display: flex; flex-direction: column; }
-        .btn-close { background: #ed4245; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-top: 15px; font-weight:bold; width:100%; }
+        .inner-box { background: rgba(0, 0, 0, 0.7); padding: 15px; border-radius: 8px; height: 100%; display: flex; flex-direction: column; width:100%; }
+
+        /* ELEMENTS */
         .embed { background-color: rgba(41, 43, 47, 0.8); border-left: 4px solid #00b0f4; padding: 10px; border-radius: 4px; position: relative; margin-bottom: 5px; }
         .embed-header { display: flex; justify-content: space-between; align-items: flex-start; }
-        .poke-sprite { width: 100px; height: 100px; image-rendering: pixelated; margin-left: 5px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
+        .poke-sprite { width: 110px; height: 110px; image-rendering: pixelated; margin-left: 5px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
+        @media (max-width: 768px) { .poke-sprite { width: 90px; height: 90px; } }
         
         .rarity-tag { font-size: 0.6em; padding: 2px 4px; border-radius: 3px; font-weight: bold; margin-right: 5px; display: inline-block; text-transform: uppercase; letter-spacing: 0.5px; }
         .r-common { background: #95a5a6; color: #fff; } .r-uncommon { background: #2ecc71; color: #000; } .r-rare { background: #3498db; color: #fff; } .r-superrare { background: #9b59b6; color: #fff; } .r-legendary { background: linear-gradient(45deg, #f1c40f, #e67e22); color: #000; } .r-shiny { background: #e74c3c; color: white; }
+
+        .hp-wrapper { display: flex; align-items: center; gap: 5px; margin-top: 3px; }
+        .hp-container { flex: 1; height: 8px; background: #202225; border-radius: 4px; overflow: hidden; border: 1px solid #444; }
+        .hp-fill { height: 100%; width: 0%; transition: width 0.3s, background-color 0.3s; }
+        .ball-btn { background: #2f3136; border: 1px solid #202225; padding: 5px; border-radius: 5px; cursor: pointer; display: flex; flex-direction: column; align-items: center; min-width: 60px; position: relative; width: 23%; margin-bottom:5px;}
+        .ball-btn img { width: 28px; }
+        .rate-badge { position: absolute; top: -5px; right: -5px; background: #3ba55c; color: white; font-size: 0.7em; padding: 1px 3px; border-radius: 3px; }
+        .ball-btn.disabled { opacity: 0.4; pointer-events: none; filter: grayscale(1); }
+        .login-input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #202225; background: #40444b; color: white; text-align: center; font-weight: bold; font-size: 16px; }
+        .btn-auth { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .btn-login { background: #3ba55c; color: white; } .btn-register { background: #e91e63; color: white; }
+        .btn-close { background: #ed4245; color: white; padding: 8px 20px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; font-weight:bold;}
         .bag-row { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(32, 34, 37, 0.5); margin-bottom: 5px; border-radius: 3px; border: 1px solid #2f3136; }
         .bag-actions { display: flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; width: 120px;}
         .btn-small { padding: 3px 6px; font-size: 0.7em; border: none; border-radius: 3px; color: white; cursor: pointer; margin-bottom: 2px;}
         .btn-battle { background: #e74c3c; width:100% } .btn-heal { background: #2ecc71; color:black} .btn-evo { background: #9b59b6; } .btn-sell { background: #ed4245; }
+        
         .daycare-row { background: rgba(0,0,0,0.2); border: 1px dashed #7289da; border-radius: 5px; padding: 10px; margin-bottom: 10px; display:flex; justify-content:space-between; align-items:center; }
+        .badge-list { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 5px 0; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 5px; border: 1px solid #444; }
+        .badge-item { font-size: 1.5em; cursor: help; filter: drop-shadow(0 0 5px gold); }
+        .donate-btn-text { color: #eb459e; font-weight: bold; animation: pulse 2s infinite; cursor: pointer;}
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         .quest-item { margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px; text-align: left;}
         .quest-header { display: flex; justify-content: space-between; font-size: 0.85em; margin-bottom: 3px;}
         .quest-progress-bar, .durability-bar { width: 100%; height: 6px; background: #202225; border-radius: 3px; overflow: hidden; margin-top:3px; }
         .quest-progress-fill { height: 100%; background: #3ba55c; width: 0%; transition: width 0.3s; }
         .difficulty-tag { padding: 1px 4px; border-radius: 3px; font-size: 0.7em; font-weight: bold; color:black;}
         .diff-0 { background: #2ecc71; } .diff-1 { background: #f1c40f; } .diff-2 { background: #ed4245; color:white;}
+        .achieve-row { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 8px; background: rgba(0,0,0,0.5); padding:10px; border-radius:5px; transition:0.2s}
+        .achieve-row:hover { background: rgba(255,255,255,0.1); }
         .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
         .shop-card { background: rgba(64, 68, 75, 0.6); padding: 8px; border-radius: 5px; border: 1px solid #202225; cursor: pointer; display:flex; flex-direction:column; align-items:center; }
-        .ball-btn { background: #2f3136; border: 1px solid #202225; padding: 5px; border-radius: 5px; cursor: pointer; display: flex; flex-direction: column; align-items: center; min-width: 60px; position: relative; width: 23%; margin-bottom:5px;}
-        .ball-btn img { width: 28px; }
-        .rate-badge { position: absolute; top: -5px; right: -5px; background: #3ba55c; color: white; font-size: 0.7em; padding: 1px 3px; border-radius: 3px; }
-        .ball-btn.disabled { opacity: 0.4; pointer-events: none; filter: grayscale(1); }
         .quiz-img { width: 100px; height: 100px; margin: 10px auto; filter: brightness(0); transition: filter 0.5s; image-rendering: pixelated;}
         .quiz-img.revealed { filter: brightness(1); }
-        .quiz-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
         .quiz-opt { padding: 10px; background: #2f3136; border: 1px solid #444; color: white; cursor: pointer; border-radius: 4px; transition: 0.2s; font-size: 0.9em; }
-        .donate-btn-text { color: #eb459e; font-weight: bold; animation: pulse 2s infinite; cursor: pointer;}
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-        .badge-list { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 5px 0; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 5px; border: 1px solid #444; }
-        .badge-item { font-size: 1.5em; cursor: help; filter: drop-shadow(0 0 5px gold); }
-        .xp-fill { height: 100%; background: #3498db; width: 0%; }
-        .xp-container { width: 100%; height: 6px; background: #202225; border-radius: 3px; overflow: hidden; margin-top:3px; }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
     <div class="box-style">
-        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto 15px auto">
-        <h2 style="color: white; margin: 0 0 5px 0;">POKESTAY v1.7</h2>
-        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 20px;">Grid Perfect Fix</div>
-        <div id="login-form-container">
-            <input type="text" id="username-input" class="login-input" placeholder="Tên đăng nhập" onkeypress="handleEnter(event)">
-            <input type="password" id="password-input" class="login-input" placeholder="Mật khẩu" onkeypress="handleEnter(event)">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto">
+        <h2 style="color: white; margin: 10px 0;">POKESTAY v1.5</h2>
+        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">HP Rebalance</div>
+        <div style="width:100%">
+            <input type="text" id="username-input" class="login-input" placeholder="Tên..." onkeypress="handleEnter(event)">
+            <input type="password" id="password-input" class="login-input" placeholder="Mật khẩu..." onkeypress="handleEnter(event)">
             <button class="btn-auth btn-login" onclick="login()">ĐĂNG NHẬP</button>
             <button class="btn-auth btn-register" onclick="register()">ĐĂNG KÝ</button>
         </div>
@@ -177,7 +114,7 @@
         <div style="display:flex; flex-direction:column">
             <div style="display:flex; align-items:center; gap:5px">
                 <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png" width="24" height="24">
-                <span>PokeStay v1.7</span>
+                <span>PokeStay v1.5</span>
             </div>
             <span id="display-username" style="font-size:0.8em; color:#bbb">TRAINER</span>
         </div>
@@ -225,13 +162,13 @@
         <div class="daily-section" style="background:rgba(0,0,0,0.2);padding:10px;border-radius:5px;border:1px solid #444;text-align:left">
             <div style="font-weight:bold; color:#f1c40f">📅 Điểm danh</div>
             <div style="font-size:0.8em; color:#bbb; margin-bottom:5px">Nhận 500 Coins</div>
-            <button id="btn-claim-daily" class="btn-small" style="background:#3ba55c; width:100%; padding:10px" onclick="claimDailyReward()">Nhận</button>
+            <button id="btn-claim-daily" class="btn-small" style="background:#3ba55c; width:100%; padding:8px" onclick="claimDailyReward()">Nhận</button>
         </div>
         <div class="daily-section" style="margin-top:10px;background:rgba(0,0,0,0.2);padding:10px;border-radius:5px;border:1px solid #444;text-align:left">
             <div style="font-weight:bold; color:#3498db; margin-bottom:5px">📜 Nhiệm vụ ngày</div>
             <div id="daily-quests-container"></div>
         </div>
-        <button class="btn-close" onclick="closeDaily()">Đóng</button>
+        <button class="btn-close" style="margin-top:15px" onclick="closeDaily()">Đóng</button>
     </div>
 </div>
 
@@ -316,17 +253,18 @@
         <h2 style="color: #faa61a;">📜 Update Log</h2>
         <div class="update-list" style="text-align:left; width:100%">
              <div style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px">
-                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.7</span> 
-                <span style="color:#bbb; font-size:0.8em; float:right">Fixed</span>
+                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.5</span> 
+                <span style="color:#bbb; font-size:0.8em; float:right">New</span>
                 <ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde">
-                    <li><b>UI:</b> Fix lỗi lệch nút trên PC/Mobile (Grid System).</li>
-                    <li><b>Balance:</b> Cân bằng máu (HP) hợp lý.</li>
+                    <li><b>HP Rebalance:</b> Máu tính theo Base Stat thật của Pokemon + Level.</li>
+                    <li><b>Visual:</b> Hiển thị thanh máu thông minh.</li>
                 </ul>
             </div>
              <div style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px">
-                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.0</span> 
+                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.4</span> 
                 <ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde">
-                    <li><b>Launch:</b> Bản chính thức.</li>
+                    <li><b>Daycare:</b> Mua thêm Slot.</li>
+                    <li><b>UI:</b> Rarity Full Text.</li>
                 </ul>
             </div>
         </div>
@@ -398,18 +336,29 @@
 
     let coins = 1000; let myBag = []; let pokedex = new Set(); let inventory = { 'poke-ball': 20, 'potion': 5, 'bag-upgrade': 0 }; let lastDailyDate = "";
     let userStats = { catches: 0, spent: 0, hardWins: 0, mining: 0, shinies: 0 };
-    let completedAchievements = []; let daycare = { pokemon: null, depositTime: 0 }; let gymProgress = 0; let maxBagSize = 20; let pickaxe = { durability: 30, max: 30 }; let dailyRepairs = { date: "", count: 0 };
+    let completedAchievements = []; let gymProgress = 0; let maxBagSize = 20; let pickaxe = { durability: 30, max: 30 }; let dailyRepairs = { date: "", count: 0 };
     let dailyQuests = [];
+    let daycare = { unlocked: 1, slots: [{pokemon: null, depositTime: 0}] };
+    const DAYCARE_PRICES = [0, 5000, 15000, 50000, 100000];
+
     let currentWild = null; let streakBonus = 0; let activeBuffs = { berry: false, egg: false }; let selectedItemId = null; let selectedBattleIdx = null;
 
-    function getRarity(p) { if(p.isEgg) return {label:'EGG',class:'r-common',val:0}; if(p.isShiny) return {label:'SHINY',class:'r-shiny',val:5}; if(LEGENDARY_IDS.includes(p.id)) return {label:'LEGENDARY',class:'r-legendary',val:4}; if(p.baseXp>=200) return {label:'SUPER RARE',class:'r-superrare',val:3}; if(p.baseXp>=140) return {label:'RARE',class:'r-rare',val:2}; if(p.baseXp>=60) return {label:'UNCOMMON',class:'r-uncommon',val:1}; return {label:'COMMON',class:'r-common',val:0}; }
+    function getRarity(p) { 
+        if(p.isEgg) return {label:'EGG',class:'r-common',val:0}; 
+        if(p.isShiny) return {label:'SHINY',class:'r-shiny',val:5}; 
+        if(LEGENDARY_IDS.includes(p.id)) return {label:'LEGENDARY',class:'r-legendary',val:4}; 
+        if(p.baseXp>=200) return {label:'SUPER RARE',class:'r-superrare',val:3}; 
+        if(p.baseXp>=140) return {label:'RARE',class:'r-rare',val:2}; 
+        if(p.baseXp>=60) return {label:'UNCOMMON',class:'r-uncommon',val:1}; 
+        return {label:'COMMON',class:'r-common',val:0}; 
+    }
 
-    // --- RECALC STATS LOGIC v1.6 (BALANCED) ---
+    // --- RECALC STATS LOGIC v1.5 ---
     function recalcStats(p) {
-        let base = p.baseHp || 45; // Default fallback
-        // NEW FORMULA: (Base * 1.5) + IV + (Level * 5)
-        p.maxHp = Math.floor((base * 1.5) + p.iv + (p.level * 5));
-        p.hp = p.maxHp;
+        // Formula: (BaseHP * 3) + (IV * 5) + (Level * 20)
+        let base = p.baseHp || 40; // Default fallback for old data
+        p.maxHp = Math.floor((base * 3) + (p.iv * 5) + (p.level * 20));
+        p.hp = p.maxHp; // Full heal on level up
     }
 
     function handleEnter(e) { if(e.key === 'Enter') login(); }
@@ -424,14 +373,11 @@
         if(s) { 
             const d = JSON.parse(s); 
             coins=d.coins; myBag=d.myBag; pokedex=new Set(d.pokedex); inventory={...inventory,...d.inventory}; lastDailyDate=d.lastDailyDate; 
-            if(d.userStats) userStats = d.userStats; if(d.completedAchievements) completedAchievements = d.completedAchievements; if(d.daycare) daycare = d.daycare; if(d.gymProgress) gymProgress = d.gymProgress; if(d.maxBagSize) maxBagSize = d.maxBagSize; if(d.pickaxe) pickaxe = d.pickaxe; if(d.dailyRepairs) dailyRepairs = d.dailyRepairs;
+            if(d.userStats) userStats = d.userStats; if(d.completedAchievements) completedAchievements = d.completedAchievements; if(d.gymProgress) gymProgress = d.gymProgress; if(d.maxBagSize) maxBagSize = d.maxBagSize; if(d.pickaxe) pickaxe = d.pickaxe; if(d.dailyRepairs) dailyRepairs = d.dailyRepairs;
             if(d.dailyQuests && Array.isArray(d.dailyQuests)) dailyQuests = d.dailyQuests; else dailyQuests = [];
             if(d.daycare) { if(d.daycare.slots) { daycare = d.daycare; } else { daycare = { unlocked: 1, slots: [{ pokemon: d.daycare.pokemon, depositTime: d.daycare.depositTime }] }; } }
         }
         myBag = myBag.filter(p => p && p.name && p.name !== 'undefined');
-        // FIX HP INSTANTLY ON LOAD
-        myBag.forEach(p => { if(!p.isEgg) recalcStats(p); });
-        
         if(!userStats.mining) userStats.mining = 0; if(!userStats.shinies) userStats.shinies = 0;
         checkDailyQuestGen();
         updateStats();
@@ -463,7 +409,7 @@
         <button class="btn btn-hunt" onclick="hunt()"><span>🔍 Săn tìm</span></button>
         <button class="btn btn-shop" onclick="shop()"><span>🛒 Shop</span></button>
         <button class="btn btn-bag" onclick="openBag()"><span>🎒 Túi</span></button>
-        <div style="display:contents">
+        <div style="width:100%; display:flex; justify-content:space-between; gap:5px">
              <button class="btn btn-job" onclick="openJobs()"><span>💼 Jobs</span></button>
              <button class="btn btn-achieve" onclick="openAchieve()"><span>🏆 Cup</span></button>
              <button class="btn btn-daycare" onclick="openDaycare()"><span>🏡 Care</span></button>
@@ -489,7 +435,7 @@
                 let percent = Math.min(100, Math.floor((p.steps / p.maxSteps) * 100));
                 return `<div class="bag-row egg-row"><div style="display:flex;align-items:center;gap:10px"><img src="${URL_ITEMS}lucky-egg.png" width="40"><div><b>Mystery Egg</b><br><div class="xp-container"><div class="xp-fill" style="width:${percent}%; background:#f1c40f"></div></div><span style="font-size:0.7em">${p.steps}/${p.maxSteps} bước</span></div></div><div>${percent>=100 ? `<button class="btn-small" style="background:#f1c40f;color:black" onclick="hatchEgg(${realIdx})">NỞ!</button>` : '...'}</div></div>`;
             }
-            if(typeof p.maxHp === 'undefined') recalcStats(p); // Safe check
+            if(typeof p.maxHp === 'undefined') { p.maxHp = Math.floor(p.baseXp * 1.5) + (p.iv * 2); p.hp = p.maxHp; }
             if(!p.types) p.types = ['normal'];
             const r = getRarity(p);
             let rarityBonus = r.val * 50; if(r.code === 'L') rarityBonus += 1000; if(r.code === 'sr') rarityBonus += 300;
@@ -512,14 +458,14 @@
         let iv = Math.floor(Math.random() * 11) + 20; 
         
         let baseHp = data.stats.find(s => s.stat.name === 'hp').base_stat;
-        let p = { id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, baseHp: baseHp, level: 1, xp: 0, maxXp: 100 };
-        recalcStats(p); // Apply new formula immediately
-        myBag[idx] = p;
+        let calculatedHp = Math.floor((baseHp * 3) + (iv * 5) + 20); // Level 1 calculation
 
+        myBag[idx] = { id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, baseHp: baseHp, level: 1, xp: 0, maxXp: 100, maxHp: calculatedHp, hp: calculatedHp };
         if(isShiny) userStats.shinies++; saveGame(); renderBag();
         log(`<div class="embed" style="border-left-color:#f1c40f"><div class="embed-header"><div><span class="embed-title">🐣 TRỨNG NỞ!</span><div class="embed-desc">Chào mừng <b>${isShiny?'✨ ':''}${data.name.toUpperCase()}</b> (IV: ${iv})</div></div><img class="poke-sprite" src="${img}"></div></div>`);
     }
 
+    // --- BATTLE & HUNT ---
     async function hunt() { controls.innerHTML=`<div style="color:#faa61a">Đang tìm...</div>`; streakBonus=0; activeBuffs.berry=false; updateStats(); await spawnPokemon(); }
     async function spawnPokemon() {
         if(myBag.length >= maxBagSize) { showMenu(); return alert("Túi đầy! Hãy nâng cấp hoặc bán bớt."); }
@@ -529,16 +475,14 @@
             
             let baseHp = data.stats.find(s => s.stat.name === 'hp').base_stat;
             let iv = Math.floor(Math.random() * 31);
-            let p = { id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, baseHp: baseHp, level: 1, xp: 0, maxXp: 100 };
-            recalcStats(p);
-            currentWild = p;
+            let calculatedHp = Math.floor((baseHp * 3) + (iv * 5) + 20); // Level 1 calc
 
+            currentWild = { id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, baseHp: baseHp, level: 1, xp: 0, maxXp: 100, maxHp: calculatedHp, hp: calculatedHp };
             const r = getRarity(currentWild);
             log(`<div class="embed" style="border-left-color:${isShiny?'#e74c3c':'#00b0f4'}"><div class="embed-header"><div><span class="rarity-tag ${r.class}">${r.label}</span> <span class="embed-title">${currentWild.name}</span><div class="embed-desc">IV: ${currentWild.iv}/31 | Type: ${currentWild.types.join('/')}</div></div><img class="poke-sprite" src="${currentWild.img}"></div></div>`);
             renderBattleControls();
         } catch(e) { showMenu(); }
     }
-    
     function renderBattleControls() {
         const balls = SHOP_DB.filter(i => i.type === 'ball');
         let html = balls.map(b => {
@@ -554,7 +498,6 @@
         html+=`<div class="ball-btn" onclick="run()" style="border-color:#ed4245"><span style="font-size:1.5em">🏃</span></div>`;
         controls.innerHTML = html;
     }
-    
     function catchAttempt(bid, rate) {
         inventory[bid]--; saveGame(); log(`<i>Ném bóng...</i>`);
         setTimeout(() => {
@@ -574,7 +517,44 @@
         }, 800);
     }
     function useItem(id) { inventory[id]--; saveGame(); if(id==='razz-berry') activeBuffs.berry=true; if(id==='lucky-egg') activeBuffs.egg=true; if(id==='incense') { spawnPokemon(); return; } updateStats(); renderBattleControls(); }
-    
+
+    function openBattleModal(idx) {
+        selectedBattleIdx = idx; let p = myBag[idx];
+        document.getElementById('battle-my-poke').innerText = `${p.name} (Lv.${p.level})`;
+        if(p.hp <= 0) document.getElementById('battle-hp-warn').style.display = 'block'; else document.getElementById('battle-hp-warn').style.display = 'none';
+        let gymData = GYM_DB[gymProgress] || {name: "All Cleared", type: "none"};
+        const gymBtn = document.getElementById('gym-btn');
+        if(gymProgress < GYM_DB.length) { gymBtn.innerHTML = `<span>HARD: ${gymData.name} (${gymData.type.toUpperCase()})</span> <span>Badge: ${gymData.badge}</span>`; gymBtn.disabled = false; } else { gymBtn.innerHTML = `<span>CHAMPION! Đã thắng hết Gym.</span>`; gymBtn.disabled = true; }
+        document.getElementById('battle-modal').style.display = 'flex';
+    }
+    function closeBattle() { document.getElementById('battle-modal').style.display = 'none'; }
+    function commitBattle(difficulty) {
+        closeBattle(); let p = myBag[selectedBattleIdx]; if(typeof p.hp === 'undefined') p.hp = p.maxHp;
+        if(p.hp <= 0) return log(`<div class="embed" style="border-left-color:#ed4245"><div class="embed-desc">🚑 <b>${p.name}</b> đã ngất! Hãy dùng Potion hồi phục.</div></div>`);
+        let winRate = 0, rewardXP = 0, rewardCoin = 0, enemyName = "Wild Pokemon", baseDmg = 0, defenseMod = Math.floor(p.iv / 2), enemyTypes = [];
+        if(difficulty === 'easy') { enemyName = "Wild Pokemon"; winRate = 0.9; rewardXP = 50 + (p.level*2); baseDmg = Math.floor(Math.random() * 10) + 5; enemyTypes = ['normal', 'bug']; }
+        else if(difficulty === 'medium') { enemyName = "Trainer Battle"; winRate = 0.5; rewardXP = 150 + (p.level*5); baseDmg = Math.floor(Math.random() * 15) + 20; enemyTypes = ['electric', 'fighting']; }
+        else { let gym = GYM_DB[gymProgress]; enemyName = `Leader ${gym.name}`; enemyTypes = [gym.type]; winRate = 0.15; rewardXP = 1000 + (gymProgress * 200); rewardCoin = 500 + (gymProgress * 100); baseDmg = 50 + (gymProgress * 10); }
+        let effectiveness = 1; let userTypes = p.types || ['normal'];
+        for(let uT of userTypes) { if(TYPE_ADVANTAGE[uT] && TYPE_ADVANTAGE[uT].some(t => enemyTypes.includes(t))) effectiveness = 2; }
+        let msgType = ""; if(effectiveness === 2) { winRate += 0.25; baseDmg = Math.floor(baseDmg * 0.5); msgType = `<br><b style="color:#2ecc71">⚡ Khắc hệ! Tỉ lệ thắng tăng mạnh!</b>`; }
+        if(gymProgress >= 1) baseDmg = Math.floor(baseDmg * 0.9); if(gymProgress >= 2 && difficulty==='easy') coins += 10; if(gymProgress >= 6) winRate += 0.05; 
+        let damageTaken = baseDmg - defenseMod; if(damageTaken < 1) damageTaken = 1; let roll = Math.random(); let msg = ""; p.hp -= damageTaken; if(p.hp < 0) p.hp = 0;
+        if(roll < winRate) {
+            p.xp += rewardXP; coins += rewardCoin;
+            if(difficulty === 'hard') { userStats.hardWins++; msg = `<span style="color:#f1c40f">🏆 <b>CHIẾN THẮNG GYM LEADER!</b><br>Nhận ${GYM_DB[gymProgress].badge}!<br>Buff: ${GYM_DB[gymProgress].buff}</span>`; gymProgress++; }
+            else { msg = `<span style="color:#3ba55c">⚔️ <b>THẮNG!</b> ${p.name} hạ ${enemyName}.<br>+${rewardXP} XP ${rewardCoin>0?`| +${rewardCoin}💰`:''} | <span style="color:#e74c3c">-${damageTaken} HP</span>${msgType}</span>`; }
+            updateQuestProgress('win', 1);
+        } else {
+            let critDmg = Math.floor(damageTaken * 0.5); p.hp -= critDmg; if(p.hp < 0) p.hp = 0; let pityXP = 20; p.xp += pityXP; msg = `<span style="color:#ed4245">🤕 <b>THUA!</b> ${enemyName} quá mạnh.<br>Nhận an ủi +${pityXP} XP | <span style="color:#e74c3c">-${damageTaken + critDmg} HP</span></span>`;
+        }
+        if(p.xp >= p.maxXp) { p.level++; p.xp -= p.maxXp; p.maxXp = Math.floor(p.maxXp * 1.2); 
+            recalcStats(p); // V1.5: RECALCULATE HP ON LEVEL UP
+            msg += `<br><b style="color:#faa61a">🆙 LEVEL UP! ${p.name} lên Lv.${p.level}. HP hồi đầy!</b>`; 
+        }
+        incrementEggSteps(); saveGame(); updateStats(); openBag(); log(`<div class="embed" style="border-left-color:${roll<winRate?'#3ba55c':'#ed4245'}"><div class="embed-desc">${msg}</div></div>`);
+    }
+
     // --- DAILY SYSTEM (V1.0 HARDCORE) ---
     function openDaily() {
         if(currentWild) return;
@@ -596,20 +576,23 @@
 
         if(dailyQuests.length === 0 || dailyQuests[0].date !== today) {
             dailyQuests = [];
+            // Easy
             let rE = Math.random();
-            if(rE < 0.33) dailyQuests.push({date: today, type: 'mine', target: 30 + Math.floor(Math.random()*21), progress: 0, reward: {type:'item', id:'poke-ball', qty:15}, difficulty: 0, text: "Đào mỏ", claimed: false});
-            else if(rE < 0.66) dailyQuests.push({date: today, type: 'catch', target: 15 + Math.floor(Math.random()*6), progress: 0, reward: {type:'item', id:'great-ball', qty:5}, difficulty: 0, text: "Bắt Pokemon", claimed: false});
+            if(rE < 0.33) dailyQuests.push({date: today, type: 'mine', target: 50 + Math.floor(Math.random()*21), progress: 0, reward: {type:'item', id:'poke-ball', qty:20}, difficulty: 0, text: "Đào mỏ", claimed: false});
+            else if(rE < 0.66) dailyQuests.push({date: today, type: 'catch', target: 15 + Math.floor(Math.random()*6), progress: 0, reward: {type:'item', id:'great-ball', qty:8}, difficulty: 0, text: "Bắt Pokemon", claimed: false});
             else dailyQuests.push({date: today, type: 'spend', target: 5000 + Math.floor(Math.random()*2000), progress: 0, reward: {type:'item', id:'potion', qty:5}, difficulty: 0, text: "Tiêu Coins", claimed: false});
 
+            // Medium
             let rM = Math.random();
-            if(rM < 0.33) dailyQuests.push({date: today, type: 'mine', target: 80 + Math.floor(Math.random()*41), progress: 0, reward: {type:'item', id:'stardust', qty:5}, difficulty: 1, text: "Đào mỏ", claimed: false});
-            else if(rM < 0.66) dailyQuests.push({date: today, type: 'catch', target: 30 + Math.floor(Math.random()*11), progress: 0, reward: {type:'item', id:'ultra-ball', qty:3}, difficulty: 1, text: "Bắt Pokemon", claimed: false});
-            else dailyQuests.push({date: today, type: 'win', target: 8 + Math.floor(Math.random()*4), progress: 0, reward: {type:'item', id:'rare-candy', qty:1}, difficulty: 1, text: "Thắng Arena", claimed: false});
+            if(rM < 0.33) dailyQuests.push({date: today, type: 'mine', target: 150 + Math.floor(Math.random()*51), progress: 0, reward: {type:'item', id:'stardust', qty:10}, difficulty: 1, text: "Đào mỏ", claimed: false});
+            else if(rM < 0.66) dailyQuests.push({date: today, type: 'catch', target: 30 + Math.floor(Math.random()*11), progress: 0, reward: {type:'item', id:'ultra-ball', qty:5}, difficulty: 1, text: "Bắt Pokemon", claimed: false});
+            else dailyQuests.push({date: today, type: 'win', target: 8 + Math.floor(Math.random()*4), progress: 0, reward: {type:'item', id:'rare-candy', qty:2}, difficulty: 1, text: "Thắng Arena", claimed: false});
 
+            // Hard
             let rH = Math.random();
             if(rH < 0.33) dailyQuests.push({date: today, type: 'win', target: 20 + Math.floor(Math.random()*6), progress: 0, reward: {type:'item', id:'master-ball', qty:1}, difficulty: 2, text: "Thắng Arena", claimed: false});
-            else if(rH < 0.66) dailyQuests.push({date: today, type: 'spend', target: 50000 + Math.floor(Math.random()*20001), progress: 0, reward: {type:'item', id:'nugget', qty:2}, difficulty: 2, text: "Tiêu Coins", claimed: false});
-            else dailyQuests.push({date: today, type: 'catch', target: 60 + Math.floor(Math.random()*21), progress: 0, reward: {type:'item', id:'bag-upgrade', qty:1}, difficulty: 2, text: "Bắt Pokemon", claimed: false});
+            else if(rH < 0.66) dailyQuests.push({date: today, type: 'spend', target: 100000 + Math.floor(Math.random()*20001), progress: 0, reward: {type:'item', id:'nugget', qty:3}, difficulty: 2, text: "Tiêu Coins", claimed: false});
+            else dailyQuests.push({date: today, type: 'catch', target: 50 + Math.floor(Math.random()*21), progress: 0, reward: {type:'item', id:'bag-upgrade', qty:2}, difficulty: 2, text: "Bắt Pokemon", claimed: false});
 
             dailyQuests.forEach(q => {
                 if(q.type === 'mine') q.text = `Đào mỏ ${q.target} lần`;
@@ -660,40 +643,124 @@
         dailyQuests.forEach(q => { if(!q.claimed && q.type === type) { q.progress += amount; changed = true; } });
         if(changed) saveGame();
     }
+
+    // --- DAYCARE v1.4 ---
+    function openDaycare() { if(currentWild) return; updateDaycareUI(); document.getElementById('daycare-modal').style.display = 'flex'; }
+    function closeDaycare() { document.getElementById('daycare-modal').style.display = 'none'; }
     
+    function updateDaycareUI() {
+        const listDiv = document.getElementById('daycare-list');
+        listDiv.innerHTML = '';
+        
+        daycare.slots.forEach((slot, index) => {
+            let content = '';
+            if(slot.pokemon) {
+                let now = Date.now();
+                let diffMins = Math.floor((now - slot.depositTime) / 60000);
+                let pendingXP = diffMins * 50;
+                content = `
+                <div style="flex:1">
+                    <div style="font-weight:bold">${slot.pokemon.name} <span style="font-size:0.8em;color:#aaa">Lv.${slot.pokemon.level}</span></div>
+                    <div style="font-size:0.8em; color:#3ba55c">+${pendingXP} XP (${diffMins}m)</div>
+                </div>
+                <button class="btn-auth" style="width:auto; padding:5px 10px; font-size:0.8em; background:#ed4245" onclick="withdrawPokemon(${index})">Rút</button>
+                `;
+            } else {
+                let validMons = myBag.map((p, i) => ({...p, originalIdx: i})).filter(p => !p.isEgg);
+                if(validMons.length > 0) {
+                    let opts = validMons.map(p => `<option value="${p.originalIdx}">${p.name} (Lv.${p.level})</option>`).join('');
+                    content = `
+                    <div style="flex:1">
+                        <select id="daycare-select-${index}" class="login-input" style="margin:0; padding:5px; width:100%; font-size:0.9em">${opts}</select>
+                    </div>
+                    <button class="btn-auth" style="width:auto; padding:5px 10px; font-size:0.8em; background:#3ba55c; margin-left:5px" onclick="depositPokemon(${index})">Gửi</button>
+                    `;
+                } else {
+                    content = `<div style="color:#aaa; font-size:0.9em">Không có Pokemon để gửi</div>`;
+                }
+            }
+            
+            listDiv.innerHTML += `
+            <div class="daycare-row">
+                <div style="width:20px; font-weight:bold; color:#7289da">#${index+1}</div>
+                ${content}
+            </div>`;
+        });
+
+        const btnBuy = document.getElementById('btn-buy-slot');
+        if(daycare.unlocked < 5) {
+            let price = DAYCARE_PRICES[daycare.unlocked];
+            btnBuy.style.display = 'block';
+            btnBuy.innerText = `Mở Slot ${daycare.unlocked + 1} (${price.toLocaleString()}💰)`;
+        } else {
+            btnBuy.style.display = 'none';
+        }
+    }
+
+    function depositPokemon(slotIndex) {
+        let select = document.getElementById(`daycare-select-${slotIndex}`);
+        if(!select) return;
+        let bagIdx = select.value;
+        daycare.slots[slotIndex].pokemon = myBag[bagIdx];
+        daycare.slots[slotIndex].depositTime = Date.now();
+        myBag.splice(bagIdx, 1);
+        saveGame(); updateDaycareUI();
+    }
+
+    function withdrawPokemon(slotIndex) {
+        let slot = daycare.slots[slotIndex];
+        if(!slot.pokemon) return;
+        let p = slot.pokemon;
+        let now = Date.now();
+        let diffMins = Math.floor((now - slot.depositTime) / 60000);
+        let earnedXP = diffMins * 50;
+        if(earnedXP > 0) {
+            p.xp += earnedXP;
+            while(p.xp >= p.maxXp) { 
+                p.level++; p.xp -= p.maxXp; p.maxXp = Math.floor(p.maxXp * 1.2); 
+                recalcStats(p); // V1.5 RECALC ON LEVEL UP
+            }
+            alert(`Rút ${p.name} về! Nhận được ${earnedXP} XP!`);
+        } else { alert(`Chưa đủ 1 phút, chưa có XP.`); }
+        myBag.push(p);
+        slot.pokemon = null; slot.depositTime = 0;
+        saveGame(); updateDaycareUI();
+    }
+
+    function buyDaycareSlot() {
+        if(daycare.unlocked >= 5) return;
+        let price = DAYCARE_PRICES[daycare.unlocked];
+        if(coins >= price) {
+            coins -= price;
+            daycare.unlocked++;
+            daycare.slots.push({pokemon: null, depositTime: 0});
+            saveGame(); updateStats(); updateDaycareUI();
+            alert("Đã mở rộng Daycare thành công!");
+        } else { alert("Không đủ tiền!"); }
+    }
+
     function openJobs() { if(currentWild) return; updateMiningUI(); document.getElementById('job-modal').style.display = 'flex'; document.getElementById('job-menu').style.display = 'block'; document.getElementById('quiz-ui').style.display = 'none'; }
     function closeJobs() { document.getElementById('job-modal').style.display = 'none'; }
-    function claimEmergency() { if(confirm("Nhận trợ cấp?")) { coins += 200; inventory['poke-ball'] += 5; saveGame(); updateStats(); openJobs(); alert("Đã nhận 200 Coins & 5 Poke Balls."); } }
+    function openAchieve() { if(currentWild) return; const list = document.getElementById('achieve-list'); list.innerHTML = ACHIEVEMENT_DB.map(a => { let isDone = completedAchievements.includes(a.id); let canClaim = !isDone && a.req(userStats); let btn = isDone ? `<button class="achieve-btn achieve-done">Đã nhận</button>` : (canClaim ? `<button class="achieve-btn achieve-claim" onclick="claimAchieve('${a.id}')">NHẬN</button>` : `<button class="achieve-btn" style="opacity:0.5">Chưa đạt</button>`); return `<div class="achieve-row" onclick="previewAchieve('${a.id}')"><div class="achieve-info"><b>${a.name}</b><div style="font-size:0.8em;color:#bbb">${a.desc}</div></div>${btn}</div>`; }).join(''); document.getElementById('achieve-modal').style.display = 'flex'; }
+    function closeAchieve() { document.getElementById('achieve-modal').style.display = 'none'; }
+    function previewAchieve(id) { const a = ACHIEVEMENT_DB.find(x => x.id === id); if(a) alert(`Phần thưởng: ${a.reward.qty}x ${a.reward.id.toUpperCase()}`); }
+    function claimAchieve(id) { if(completedAchievements.includes(id)) return; const a = ACHIEVEMENT_DB.find(x => x.id === id); if(a) { completedAchievements.push(id); if(a.reward.type === 'item') { if(!inventory[a.reward.id]) inventory[a.reward.id]=0; inventory[a.reward.id]+=a.reward.qty; } saveGame(); openAchieve(); } }
+    
+    function openRepairModal() { document.getElementById('job-modal').style.display = 'none'; const today = new Date().toDateString(); if(dailyRepairs.date !== today) { dailyRepairs = {date: today, count: 0}; saveGame(); } if(dailyRepairs.count >= 10) { alert("Hôm nay bạn đã sửa 10 lần! Hãy quay lại vào ngày mai."); openJobs(); return; } document.getElementById('repair-limit-text').innerText = `Lượt sửa hôm nay: ${dailyRepairs.count}/10`; let a = Math.floor(Math.random() * 10) + 1; let b = Math.floor(Math.random() * 10) + 1; repairAnswer = a + b; document.getElementById('repair-question').innerText = `${a} + ${b} = ?`; let opts = [repairAnswer]; while(opts.length < 4) { let fake = Math.floor(Math.random() * 20) + 1; if(!opts.includes(fake)) opts.push(fake); } opts.sort(() => Math.random() - 0.5); document.getElementById('repair-options').innerHTML = opts.map(n => `<button class="btn-auth" onclick="submitRepair(${n})">${n}</button>`).join(''); document.getElementById('repair-modal').style.display = 'flex'; }
+    function submitRepair(ans) { document.getElementById('repair-modal').style.display = 'none'; if(ans === repairAnswer) { pickaxe.durability = pickaxe.max; dailyRepairs.count++; alert("Sửa thành công!"); saveGame(); openJobs(); } else { alert("Sai rồi! Cúp vẫn gãy. Thử lại sau."); setTimeout(() => openJobs(), 2000); } }
+    
+    function startQuiz() { document.getElementById('job-menu').style.display = 'none'; document.getElementById('quiz-ui').style.display = 'block'; document.getElementById('quiz-options').innerHTML = 'Loading...'; (async () => { let id = Math.floor(Math.random() * 386) + 1; let res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); let data = await res.json(); quizAnswer = data.name; document.getElementById('quiz-image').src = data.sprites.front_default; document.getElementById('quiz-image').classList.remove('revealed'); let opts = [quizAnswer]; while(opts.length<4) { let r = await fetch(`https://pokeapi.co/api/v2/pokemon/${Math.floor(Math.random()*386)+1}`); let d = await r.json(); if(!opts.includes(d.name)) opts.push(d.name); } opts.sort(()=>Math.random()-0.5); document.getElementById('quiz-options').innerHTML = opts.map(n => `<div class="quiz-opt" onclick="submitQuiz('${n}', this)">${n.toUpperCase()}</div>`).join(''); })(); }
+    function submitQuiz(ans, btnElement) { const allBtns = document.querySelectorAll('.quiz-opt'); allBtns.forEach(b => b.onclick = null); document.getElementById('quiz-image').classList.add('revealed'); if(ans===quizAnswer) { btnElement.style.background = '#2ecc71'; coins+=50; log(`<span style="color:#3ba55c">Quiz: Đúng! +50💰</span>`); } else { btnElement.style.background = '#e74c3c'; log(`<span style="color:#ed4245">Quiz: Sai!</span>`); allBtns.forEach(b => { if(b.innerText === quizAnswer.toUpperCase()) b.style.background = '#2ecc71'; }); } incrementEggSteps(); saveGame(); updateStats(); setTimeout(()=>{ openJobs() }, 2000); }
     
     function updateMiningUI() { if(pickaxe.durability <= 0) { document.getElementById('btn-mining').style.display = 'none'; document.getElementById('btn-repair').style.display = 'flex'; } else { document.getElementById('btn-mining').style.display = 'flex'; document.getElementById('btn-repair').style.display = 'none'; let percent = (pickaxe.durability / pickaxe.max) * 100; document.getElementById('durability-bar-fill').style.width = percent + '%'; document.getElementById('durability-text').innerText = `${pickaxe.durability}/${pickaxe.max}`; } }
     function startMining() { if(pickaxe.durability <= 0) return updateMiningUI(); pickaxe.durability--; userStats.mining++; let r = Math.random(); let earned = Math.floor(Math.random() * 6) + 10; coins += earned; if (r < 0.005) { inventory['nugget']++; } else if (r < 0.03) { inventory['stardust']++; } incrementEggSteps(); updateQuestProgress('mine', 1); saveGame(); updateStats(); updateMiningUI(); const btn = document.getElementById('btn-mining'); const old = btn.innerHTML; btn.innerHTML = `<div style="color:#2ecc71; font-size:1.2em; text-align:center">+${earned}💰</div>`; btn.disabled = true; setTimeout(() => { btn.innerHTML = old; btn.disabled = false; updateMiningUI(); }, 600); }
-    let repairAnswer = 0;
-    function openRepairModal() { document.getElementById('job-modal').style.display = 'none'; const today = new Date().toDateString(); if(dailyRepairs.date !== today) { dailyRepairs = {date: today, count: 0}; saveGame(); } if(dailyRepairs.count >= 10) { alert("Hôm nay bạn đã sửa 10 lần! Hãy quay lại vào ngày mai."); openJobs(); return; } document.getElementById('repair-limit-text').innerText = `Lượt sửa hôm nay: ${dailyRepairs.count}/10`; let a = Math.floor(Math.random() * 10) + 1; let b = Math.floor(Math.random() * 10) + 1; repairAnswer = a + b; document.getElementById('repair-question').innerText = `${a} + ${b} = ?`; let opts = [repairAnswer]; while(opts.length < 4) { let fake = Math.floor(Math.random() * 20) + 1; if(!opts.includes(fake)) opts.push(fake); } opts.sort(() => Math.random() - 0.5); document.getElementById('repair-options').innerHTML = opts.map(n => `<button class="btn-auth" onclick="submitRepair(${n})">${n}</button>`).join(''); document.getElementById('repair-modal').style.display = 'flex'; }
-    function submitRepair(ans) { document.getElementById('repair-modal').style.display = 'none'; if(ans === repairAnswer) { pickaxe.durability = pickaxe.max; dailyRepairs.count++; alert("Sửa thành công!"); saveGame(); openJobs(); } else { alert("Sai rồi! Cúp vẫn gãy. Thử lại sau."); setTimeout(() => openJobs(), 2000); } }
-    function startQuiz() { document.getElementById('job-menu').style.display = 'none'; document.getElementById('quiz-ui').style.display = 'block'; document.getElementById('quiz-options').innerHTML = 'Loading...'; (async () => { let id = Math.floor(Math.random() * 386) + 1; let res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); let data = await res.json(); quizAnswer = data.name; document.getElementById('quiz-image').src = data.sprites.front_default; document.getElementById('quiz-image').classList.remove('revealed'); let opts = [quizAnswer]; while(opts.length<4) { let r = await fetch(`https://pokeapi.co/api/v2/pokemon/${Math.floor(Math.random()*386)+1}`); let d = await r.json(); if(!opts.includes(d.name)) opts.push(d.name); } opts.sort(()=>Math.random()-0.5); document.getElementById('quiz-options').innerHTML = opts.map(n => `<div class="quiz-opt" onclick="submitQuiz('${n}', this)">${n.toUpperCase()}</div>`).join(''); })(); }
-    let quizAnswer = "";
-    function submitQuiz(ans, btnElement) { const allBtns = document.querySelectorAll('.quiz-opt'); allBtns.forEach(b => b.onclick = null); document.getElementById('quiz-image').classList.add('revealed'); if(ans===quizAnswer) { btnElement.style.background = '#2ecc71'; coins+=50; log(`<span style="color:#3ba55c">Quiz: Đúng! +50💰</span>`); } else { btnElement.style.background = '#e74c3c'; log(`<span style="color:#ed4245">Quiz: Sai!</span>`); allBtns.forEach(b => { if(b.innerText === quizAnswer.toUpperCase()) b.style.background = '#2ecc71'; }); } incrementEggSteps(); saveGame(); updateStats(); setTimeout(()=>{ openJobs() }, 2000); }
-    function openAchieve() { if(currentWild) return; const list = document.getElementById('achieve-list'); list.innerHTML = ACHIEVEMENT_DB.map(a => { let isDone = completedAchievements.includes(a.id); let canClaim = !isDone && a.req(userStats); let btn = isDone ? `<button class="achieve-btn achieve-done">Đã nhận</button>` : (canClaim ? `<button class="achieve-btn achieve-claim" onclick="claimAchieve('${a.id}')">NHẬN</button>` : `<button class="achieve-btn" style="opacity:0.5">Chưa đạt</button>`); return `<div class="achieve-row" onclick="previewAchieve('${a.id}')"><div class="achieve-info"><b>${a.name}</b><div style="font-size:0.8em;color:#bbb">${a.desc}</div></div>${btn}</div>`; }).join(''); document.getElementById('achieve-modal').style.display = 'flex'; }
-    function previewAchieve(id) { const a = ACHIEVEMENT_DB.find(x => x.id === id); if(a) alert(`Phần thưởng: ${a.reward.qty}x ${a.reward.id.toUpperCase()}`); }
-    function closeAchieve() { document.getElementById('achieve-modal').style.display = 'none'; }
-    function claimAchieve(id) { if(completedAchievements.includes(id)) return; const a = ACHIEVEMENT_DB.find(x => x.id === id); if(a) { completedAchievements.push(id); if(a.reward.type === 'item') { if(!inventory[a.reward.id]) inventory[a.reward.id]=0; inventory[a.reward.id]+=a.reward.qty; } saveGame(); openAchieve(); } }
+    function claimEmergency() { if(confirm("Nhận trợ cấp?")) { coins += 200; inventory['poke-ball'] += 5; saveGame(); updateStats(); openJobs(); alert("Đã nhận 200 Coins & 5 Poke Balls."); } }
     
-    function openDaycare() { if(currentWild) return; updateDaycareUI(); document.getElementById('daycare-modal').style.display = 'flex'; }
-    function closeDaycare() { document.getElementById('daycare-modal').style.display = 'none'; }
-    function updateDaycareUI() { const div = document.getElementById('daycare-content'); const acts = document.getElementById('daycare-actions'); if(daycare.pokemon) { let now = Date.now(); let diffMins = Math.floor((now - daycare.depositTime) / 60000); let pendingXP = diffMins * 50; div.innerHTML = `<img src="${daycare.pokemon.img}" width="60"><br><b>${daycare.pokemon.name}</b> (Lv.${daycare.pokemon.level})<br><div style="color:#2ecc71; margin-top:5px">Đã gửi: ${diffMins} phút</div><div style="color:#f1c40f">XP tích lũy: +${pendingXP} XP</div>`; acts.innerHTML = `<button class="btn-auth btn-login" onclick="withdrawPokemon()">Rút về & Nhận XP</button>`; } else { div.innerHTML = `<div style="color:#aaa; padding:20px">Chưa có Pokemon nào</div>`; let validMons = myBag.map((p, i) => ({...p, originalIdx: i})).filter(p => !p.isEgg); if(validMons.length > 0) { let opts = validMons.map(p => `<option value="${p.originalIdx}">${p.name} (Lv.${p.level})</option>`).join(''); acts.innerHTML = `<select id="daycare-select" class="login-input" style="width:100%">${opts}</select><button class="btn-auth btn-register" onclick="depositPokemon()">Gửi vào Daycare</button>`; } else { acts.innerHTML = "Bạn không có Pokemon nào!"; } } }
-    function depositPokemon() { let idx = document.getElementById('daycare-select').value; if(idx !== undefined) { daycare.pokemon = myBag[idx]; daycare.depositTime = Date.now(); myBag.splice(idx, 1); saveGame(); updateDaycareUI(); } }
-    function withdrawPokemon() { if(!daycare.pokemon) return; let p = daycare.pokemon; let now = Date.now(); let diffMins = Math.floor((now - daycare.depositTime) / 60000); let earnedXP = diffMins * 50; if(earnedXP > 0) { p.xp += earnedXP; while(p.xp >= p.maxXp) { p.level++; p.xp -= p.maxXp; p.maxXp = Math.floor(p.maxXp * 1.2); recalcStats(p); } alert(`Rút ${p.name} về! Nhận được ${earnedXP} XP!`); } else { alert(`Chưa đủ 1 phút, chưa có XP.`); } myBag.push(p); daycare.pokemon = null; daycare.depositTime = 0; saveGame(); updateDaycareUI(); }
-    
-    function shop() { if(currentWild) return; const buyItems = SHOP_DB.filter(i => i.type !== 'sell'); const h = buyItems.map(i => `<div class="shop-card" onclick="openBuyModal('${i.id}')"><img src="${URL_ITEMS}${i.img}"><div>${i.name}</div><div style="color:#faa61a">${i.price}💰</div><div style="font-size:0.7em">Có: ${inventory[i.id]||0}</div></div>`).join(''); const sellItems = SHOP_DB.filter(i => i.type === 'sell'); const h2 = sellItems.map(i => { if(!inventory[i.id]) inventory[i.id] = 0; return `<div class="shop-card" style="border-color:#2ecc71" onclick="sellItem('${i.id}', ${i.price})"><img src="${URL_ITEMS}${i.img}"><div>${i.name}</div><div style="color:#2ecc71">+${i.price}💰</div><div style="font-size:0.7em">Có: ${inventory[i.id]}</div></div>` }).join(''); log(`<div class="embed" style="border-left-color:#faa61a"><span class="embed-title">Mart</span><div class="shop-grid">${h}</div><div style="margin-top:10px;border-top:1px solid #444;padding-top:5px;font-size:0.8em;color:#aaa">Bán vật phẩm:</div><div class="shop-grid">${h2}</div></div>`); }
-    function sellItem(id, price) { if(inventory[id] > 0) { inventory[id]--; coins += price; saveGame(); updateStats(); shop(); log(`<span style="color:#2ecc71">Đã bán 1 ${id.toUpperCase()} với giá ${price}💰</span>`); } else { alert("Bạn không có vật phẩm này!"); } }
-    function openBuyModal(id) { selectedItemId = id; const item = SHOP_DB.find(x => x.id === id); document.getElementById('buy-name').innerText = item.name; document.getElementById('buy-img').src = URL_ITEMS + item.img; document.getElementById('buy-price').innerText = item.price; document.getElementById('buy-qty').value = 1; calcTotal(); document.getElementById('buy-modal').style.display = 'flex'; }
-    function calcTotal() { const item = SHOP_DB.find(x => x.id === selectedItemId); let qty = parseInt(document.getElementById('buy-qty').value); if(!qty || qty < 1) qty = 0; document.getElementById('buy-total').innerText = (item.price * qty).toLocaleString(); }
     function closeBuy() { document.getElementById('buy-modal').style.display = 'none'; }
     function closePokedex() { document.getElementById('dex-modal').style.display = 'none'; }
-    function sell(i,p) { myBag.splice(i,1); coins+=p; saveGame(); updateStats(); openBag(); }
     function showPokedex() { document.getElementById('dex-count').innerText = pokedex.size; document.getElementById('dex-modal').style.display = 'flex'; }
     function run() { currentWild=null; showMenu(); log("Bỏ chạy."); }
-    function checkEvolution(idx, btn) { btn.innerHTML = "⏳"; btn.classList.add('loading'); (async () => { let p = myBag[idx]; try { let res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${p.id}`); let data = await res.json(); let chain = await (await fetch(data.evolution_chain.url)).json(); let node = findNodeInChain(chain.chain, data.name); if(!node || node.evolves_to.length === 0) { btn.innerHTML="Max"; btn.classList.remove('loading'); return; } let nextEvo = node.evolves_to[0]; let details = nextEvo.evolution_details[0]; let reqType = details ? details.trigger.name : 'level-up'; let canEvolve = false; if (reqType === "level-up") { let minLv = (details && details.min_level) ? details.min_level : 25; if (p.level >= minLv) canEvolve = true; } else if (reqType === "use-item") { if (inventory['evo-stone'] > 0) canEvolve = true; } else { if (p.level >= 25) canEvolve = true; } if(canEvolve) { if(reqType === "use-item") inventory['evo-stone']--; let newId = nextEvo.species.name; let d2 = await (await fetch(`https://pokeapi.co/api/v2/pokemon/${newId}`)).json(); p.id = d2.id; p.name = d2.name.toUpperCase(); p.img = d2.sprites.other['official-artwork'].front_default; p.types = d2.types.map(t=>t.type.name); recalcStats(p); saveGame(); openBag(); log(`<div class="embed" style="border-left-color:#9b59b6"><div class="embed-header"><div><span class="embed-title">TIẾN HÓA!</span><div class="embed-desc"><b>${p.name}</b><br>HP Tăng mạnh!</div></div><img class="poke-sprite" src="${p.img}"></div></div>`); } else { btn.innerHTML = "Evo"; btn.classList.remove('loading'); let reqText = reqType === 'use-item' ? 'Cần Evo Stone' : `Cần Level ${(details && details.min_level) || 25}`; alert(`Chưa đủ điều kiện!\n${reqText}`); } } catch(e) { console.log(e); btn.innerHTML="Err"; btn.classList.remove('loading'); } })(); }
+    function checkEvolution(idx, btn) { btn.innerHTML = "⏳"; btn.classList.add('loading'); (async () => { let p = myBag[idx]; try { let res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${p.id}`); let data = await res.json(); let chain = await (await fetch(data.evolution_chain.url)).json(); let node = findNodeInChain(chain.chain, data.name); if(!node || node.evolves_to.length === 0) { btn.innerHTML="Max"; btn.classList.remove('loading'); return; } let nextEvo = node.evolves_to[0]; let details = nextEvo.evolution_details[0]; let reqType = details ? details.trigger.name : 'level-up'; let canEvolve = false; if (reqType === "level-up") { let minLv = (details && details.min_level) ? details.min_level : 25; if (p.level >= minLv) canEvolve = true; } else if (reqType === "use-item") { if (inventory['evo-stone'] > 0) canEvolve = true; } else { if (p.level >= 25) canEvolve = true; } if(canEvolve) { if(reqType === "use-item") inventory['evo-stone']--; let newId = nextEvo.species.name; let d2 = await (await fetch(`https://pokeapi.co/api/v2/pokemon/${newId}`)).json(); p.id = d2.id; p.name = d2.name.toUpperCase(); p.img = d2.sprites.other['official-artwork'].front_default; p.types = d2.types.map(t=>t.type.name); p.maxHp += 50; p.hp = p.maxHp; recalcStats(p); saveGame(); openBag(); log(`<div class="embed" style="border-left-color:#9b59b6"><div class="embed-header"><div><span class="embed-title">TIẾN HÓA!</span><div class="embed-desc"><b>${p.name}</b><br>HP Tăng mạnh!</div></div><img class="poke-sprite" src="${p.img}"></div></div>`); } else { btn.innerHTML = "Evo"; btn.classList.remove('loading'); let reqText = reqType === 'use-item' ? 'Cần Evo Stone' : `Cần Level ${(details && details.min_level) || 25}`; alert(`Chưa đủ điều kiện!\n${reqText}`); } } catch(e) { console.log(e); btn.innerHTML="Err"; btn.classList.remove('loading'); } })(); }
     function findNodeInChain(node, name) { if (node.species.name === name) return node; for (let child of node.evolves_to) { let f = findNodeInChain(child, name); if (f) return f; } return null; }
 </script>
 </body>
