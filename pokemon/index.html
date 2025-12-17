@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PokeStay v2.0 - Reborn</title>
+    <title>PokeStay v2.1 - NaN Fix</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png">
     
     <style>
@@ -116,8 +116,8 @@
 <div id="login-screen">
     <div class="box-style">
         <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto">
-        <h2 style="color: white; margin: 10px 0;">POKESTAY v2.0</h2>
-        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Stats Balance + Visual Update</div>
+        <h2 style="color: white; margin: 10px 0;">POKESTAY v2.1</h2>
+        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Bug Fix: NaN HP</div>
         <div style="width:100%">
             <input type="text" id="username-input" class="login-input" placeholder="Tên..." onkeypress="handleEnter(event)">
             <input type="password" id="password-input" class="login-input" placeholder="Mật khẩu..." onkeypress="handleEnter(event)">
@@ -132,7 +132,7 @@
         <div style="display:flex; flex-direction:column">
             <div style="display:flex; align-items:center; gap:5px">
                 <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" width="24" height="24">
-                <span>PokeStay v2.0</span>
+                <span>PokeStay v2.1</span>
             </div>
             <span id="display-username" style="font-size:0.8em; color:#bbb">TRAINER</span>
         </div>
@@ -322,12 +322,11 @@
         <h2 style="color: #faa61a;">📜 Update Log</h2>
         <div class="update-list" style="text-align:left; width:100%">
              <div style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px">
-                <span style="background:#e74c3c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v2.0</span> 
-                <span style="color:#bbb; font-size:0.8em; float:right">Reborn</span>
+                <span style="background:#e74c3c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v2.1</span> 
+                <span style="color:#bbb; font-size:0.8em; float:right">Fix</span>
                 <ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde">
-                    <li><b>Enemy Balance:</b> Đối thủ dùng Base Stats thực từ API, không còn bị quá yếu hoặc quá mạnh ảo.</li>
-                    <li><b>Visual Skill:</b> Nút kỹ năng đổi màu theo Hệ (Lửa đỏ, Nước xanh...).</li>
-                    <li><b>Emergency Aid:</b> Nút trợ cấp chỉ hiện khi bạn nghèo (Dưới 200 vàng và dưới 5 bóng).</li>
+                    <li><b>NaN Fix:</b> Tự động sửa lỗi HP bị NaN khi tải game.</li>
+                    <li><b>Better Heal:</b> Center giờ hồi máu được cả Pokemon bị lỗi chỉ số.</li>
                 </ul>
             </div>
         </div>
@@ -449,8 +448,14 @@
         return {label:'COMMON',class:'r-common',val:0}; 
     }
 
-    function calculateMaxHp(base, iv, level) { return Math.floor(((2 * base + iv) * level) / 100) + level + 10; }
-    function calculateStat(base, iv, level) { return Math.floor(((2 * base + iv) * level) / 100) + 5; }
+    function calculateMaxHp(base, iv, level) { 
+        if(isNaN(base) || isNaN(iv) || isNaN(level)) return 100;
+        return Math.floor(((2 * base + iv) * level) / 100) + level + 10; 
+    }
+    function calculateStat(base, iv, level) { 
+        if(isNaN(base) || isNaN(iv) || isNaN(level)) return 10;
+        return Math.floor(((2 * base + iv) * level) / 100) + 5; 
+    }
 
     function recalcStats(p) {
         let bHp = p.baseHp || 45; let bAtk = p.baseAtk || 49; let bDef = p.baseDef || 49; let bSpA = p.baseSpA || 65; let bSpD = p.baseSpD || 65; let bSpd = p.baseSpd || 45;
@@ -460,7 +465,7 @@
         p.spA = calculateStat(bSpA, p.iv, p.level);
         p.spD = calculateStat(bSpD, p.iv, p.level);
         p.spd = calculateStat(bSpd, p.iv, p.level);
-        if(p.hp > p.maxHp) p.hp = p.maxHp;
+        if(p.hp > p.maxHp || isNaN(p.hp)) p.hp = p.maxHp;
     }
 
     function assignMoves(p) {
@@ -488,6 +493,7 @@
     function logout() { saveGame(); location.reload(); }
 
     function saveGame() { if(!currentUser) return; localStorage.setItem(BASE_SAVE_KEY+currentUser, JSON.stringify({ coins, myBag, pokedex: Array.from(pokedex), inventory, lastDailyDate, userStats, completedAchievements, daycare, gymProgress, maxBagSize, pickaxe, dailyRepairs, dailyQuests })); }
+    
     function loadGame() {
         if(!currentUser) return;
         const s = localStorage.getItem(BASE_SAVE_KEY + currentUser);
@@ -500,9 +506,21 @@
         }
         myBag = myBag.filter(p => p && p.name && p.name !== 'undefined');
         if(!userStats.mining) userStats.mining = 0; if(!userStats.shinies) userStats.shinies = 0;
+        
+        // --- NEW: AUTO-SANITIZE BAD DATA (NaN Fix) ---
+        let fixCount = 0;
+        myBag.forEach(p => {
+            if(!p.isEgg) {
+                if(isNaN(p.hp)) { p.hp = p.maxHp; fixCount++; }
+                if(isNaN(p.maxHp)) { recalcStats(p); fixCount++; }
+            }
+        });
+        if(fixCount > 0) { console.log(`Fixed ${fixCount} broken Pokemon data.`); saveGame(); }
+        
         checkDailyQuestGen();
         updateStats();
     }
+    
     function resetGame() { if(confirm("Xóa dữ liệu?")) { localStorage.removeItem(BASE_SAVE_KEY+currentUser); logout(); } }
 
     const chat = document.getElementById('chat-area'), controls = document.getElementById('controls');
@@ -540,11 +558,12 @@
         <button class="btn btn-log" onclick="showUpdates()"><span>📜 Updates</span></button>`;
     }
 
+    // --- FIX: Heal All logic to handle NaN ---
     function healAll() {
         if(currentWild) return;
         let count = 0;
         myBag.forEach(p => {
-            if(p.hp < p.maxHp) { p.hp = p.maxHp; count++; }
+            if(p.hp < p.maxHp || isNaN(p.hp)) { p.hp = p.maxHp; count++; }
         });
         saveGame(); updateStats();
         if(count > 0) {
@@ -563,6 +582,8 @@
     function getHpColor(pct) { if(pct > 50) return '#2ecc71'; if(pct > 20) return '#f1c40f'; return '#ed4245'; }
 
     function openBag() { if(currentWild) return; renderBag(); }
+    
+    // --- FIX: Render logic to hide NaN ---
     function renderBag() {
         if(myBag.length===0) { log("Túi rỗng."); return; }
         const listHtml = myBag.slice().reverse().map((p,i) => {
@@ -577,14 +598,16 @@
             let rarityBonus = r.val * 50; if(r.code === 'L') rarityBonus += 1000; if(r.code === 'sr') rarityBonus += 300;
             let pr = Math.floor((p.baseXp * 0.5 + p.iv * 3) + rarityBonus); if(pr < 10) pr = 10;
             
-            // FIX HP UNDEFINED BUG
-            let currentHp = typeof p.hp !== 'undefined' ? Math.max(0, p.hp) : p.maxHp;
-            let hpPercent = (currentHp / p.maxHp) * 100; 
+            // FIX: Robust NaN check
+            let displayHp = (typeof p.hp === 'number' && !isNaN(p.hp)) ? p.hp : 0;
+            let maxHp = (typeof p.maxHp === 'number' && !isNaN(p.maxHp)) ? p.maxHp : 100;
+            
+            let hpPercent = (displayHp / maxHp) * 100; 
             let hpColor = getHpColor(hpPercent);
             
             let evoBtn = `<button class="btn-small btn-evo" onclick="checkEvolution(${realIdx}, this)">Evo</button>`;
             let candyBtn = inventory['rare-candy'] > 0 ? `<button class="btn-small btn-candy" onclick="useCandy(${realIdx})">Candy</button>` : '';
-            return `<div class="bag-row"><div style="display:flex;align-items:center;gap:10px; flex:1"><img src="${p.img}" width="40" style="${currentHp<=0?'filter:grayscale(1)':''}"><div style="width:100%"><div style="display:flex;justify-content:space-between"><span><span class="rarity-tag ${r.class}">${r.label}</span> <b>${p.name}</b></span><span style="font-size:0.8em;font-weight:bold;color:${hpColor}">${currentHp}/${p.maxHp}</span></div><span style="font-size:0.7em; color:#aaa">Lv.${p.level} | IV:${p.iv}</span><div class="hp-container"><div class="hp-fill" style="width:${hpPercent}%; background:${hpColor}"></div></div></div></div><div class="bag-actions"><button class="btn-small btn-battle" onclick="openBattleModal(${realIdx})">ĐẤU</button> ${candyBtn} ${evoBtn}<button class="btn-small btn-sell" onclick="sell(${realIdx},${pr})">Bán +${pr}</button></div></div>`;
+            return `<div class="bag-row"><div style="display:flex;align-items:center;gap:10px; flex:1"><img src="${p.img}" width="40" style="${displayHp<=0?'filter:grayscale(1)':''}"><div style="width:100%"><div style="display:flex;justify-content:space-between"><span><span class="rarity-tag ${r.class}">${r.label}</span> <b>${p.name}</b></span><span style="font-size:0.8em;font-weight:bold;color:${hpColor}">${displayHp}/${maxHp}</span></div><span style="font-size:0.7em; color:#aaa">Lv.${p.level} | IV:${p.iv}</span><div class="hp-container"><div class="hp-fill" style="width:${hpPercent}%; background:${hpColor}"></div></div></div></div><div class="bag-actions"><button class="btn-small btn-battle" onclick="openBattleModal(${realIdx})">ĐẤU</button> ${candyBtn} ${evoBtn}<button class="btn-small btn-sell" onclick="sell(${realIdx},${pr})">Bán +${pr}</button></div></div>`;
         }).join('');
         log(`<div class="embed" style="border-left-color:#5865f2"><span class="embed-title">🎒 Backpack</span><div class="embed-desc" style="max-height:300px;overflow-y:auto">${listHtml}</div></div>`);
     }
@@ -774,11 +797,11 @@
     }
     function closeBattle() { document.getElementById('battle-modal').style.display = 'none'; }
     
-    // --- UPDATED BATTLE LOGIC v2.0 ---
     async function startBattle(difficulty) {
         let p = myBag[selectedBattleIdx];
         ensureDataIntegrity(p); 
-        if(p.hp <= 0) return alert("Pokemon này đã ngất! Hãy hồi máu tại Center.");
+        // FIX: Also check NaN for battle start
+        if(p.hp <= 0 && !isNaN(p.hp)) return alert("Pokemon này đã ngất! Hãy hồi máu tại Center.");
 
         document.getElementById('battle-select-screen').style.display = 'none';
         document.getElementById('battle-combat-screen').style.display = 'flex';
@@ -786,7 +809,7 @@
         // Setup Enemy
         let enemyName = "Wild Pokemon"; let enemySprite = ""; let enemyLevel = 1; let enemyTypes = ['normal'];
         let gymData = null;
-        let enemyIv = 5; // Default IV for Wild
+        let enemyIv = 5; 
 
         if(difficulty === 'easy') {
             let id = Math.floor(Math.random()*MAX_ID)+1;
@@ -794,7 +817,6 @@
             enemyName = data.name.toUpperCase(); enemySprite = data.sprites.front_default;
             enemyLevel = Math.max(1, p.level + Math.floor(Math.random()*3) - 1);
             enemyTypes = data.types.map(t=>t.type.name);
-            // v2.0: Fetch Real Base Stats
             var stats = {}; data.stats.forEach(s => stats[s.stat.name] = s.base_stat);
         } else if(difficulty === 'medium') {
             let id = Math.floor(Math.random()*MAX_ID)+1;
@@ -802,29 +824,26 @@
             enemyName = `Trainer's ${data.name.toUpperCase()}`; enemySprite = data.sprites.front_default;
             enemyLevel = p.level + 2;
             enemyTypes = data.types.map(t=>t.type.name);
-            enemyIv = 15; // Better IV for Trainer
+            enemyIv = 15; 
             var stats = {}; data.stats.forEach(s => stats[s.stat.name] = s.base_stat);
         } else {
             gymData = GYM_DB[gymProgress];
             let id = Math.floor(Math.random()*151)+1;
-            // Fetch random but try to match type somewhat if possible, or just random tough mon
-            // For simplicity in v2.0, Gym Boss is random ID but High Level & High IV
             let res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); let data = await res.json();
             
             enemyName = `${gymData.name}'s Boss`; enemySprite = data.sprites.front_default; 
-            enemyLevel = p.level + 5; enemyTypes = data.types.map(t=>t.type.name); // Keep original type for stats logic, but flavor text says gym type
-            enemyIv = 31; // Perfect IV for Gym
+            enemyLevel = p.level + 5; enemyTypes = data.types.map(t=>t.type.name); 
+            enemyIv = 31; 
             var stats = {}; data.stats.forEach(s => stats[s.stat.name] = s.base_stat);
         }
 
-        // v2.0: REAL STATS CALCULATION
         let enemy = {
             name: enemyName, level: enemyLevel, types: enemyTypes, img: enemySprite, iv: enemyIv,
             baseHp: stats['hp'], baseAtk: stats['attack'], baseDef: stats['defense'],
             baseSpA: stats['special-attack'], baseSpD: stats['special-defense'], baseSpd: stats['speed']
         };
-        recalcStats(enemy); // Apply the standard formula
-        enemy.hp = enemy.maxHp; // Heal to full
+        recalcStats(enemy); 
+        enemy.hp = enemy.maxHp; 
 
         battleState = {
             active: true, finished: false,
@@ -848,7 +867,6 @@
         document.getElementById('potion-count').innerText = inventory['potion'] || 0;
     }
 
-    // --- UPDATED MOVE MENU (COLORS) ---
     function showMoveMenu() {
         if(!battleState.active) return;
         document.getElementById('battle-main-menu').style.display = 'none';
@@ -860,7 +878,6 @@
             if(moves[i]) {
                 let typeColor = TYPE_COLORS[moves[i].type] || '#fff';
                 btn.innerHTML = `<span class="move-name">${moves[i].name}</span><span class="move-type" style="font-size:0.8em">${moves[i].type} | PWR: ${moves[i].pwr}</span>`;
-                // Apply Color Styling
                 btn.style.borderColor = typeColor;
                 btn.style.color = typeColor;
                 btn.style.visibility = 'visible';
@@ -889,8 +906,9 @@
         
         document.getElementById('player-hp-bar').style.width = pHpPct + '%';
         document.getElementById('player-hp-bar').style.background = getHpColor(pHpPct);
-        // FIX UNDEFINED HP DISPLAY
-        document.getElementById('player-hp-text').innerText = `${Math.max(0, p.hp)}/${p.maxHp}`;
+        // FIX: NaN display in Battle
+        let displayHP = isNaN(p.hp) ? 0 : Math.max(0, p.hp);
+        document.getElementById('player-hp-text').innerText = `${displayHP}/${p.maxHp}`;
         
         document.getElementById('enemy-hp-bar').style.width = eHpPct + '%';
         document.getElementById('enemy-hp-bar').style.background = getHpColor(eHpPct);
@@ -957,6 +975,7 @@
         } else if (action === 'heal') {
             inventory['potion']--;
             let heal = 50;
+            if(isNaN(p.hp)) p.hp = 0; // Fix NaN for heal
             p.hp = Math.min(p.maxHp, p.hp + heal);
             logBattle(`<span style="color:#2ecc71">${p.name} hồi ${heal} HP.</span>`);
             updateBattleUI();
@@ -1005,6 +1024,7 @@
     }
 
     function applyDamage(target, dmg, who) {
+        if(isNaN(target.hp)) target.hp = target.maxHp; // Auto fix during battle
         target.hp -= dmg;
         if(target.hp < 0) target.hp = 0;
         updateBattleUI();
@@ -1059,7 +1079,7 @@
     function endBattle() {
         document.getElementById('battle-modal').style.display = 'none';
         updateStats();
-        openBag(); // Refresh bag UI to update HP/Level
+        openBag(); 
     }
 
     function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
@@ -1249,8 +1269,6 @@
         if(currentWild) return; 
         updateMiningUI(); 
         
-        // --- NEW: Check Poverty Status ---
-        // Poverty Line: Less than 200 coins AND less than 5 balls
         let totalBalls = (inventory['poke-ball']||0);
         let povertyLine = coins < 200 && totalBalls < 5;
         
