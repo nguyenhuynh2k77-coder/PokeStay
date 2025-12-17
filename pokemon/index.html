@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PokeStay v2.2 - Emergency Fix</title>
+    <title>PokeStay v2.3 - Fix Blank Screen</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png">
     
     <style>
@@ -112,8 +112,8 @@
 <div id="login-screen">
     <div class="box-style">
         <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto">
-        <h2 style="color: white; margin: 10px 0;">POKESTAY v2.2</h2>
-        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Emergency Fix (Shop/HP)</div>
+        <h2 style="color: white; margin: 10px 0;">POKESTAY v2.3</h2>
+        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Stability Update (Crash Fix)</div>
         <div style="width:100%">
             <input type="text" id="username-input" class="login-input" placeholder="Tên..." onkeypress="handleEnter(event)">
             <input type="password" id="password-input" class="login-input" placeholder="Mật khẩu..." onkeypress="handleEnter(event)">
@@ -128,7 +128,7 @@
         <div style="display:flex; flex-direction:column">
             <div style="display:flex; align-items:center; gap:5px">
                 <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" width="24" height="24">
-                <span>PokeStay v2.2</span>
+                <span>PokeStay v2.3</span>
             </div>
             <span id="display-username" style="font-size:0.8em; color:#bbb">TRAINER</span>
         </div>
@@ -151,7 +151,7 @@
 <div id="achieve-modal"><div class="box-style"><div class="inner-box"><h2 style="color: #f1c40f;">🏆 Thành Tựu</h2><div style="font-size:0.7em; color:#aaa; margin-bottom:10px">Bấm vào để xem phần thưởng</div><div id="achieve-list" style="overflow-y:auto; flex:1; width:100%"></div><button class="btn-close" onclick="closeAchieve()">Đóng</button></div></div></div>
 <div id="buy-modal"><div class="box-style"><div class="inner-box"><h3 style="color: #faa61a; margin: 5px 0;" id="buy-name">Item</h3><div id="shop-container" style="overflow-y:auto; max-height:200px; display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-bottom:10px"></div><div id="buy-details" style="display:none"><h3 style="color:#faa61a;margin:0" id="buy-item-name"></h3><img id="buy-item-img" src="" width="50" style="display:block;margin:5px auto"><div style="color:#bbb">Giá: <span id="buy-item-price" style="color:white;font-weight:bold"></span>💰</div><div style="display:flex; justify-content:center; align-items:center; gap:10px; margin: 10px 0;"><input type="number" id="buy-qty" class="login-input" style="width:60px; margin:0; padding:5px" value="1" min="1" oninput="calcTotal()"></div><div style="font-size: 1em; margin-bottom: 10px;">Tổng: <span id="buy-total" style="color:#3ba55c; font-weight:bold">0</span>💰</div><div style="display:flex; gap:10px; width:100%"><button class="btn-auth" style="background:#7f8c8d; margin:0; padding:8px" onclick="backToShop()">Quay lại</button><button class="btn-auth btn-login" style="margin:0; padding:8px" onclick="submitBuy()">MUA</button></div></div><button class="btn-close" id="shop-close-btn" onclick="closeBuy()">Đóng</button></div></div></div>
 <div id="dex-modal"><div class="box-style"><div class="inner-box"><h2 style="color: #3498db;">📖 Pokedex</h2><div style="font-size: 1.2em; margin-bottom: 20px;">Đã bắt: <span style="color: #f1c40f; font-weight: bold;" id="dex-count">0</span> / 649</div><button class="btn-close" onclick="closePokedex()">Đóng</button></div></div></div>
-<div id="update-modal"><div class="box-style"><h2 style="color: #faa61a;">📜 Update Log</h2><div class="update-list" style="text-align:left; width:100%"><div style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px"><span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v2.2</span> <span style="color:#bbb; font-size:0.8em; float:right">Emergency</span><ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde"><li><b>Fix Critical:</b> Sửa lỗi màn hình trắng trên PC.</li><li><b>Fix Shop:</b> Sửa lỗi không mở được Shop.</li><li><b>Fix HP:</b> Sửa lỗi thanh máu "undefined".</li></ul></div></div><button class="btn-close" onclick="closeUpdates()">Đóng</button></div></div>
+<div id="update-modal"><div class="box-style"><h2 style="color: #faa61a;">📜 Update Log</h2><div class="update-list" style="text-align:left; width:100%"><div style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px"><span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v2.3</span> <span style="color:#bbb; font-size:0.8em; float:right">Stability</span><ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde"><li><b>Anti-Crash:</b> Tự động sửa file save hỏng.</li><li><b>Debug:</b> Hiện lỗi rõ ràng nếu có sự cố.</li><li><b>Shop:</b> Đã sửa lỗi không bấm vào được.</li></ul></div></div><button class="btn-close" onclick="closeUpdates()">Đóng</button></div></div>
 <div id="donate-modal"><div class="box-style" style="background:white; color:black"><h3 style="color: #6c38c6; margin:0 0 10px 0">Ủng Hộ Dev</h3><img src="38b84fc99acb15954cda.jpg" class="donate-qr" style="width:100%; border-radius:5px; border:1px solid #ddd"><div style="font-size:0.9em; margin-top:10px; font-weight:bold">TPBank QR</div><button class="btn-close" onclick="closeDonate()">Đóng</button></div></div>
 
 <div id="battle-modal">
@@ -320,25 +320,59 @@
     // --- AUTH & SAVE ---
     function handleEnter(e) { if(e.key === 'Enter') login(); }
     function register() { const u = document.getElementById('username-input').value.trim(), p = document.getElementById('password-input').value.trim(); if(!u||!p) return alert("Thiếu thông tin!"); if(localStorage.getItem(AUTH_KEY+u)) return alert("Tên tồn tại!"); localStorage.setItem(AUTH_KEY+u, p); alert("Đăng ký xong!"); }
-    function login() { const u = document.getElementById('username-input').value.trim(), p = document.getElementById('password-input').value.trim(); if(localStorage.getItem(AUTH_KEY+u)===p) { currentUser = u; document.getElementById('display-username').innerText = u.toUpperCase(); document.getElementById('login-screen').style.display='none'; document.getElementById('app').style.display='flex'; loadGame(); showMenu(); } else alert("Sai thông tin!"); }
+    function login() { 
+        const u = document.getElementById('username-input').value.trim(), p = document.getElementById('password-input').value.trim(); 
+        if(localStorage.getItem(AUTH_KEY+u)===p) { 
+            currentUser = u; 
+            document.getElementById('display-username').innerText = u.toUpperCase(); 
+            document.getElementById('login-screen').style.display='none'; 
+            document.getElementById('app').style.display='flex'; 
+            try {
+                loadGame(); 
+                showMenu(); 
+            } catch(e) {
+                console.error(e);
+                alert("LỖI DỮ LIỆU CŨ! Đã tự động reset lại file save để sửa lỗi.");
+                // Emergency Reset logic if load fails catastrophically
+                myBag = []; 
+                showMenu();
+            }
+        } else alert("Sai thông tin!"); 
+    }
     function logout() { saveGame(); location.reload(); }
     function saveGame() { if(!currentUser) return; localStorage.setItem(BASE_SAVE_KEY+currentUser, JSON.stringify({ coins, myBag, pokedex: Array.from(pokedex), inventory, lastDailyDate, userStats, completedAchievements, daycare, gymProgress, maxBagSize, pickaxe, dailyRepairs, dailyQuests })); }
+    
     function loadGame() { 
         if(!currentUser) return; 
         const s = localStorage.getItem(BASE_SAVE_KEY + currentUser); 
         if(s) { 
-            const d = JSON.parse(s); 
-            coins=d.coins; myBag=d.myBag; pokedex=new Set(d.pokedex); inventory={...inventory,...d.inventory}; lastDailyDate=d.lastDailyDate; 
-            if(d.userStats) userStats = d.userStats; if(d.completedAchievements) completedAchievements = d.completedAchievements; if(d.gymProgress) gymProgress = d.gymProgress; if(d.maxBagSize) maxBagSize = d.maxBagSize; if(d.pickaxe) pickaxe = d.pickaxe; if(d.dailyRepairs) dailyRepairs = d.dailyRepairs; 
-            if(d.dailyQuests && Array.isArray(d.dailyQuests)) dailyQuests = d.dailyQuests; else dailyQuests = []; 
-            if(d.daycare) { if(d.daycare.slots) { daycare = d.daycare; } else { daycare = { unlocked: 1, slots: [{ pokemon: d.daycare.pokemon, depositTime: d.daycare.depositTime }] }; } } 
+            try {
+                const d = JSON.parse(s); 
+                coins=d.coins || 1000; 
+                myBag=d.myBag || []; 
+                pokedex=new Set(d.pokedex || []); 
+                inventory={...inventory,...(d.inventory||{})}; 
+                lastDailyDate=d.lastDailyDate || ""; 
+                
+                // Safe Init for Nested Objects
+                userStats = d.userStats || { catches: 0, spent: 0, hardWins: 0, mining: 0, shinies: 0 };
+                completedAchievements = d.completedAchievements || []; 
+                gymProgress = d.gymProgress || 0; 
+                maxBagSize = d.maxBagSize || 20; 
+                pickaxe = d.pickaxe || { durability: 30, max: 30 }; 
+                dailyRepairs = d.dailyRepairs || { date: "", count: 0 }; 
+                dailyQuests = Array.isArray(d.dailyQuests) ? d.dailyQuests : []; 
+                daycare = d.daycare || { unlocked: 1, slots: [{pokemon: null, depositTime: 0}] };
+                
+                // FILTER & SANITIZE BAG
+                myBag = myBag.filter(p => p && p.name && p.name !== 'undefined'); 
+                myBag.forEach(p => ensureDataIntegrity(p));
+            } catch(e) {
+                console.log("Save file corrupt, loading defaults.");
+                log("<span style='color:red'>⚠️ File save hỏng, đã khôi phục mặc định!</span>");
+            }
         } 
-        // Filter bad data
-        myBag = myBag.filter(p => p && p.name && p.name !== 'undefined'); 
-        // Sanitize existing data immediately
-        myBag.forEach(p => ensureDataIntegrity(p));
         
-        if(!userStats.mining) userStats.mining = 0; if(!userStats.shinies) userStats.shinies = 0; 
         checkDailyQuestGen(); updateStats(); 
     }
     function resetGame() { if(confirm("Xóa dữ liệu?")) { localStorage.removeItem(BASE_SAVE_KEY+currentUser); logout(); } }
@@ -398,14 +432,6 @@
         let qty = parseInt(document.getElementById('buy-qty').value);
         let total = item.price * qty;
         if(item.type === 'sell') {
-            // Sell logic
-            if(!inventory[item.id] || inventory[item.id] < qty) return alert("Không đủ vật phẩm để bán!");
-            inventory[item.id] -= qty;
-            coins += total; // Buying a "sell" item means we are selling it to shop? No, usually reverse.
-            // Wait, previous logic was weird. Let's fix: "Sell" items are nuggets. You SELL them.
-            // But this is a BUY modal.
-            // Let's assume standard shop: Buying items. Selling Nuggets happens in Bag? No, Sell button is for Pokemon.
-            // Let's support SELLING items here if type is 'sell'
              alert("Chức năng bán vật phẩm đang bảo trì. Hãy dùng vật phẩm này trong túi để bán.");
              return;
         } 
@@ -426,6 +452,8 @@
             alert("Không đủ tiền!");
         }
     }
+    
+    function closeBuy() { document.getElementById('buy-modal').style.display = 'none'; }
 
     function healAll() { if(currentWild) return; let count = 0; myBag.forEach(p => { if(p.hp < p.maxHp) { p.hp = p.maxHp; count++; } }); saveGame(); updateStats(); if(count > 0) { log(`<span style="color:#ff7675; font-weight:bold">🏥 Nurse Joy: Đã hồi phục cho ${count} Pokemon!</span>`); alert("Nurse Joy: Team của bạn đã khỏe mạnh."); } else { alert("Nurse Joy: Pokemon của bạn vẫn rất khỏe mạnh!"); } }
     function showUpdates() { document.getElementById('update-modal').style.display = 'flex'; }
