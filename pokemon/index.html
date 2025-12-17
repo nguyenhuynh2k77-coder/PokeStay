@@ -507,24 +507,30 @@
     function handleEnter(e) { if(e.key === 'Enter') login(); }
     function register() { const u = document.getElementById('username-input').value.trim(), p = document.getElementById('password-input').value.trim(); if(!u||!p) return alert("Thiếu thông tin!"); if(localStorage.getItem(AUTH_KEY+u)) return alert("Tên tồn tại!"); localStorage.setItem(AUTH_KEY+u, p); alert("Đăng ký xong!"); }
     // Thay thế hàm login cũ bằng hàm này
+// --- CẬP NHẬT HÀM LOGIN ĐỂ CHỜ DỮ LIỆU ---
 async function login() {
     const u = document.getElementById('username-input').value.trim();
     const p = document.getElementById('password-input').value.trim();
     
-    // Vẫn dùng LocalStorage để check pass (hoặc bạn có thể đổi sang Firebase Auth sau này)
+    // Kiểm tra mật khẩu (vẫn dùng localStorage hoặc bạn có thể nâng cấp sau)
     if (localStorage.getItem(AUTH_KEY + u) === p) {
         currentUser = u;
         document.getElementById('display-username').innerText = u.toUpperCase();
         
-        // Ẩn màn hình đăng nhập ngay
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app').style.display = 'flex';
+        // Hiện thông báo đang đăng nhập...
+        const btn = document.querySelector('.btn-login');
+        if(btn) btn.innerText = "Đang tải...";
         
-        // CHỜ loadGame chạy xong rồi mới hiện menu
+        // CHỜ loadGame tải xong dữ liệu từ Firebase
         await loadGame(); 
         
+        // Tải xong mới tắt màn hình đăng nhập
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
+        if(btn) btn.innerText = "ĐĂNG NHẬP"; // Trả lại tên nút cũ
+        
     } else {
-        alert("Sai thông tin!");
+        alert("Sai thông tin đăng nhập!");
     }
 }
     function logout() { saveGame(); location.reload(); }
@@ -1628,6 +1634,7 @@ async function login() {
 </script>
 </body>
 </html>
+
 
 
 
