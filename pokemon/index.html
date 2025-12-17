@@ -437,6 +437,22 @@
             }
         });
         if(fixCount > 0) { console.log(`Fixed ${fixCount} broken Pokemon data.`); saveGame(); }
+
+        // --- ĐOẠN CODE MỚI: NÂNG CẤP POKEMON CŨ LÊN LV 5 ---
+    let upgradedCount = 0;
+    myBag.forEach(p => {
+        if (p.level < 5) {
+            p.level = 5;       // Ép lên cấp 5
+            recalcStats(p);    // Tính lại chỉ số Máu/Công/Thủ theo cấp 5
+            p.hp = p.maxHp;    // Hồi đầy máu luôn cho khỏe
+            upgradedCount++;
+        }
+    });
+    if (upgradedCount > 0) {
+        alert(`Đã nâng cấp ${upgradedCount} Pokemon cũ trong túi lên Lv.5!`);
+        saveGame(); // Lưu lại ngay
+    }
+    // ----------------------------------------------------
         
         checkDailyQuestGen();
         updateStats();
@@ -623,7 +639,7 @@
         let p = { 
             id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, 
             baseHp: stats['hp'], baseAtk: stats['attack'], baseDef: stats['defense'], baseSpA: stats['special-attack'], baseSpD: stats['special-defense'], baseSpd: stats['speed'],
-            level: 1, xp: 0, maxXp: 100 
+            level: 5, xp: 0, maxXp: 100 
         };
         recalcStats(p); 
         assignMoves(p); 
@@ -716,56 +732,116 @@
         let p = myBag[selectedBattleIdx];
         ensureDataIntegrity(p); 
         if(p.hp <= 0 && !isNaN(p.hp)) return alert("Pokemon này đã ngất! Hãy hồi máu tại Center.");
-
+        
         document.getElementById('battle-select-screen').style.display = 'none';
         document.getElementById('battle-combat-screen').style.display = 'flex';
         
-        let enemyName = "Wild Pokemon"; let enemySprite = ""; let enemyLevel = 1; let enemyTypes = ['normal'];
-        let gymData = null;
-        let enemyIv = 5; 
+        // --- CẤU HÌNH ĐỘ KHÓ ---
+        let enemyName = "Wild Pokemon"; 
+        let enemySprite = ""; 
+        let enemyLevel = 1; 
+        let enemyTypes = ['normal'];
+        let enemyIv = 5;
+        let isBoss = false;
+
+        // XỬ LÝ LOGIC TẠO ĐỊCH
+        let id = 1;
+        let data = null;
+        let stats = {};
 
         if(difficulty === 'easy') {
-            let id = Math.floor(Math.random()*MAX_ID)+1;
-            let res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); let data = await res.json();
-            enemyName = data.name.toUpperCase(); enemySprite = data.sprites.front_default;
-            enemyLevel = Math.max(1, p.level + Math.floor(Math.random()*3) - 1);
-            enemyTypes = data.types.map(t=>t.type.name);
-            var stats = {}; data.stats.forEach(s => stats[s.stat.name] = s.base_stat);
-        } else if(difficulty === 'medium') {
-            let id = Math.floor(Math.random()*MAX_ID)+1;
-            let res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); let data = await res.json();
-            enemyName = `Trainer's ${data.name.toUpperCase()}`; enemySprite = data.sprites.front_default;
-            enemyLevel = p.level + 2;
-            enemyTypes = data.types.map(t=>t.type.name);
-            enemyIv = 10; 
-            var stats = {}; data.stats.forEach(s => stats[s.stat.name] = s.base_stat);
-        } else {
-            gymData = GYM_DB[gymProgress];
-            let id = Math.floor(Math.random()*151)+1;
-            let res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); let data = await res.json();
+            // EASY: Random, nhưng tránh Legendary, Level thấp
+            let valid = false;
+            while(!valid) {
+                id = Math.floor(Math.random() * 649) + 1;
+                // Nếu trúng Legendary thì random lại
+                if(!LEGENDARY_IDS.includes(id)) valid = true; 
+            }
+            let res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); 
+            data = await res.json();
             
-            enemyName = `${gymData.name}'s Boss`; enemySprite = data.sprites.front_default; 
-            enemyLevel = p.level + 5; enemyTypes = data.types.map(t=>t.type.name); 
-            enemyIv = 31; 
-            var stats = {}; data.stats.forEach(s => stats[s.stat.name] = s.base_stat);
+            enemyName = data.name.toUpperCase();
+            enemyLevel = Math.max(1, p.level - 2); // Thấp hơn người chơi 2 cấp
+            enemyIv = Math.floor(Math.random() * 6); // IV từ 0-5 (Yếu)
+            
+        } else if(difficulty === 'medium') {
+            // MEDIUM: Random thoải mái, Level ngang bằng
+            id = Math.floor(Math.random() * 649) + 1;
+            let res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); 
+            data = await res.json();
+            
+            enemyName = `Trainer's ${data.name.toUpperCase()}`;
+            enemyLevel = p.level; // Ngang cấp
+            enemyIv = 15; // IV Trung bình
+            
+        } else {
+            // HARD (GYM): Đúng hệ, Level cao, Max IV, Buff chỉ số
+            isBoss = true;
+            let gymData = GYM_DB[gymProgress] || {name: "Champion", type: "dragon"};
+            
+            // Tìm Pokemon đúng hệ của Gym (Thử 5 lần, nếu không ra thì lấy đại để đỡ lag)
+            let foundType = false;
+            let attempts = 0;
+            while(!foundType && attempts < 8) {
+                id = Math.floor(Math.random() * 649) + 1;
+                let res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+                data = await res.json();
+                let types = data.types.map(t=>t.type.name);
+                
+                // Nếu Pokemon có hệ trùng với Gym HOẶC là vòng cuối
+                if(types.includes(gymData.type) || gymProgress >= 8) {
+                    foundType = true;
+                }
+                attempts++;
+            }
+            
+            enemyName = `${gymData.name}'s ${data.name.toUpperCase()}`;
+            enemyLevel = p.level + 5; // Cao hơn 5 cấp
+            enemyIv = 31; // Max IV
         }
 
+        // Lấy Sprite và Stats từ data đã fetch
+        enemySprite = data.sprites.front_default;
+        if(isBoss) enemySprite = data.sprites.other['official-artwork'].front_default || data.sprites.front_default; // Boss dùng ảnh đẹp
+        
+        enemyTypes = data.types.map(t=>t.type.name);
+        data.stats.forEach(s => stats[s.stat.name] = s.base_stat);
+
+        // Tạo Object Enemy
         let enemy = {
+            id: data.id, // Lưu ID để dùng cho tiếng kêu (Audio)
             name: enemyName, level: enemyLevel, types: enemyTypes, img: enemySprite, iv: enemyIv,
             baseHp: stats['hp'], baseAtk: stats['attack'], baseDef: stats['defense'],
             baseSpA: stats['special-attack'], baseSpD: stats['special-defense'], baseSpd: stats['speed']
         };
-        recalcStats(enemy); 
-        enemy.hp = enemy.maxHp; 
 
+        // Tính toán chỉ số
+        recalcStats(enemy); 
+        
+        // LOGIC BOSS: Tăng thêm 20% chỉ số sau khi tính toán để làm Trùm
+        if(isBoss) {
+            enemy.maxHp = Math.floor(enemy.maxHp * 1.2);
+            enemy.atk = Math.floor(enemy.atk * 1.2);
+            enemy.def = Math.floor(enemy.def * 1.2);
+            enemy.spA = Math.floor(enemy.spA * 1.2);
+            enemy.spD = Math.floor(enemy.spD * 1.2);
+        }
+        
+        enemy.hp = enemy.maxHp; // Hồi đầy máu
+
+        // Cập nhật State Battle
         battleState = {
             active: true, finished: false,
             player: p,
             enemy: enemy,
             turn: 0, difficulty: difficulty,
-            rewards: { xp: difficulty==='easy'?100: (difficulty==='medium'?300:1000), coin: difficulty==='easy'?50: (difficulty==='medium'?200:1000) }
+            rewards: { 
+                xp: difficulty==='easy'? 80 : (difficulty==='medium'? 250 : 800), 
+                coin: difficulty==='easy'? 30 : (difficulty==='medium'? 150 : 1000) 
+            }
         };
 
+        // Cập nhật giao diện
         document.getElementById('enemy-name').innerText = battleState.enemy.name;
         document.getElementById('enemy-lv').innerText = `Lv.${battleState.enemy.level}`;
         document.getElementById('enemy-sprite').src = battleState.enemy.img;
@@ -773,10 +849,14 @@
         document.getElementById('player-sprite').src = battleState.player.img || `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/${battleState.player.id}.png`;
         
         updateBattleUI();
-        let atkStat = p.atk; let defStat = enemy.def;
+        
+        // Log & Audio
         logBattle(`<b>${enemyName}</b> xuất hiện! (HP: ${enemy.maxHp})`);
-        playCry(battleState.enemy.id || Math.floor(Math.random()*151)); // Kêu tiếng địch
-playBGM('battle');
+        
+        // --- AUDIO TRIGGER (Nếu đã thêm code Audio ở bước trước) ---
+        if(typeof playCry === "function") playCry(enemy.id); 
+        if(typeof playBGM === "function") playBGM('battle');
+        // -----------------------------------------------------------
         
         document.getElementById('battle-main-menu').style.display = 'grid';
         document.getElementById('battle-move-menu').style.display = 'none';
@@ -1092,4 +1172,5 @@ playBGM('battle');
 </script>
 </body>
 </html>
+
 
