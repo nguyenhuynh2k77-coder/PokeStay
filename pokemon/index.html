@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PokeStay v1.6 - Official HP</title>
+    <title>PokeStay v1.7 - Battle Arena</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png">
     
     <style>
@@ -46,13 +46,13 @@
         #buy-modal .box-style { background: url('image_3.png') no-repeat center center; background-size: cover; }
         #dex-modal .box-style { background: url('image_4.png') no-repeat center center; background-size: cover; color: #eee; }
         #achieve-modal .box-style { background: url('image_5.png') no-repeat center center; background-size: cover; }
+        #battle-modal .box-style { width: 100%; max-width: 450px; height: 100%; max-height: 100%; border:none; background: linear-gradient(to bottom, #2c3e50, #000); justify-content: flex-start; padding: 10px; }
         .inner-box { background: rgba(0, 0, 0, 0.7); padding: 15px; border-radius: 8px; height: 100%; display: flex; flex-direction: column; width:100%; }
 
         /* ELEMENTS */
         .embed { background-color: rgba(41, 43, 47, 0.8); border-left: 4px solid #00b0f4; padding: 10px; border-radius: 4px; position: relative; margin-bottom: 5px; }
         .embed-header { display: flex; justify-content: space-between; align-items: flex-start; }
         .poke-sprite { width: 110px; height: 110px; image-rendering: pixelated; margin-left: 5px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
-        @media (max-width: 768px) { .poke-sprite { width: 90px; height: 90px; } }
         
         .rarity-tag { font-size: 0.6em; padding: 2px 4px; border-radius: 3px; font-weight: bold; margin-right: 5px; display: inline-block; text-transform: uppercase; letter-spacing: 0.5px; }
         .r-common { background: #95a5a6; color: #fff; } .r-uncommon { background: #2ecc71; color: #000; } .r-rare { background: #3498db; color: #fff; } .r-superrare { background: #9b59b6; color: #fff; } .r-legendary { background: linear-gradient(45deg, #f1c40f, #e67e22); color: #000; } .r-shiny { background: #e74c3c; color: white; }
@@ -84,13 +84,24 @@
         .quest-progress-fill { height: 100%; background: #3ba55c; width: 0%; transition: width 0.3s; }
         .difficulty-tag { padding: 1px 4px; border-radius: 3px; font-size: 0.7em; font-weight: bold; color:black;}
         .diff-0 { background: #2ecc71; } .diff-1 { background: #f1c40f; } .diff-2 { background: #ed4245; color:white;}
-        .achieve-row { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 8px; background: rgba(0,0,0,0.5); padding:10px; border-radius:5px; transition:0.2s}
-        .achieve-row:hover { background: rgba(255,255,255,0.1); }
         .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
         .shop-card { background: rgba(64, 68, 75, 0.6); padding: 8px; border-radius: 5px; border: 1px solid #202225; cursor: pointer; display:flex; flex-direction:column; align-items:center; }
         .quiz-img { width: 100px; height: 100px; margin: 10px auto; filter: brightness(0); transition: filter 0.5s; image-rendering: pixelated;}
         .quiz-img.revealed { filter: brightness(1); }
         .quiz-opt { padding: 10px; background: #2f3136; border: 1px solid #444; color: white; cursor: pointer; border-radius: 4px; transition: 0.2s; font-size: 0.9em; }
+
+        /* --- BATTLE SYSTEM CSS v1.7 --- */
+        .battle-scene { width: 100%; height: 300px; position: relative; background: rgba(0,0,0,0.3); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+        .battle-platform { position: absolute; bottom: 30px; width: 120px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 50%; transform: scaleY(0.4); border: 2px solid rgba(255,255,255,0.2); }
+        .p-enemy { position: absolute; top: 20px; right: 20px; text-align: center; }
+        .p-player { position: absolute; bottom: 20px; left: 20px; text-align: center; }
+        .battle-sprite { width: 96px; height: 96px; image-rendering: pixelated; transition: transform 0.2s; }
+        .shake { animation: shake 0.5s; }
+        @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
+        .hp-box { background: rgba(0,0,0,0.7); padding: 5px 10px; border-radius: 5px; border: 1px solid #444; width: 140px; margin-bottom: 5px; text-align: left; }
+        .battle-log-box { height: 80px; overflow-y: auto; background: rgba(0,0,0,0.5); border: 1px solid #555; padding: 5px; font-size: 0.8em; margin-bottom: 10px; text-align: left; color: #ddd; border-radius: 5px; }
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+        .action-btn { padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; color: white; font-size: 0.9em; }
     </style>
 </head>
 <body>
@@ -98,8 +109,8 @@
 <div id="login-screen">
     <div class="box-style">
         <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto">
-        <h2 style="color: white; margin: 10px 0;">POKESTAY v1.6</h2>
-        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Official HP Formula</div>
+        <h2 style="color: white; margin: 10px 0;">POKESTAY v1.7</h2>
+        <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Battle Arena Update</div>
         <div style="width:100%">
             <input type="text" id="username-input" class="login-input" placeholder="Tên..." onkeypress="handleEnter(event)">
             <input type="password" id="password-input" class="login-input" placeholder="Mật khẩu..." onkeypress="handleEnter(event)">
@@ -113,8 +124,8 @@
     <header>
         <div style="display:flex; flex-direction:column">
             <div style="display:flex; align-items:center; gap:5px">
-                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png" width="24" height="24">
-                <span>PokeStay v1.6</span>
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" width="24" height="24">
+                <span>PokeStay v1.7</span>
             </div>
             <span id="display-username" style="font-size:0.8em; color:#bbb">TRAINER</span>
         </div>
@@ -235,16 +246,48 @@
 
 <div id="battle-modal">
     <div class="box-style">
-        <h2 style="color: #e74c3c;">🔥 ĐẤU TRƯỜNG</h2>
-        <div class="battle-card" style="width:100%; margin-bottom:10px">
-            <span id="battle-my-poke" style="color:#3ba55c; font-weight:bold">My Pokemon</span>
-            <div style="font-size:0.8em; color:#bbb">Chọn đối thủ</div>
-            <div id="battle-hp-warn" style="font-size:0.8em; color:#e74c3c; display:none">⚠️ Máu thấp!</div>
+        <div id="battle-select-screen" style="width:100%; text-align:center">
+            <h2 style="color: #e74c3c; margin-bottom: 15px;">🔥 ĐẤU TRƯỜNG</h2>
+            <div class="battle-card" style="width:100%; margin-bottom:10px; padding:10px; background:rgba(0,0,0,0.5); border-radius:5px">
+                <span id="battle-my-poke" style="color:#3ba55c; font-weight:bold">My Pokemon</span>
+                <div style="font-size:0.8em; color:#bbb">Ready for battle!</div>
+            </div>
+            <button class="difficulty-btn diff-easy btn-auth" style="background:#2ecc71" onclick="startBattle('easy')"><span>EASY: Wild</span></button>
+            <button class="difficulty-btn diff-med btn-auth" style="background:#f1c40f; color:black" onclick="startBattle('medium')"><span>MEDIUM: Trainer</span></button>
+            <button id="gym-btn" class="difficulty-btn gym-btn btn-auth" style="background:#ed4245" onclick="startBattle('hard')"><span>HARD: GYM</span></button>
+            <button class="btn-close" onclick="closeBattle()">Thoát</button>
         </div>
-        <button class="difficulty-btn diff-easy" onclick="commitBattle('easy')"><span>Easy: Wild</span> <span>90%</span></button>
-        <button class="difficulty-btn diff-med" onclick="commitBattle('medium')"><span>Medium: Trainer</span> <span>50%</span></button>
-        <button id="gym-btn" class="difficulty-btn gym-btn" onclick="commitBattle('hard')"><span>HARD: GYM</span> <span>?%</span></button>
-        <button class="btn-close" onclick="closeBattle()">Thoát</button>
+
+        <div id="battle-combat-screen" style="display:none; width:100%; flex-direction:column; height:100%">
+            <div class="battle-scene">
+                <div class="p-enemy">
+                    <div class="hp-box">
+                        <div style="display:flex;justify-content:space-between;font-size:0.8em;font-weight:bold"><span id="enemy-name">Enemy</span> <span id="enemy-lv">Lv.5</span></div>
+                        <div class="hp-container" style="height:6px; margin-top:2px"><div id="enemy-hp-bar" class="hp-fill" style="width:100%;background:#2ecc71"></div></div>
+                    </div>
+                    <img id="enemy-sprite" class="battle-sprite" src="">
+                    <div class="battle-platform" style="right:10px; bottom:10px"></div>
+                </div>
+                <div class="p-player">
+                    <img id="player-sprite" class="battle-sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/25.png">
+                     <div class="battle-platform" style="left:10px; bottom:10px"></div>
+                     <div class="hp-box" style="margin-top:5px">
+                        <div style="display:flex;justify-content:space-between;font-size:0.8em;font-weight:bold"><span id="player-name">Player</span> <span id="player-hp-text">20/20</span></div>
+                        <div class="hp-container" style="height:6px; margin-top:2px"><div id="player-hp-bar" class="hp-fill" style="width:100%;background:#2ecc71"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="battle-log" class="battle-log-box">Trận đấu bắt đầu!</div>
+
+            <div id="battle-actions" class="action-grid">
+                <button class="action-btn" style="background:#e74c3c" onclick="playerAttack()">⚔️ Tấn Công</button>
+                <button class="action-btn" style="background:#2ecc71; color:black" onclick="playerHeal()">💊 Potion (<span id="potion-count">0</span>)</button>
+                <button class="action-btn" style="background:#f1c40f; color:black" onclick="playerSkip()">💤 Nghỉ</button>
+                <button class="action-btn" style="background:#95a5a6" onclick="playerRun()">🏃 Bỏ chạy</button>
+            </div>
+            <button id="battle-end-btn" class="btn-auth" style="display:none; background:#3ba55c" onclick="endBattle()">Hoàn Tất</button>
+        </div>
     </div>
 </div>
 
@@ -253,19 +296,12 @@
         <h2 style="color: #faa61a;">📜 Update Log</h2>
         <div class="update-list" style="text-align:left; width:100%">
              <div style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px">
-                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.6</span> 
+                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.7</span> 
                 <span style="color:#bbb; font-size:0.8em; float:right">New</span>
                 <ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde">
-                    <li><b>Official HP:</b> Cập nhật công thức chuẩn.</li>
-                    <li><b>Battle:</b> Cân bằng lại sát thương theo Level.</li>
-                    <li><b>Auto-Fix:</b> Tự động chỉnh lại máu cho Save cũ.</li>
-                </ul>
-            </div>
-             <div style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px">
-                <span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v1.5</span> 
-                <ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde">
-                    <li><b>HP Rebalance:</b> Máu tính theo Base Stat.</li>
-                    <li><b>Visual:</b> Hiển thị thanh máu thông minh.</li>
+                    <li><b>Battle Arena:</b> Chế độ đánh theo lượt (Turn-based).</li>
+                    <li><b>Stats:</b> Thêm Attack, Defense, Speed.</li>
+                    <li><b>Moves:</b> Kỹ năng theo hệ (Ember, Water Gun, etc.).</li>
                 </ul>
             </div>
         </div>
@@ -291,6 +327,16 @@
     const URL_ITEMS = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/";
     const LEGENDARY_IDS = [144,145,146,150,151,243,244,245,249,250,251,377,378,379,380,381,382,383,384,385,386,480,481,482,483,484,485,486,487,488,489,490,491,492,493,494,638,639,640,641,642,643,644,645,646];
     const TYPE_ADVANTAGE = { 'fire': ['grass', 'ice', 'bug', 'steel'], 'water': ['fire', 'ground', 'rock'], 'grass': ['water', 'ground', 'rock'], 'electric': ['water', 'flying'], 'ice': ['grass', 'ground', 'flying', 'dragon'], 'fighting': ['normal', 'ice', 'rock', 'dark', 'steel'], 'poison': ['grass', 'fairy'], 'ground': ['fire', 'electric', 'poison', 'rock', 'steel'], 'flying': ['grass', 'fighting', 'bug'], 'psychic': ['fighting', 'poison'], 'bug': ['grass', 'psychic', 'dark'], 'rock': ['fire', 'ice', 'flying', 'bug'], 'ghost': ['psychic', 'ghost'], 'dragon': ['dragon'], 'steel': ['ice', 'rock', 'fairy'], 'fairy': ['fighting', 'dragon', 'dark'] };
+
+    // MOVE DATA (Simplified)
+    const MOVES = {
+        'normal': {name: 'Tackle', pwr: 40}, 'fire': {name: 'Ember', pwr: 40}, 'water': {name: 'Water Gun', pwr: 40},
+        'grass': {name: 'Vine Whip', pwr: 45}, 'electric': {name: 'Thunder Shock', pwr: 40}, 'ice': {name: 'Powder Snow', pwr: 40},
+        'fighting': {name: 'Karate Chop', pwr: 50}, 'poison': {name: 'Poison Sting', pwr: 15}, 'ground': {name: 'Mud Slap', pwr: 20},
+        'flying': {name: 'Gust', pwr: 40}, 'psychic': {name: 'Confusion', pwr: 50}, 'bug': {name: 'Bug Bite', pwr: 60},
+        'rock': {name: 'Rock Throw', pwr: 50}, 'ghost': {name: 'Lick', pwr: 30}, 'dragon': {name: 'Twister', pwr: 40},
+        'steel': {name: 'Metal Claw', pwr: 50}, 'fairy': {name: 'Fairy Wind', pwr: 40}
+    };
 
     const GYM_DB = [
         { name: "Brock", type: "rock", badge: "Boulder Badge", icon: "🪨", buff: "Def +10%", id: 1 },
@@ -344,6 +390,9 @@
 
     let currentWild = null; let streakBonus = 0; let activeBuffs = { berry: false, egg: false }; let selectedItemId = null; let selectedBattleIdx = null;
 
+    // --- BATTLE STATE VARIABLES ---
+    let battleState = { active: false, player: null, enemy: null, turn: 0, difficulty: 'easy', rewards: {xp:0, coin:0}, finished: false };
+
     function getRarity(p) { 
         if(p.isEgg) return {label:'EGG',class:'r-common',val:0}; 
         if(p.isShiny) return {label:'SHINY',class:'r-shiny',val:5}; 
@@ -354,19 +403,31 @@
         return {label:'COMMON',class:'r-common',val:0}; 
     }
 
-    // --- RECALC STATS LOGIC v1.6 (Standard Formula) ---
-    // HP = Floor( ((2 * Base + IV + Floor(EV/4)) * Level) / 100 ) + Level + 10
+    // --- RECALC STATS LOGIC v1.7 (Full Stats) ---
     function calculateMaxHp(base, iv, level) {
-        let ev = 0; // Game chưa có hệ thống EV, mặc định là 0
-        let hp = Math.floor( ( (2 * base + iv + Math.floor(ev/4) ) * level ) / 100 ) + level + 10;
-        return hp;
+        return Math.floor(((2 * base + iv) * level) / 100) + level + 10;
+    }
+    // Simple stat calc for Atk, Def, Spd
+    function calculateStat(base, iv, level) {
+        return Math.floor(((2 * base + iv) * level) / 100) + 5;
     }
 
     function recalcStats(p) {
-        let base = p.baseHp || 40;
-        p.maxHp = calculateMaxHp(base, p.iv, p.level);
-        // Khi lên cấp hoặc tính lại, hồi full máu
-        p.hp = p.maxHp; 
+        // Fallbacks
+        let bHp = p.baseHp || 45; let bAtk = p.baseAtk || 49; let bDef = p.baseDef || 49; let bSpd = p.baseSpd || 45;
+        p.maxHp = calculateMaxHp(bHp, p.iv, p.level);
+        p.atk = calculateStat(bAtk, p.iv, p.level);
+        p.def = calculateStat(bDef, p.iv, p.level);
+        p.spd = calculateStat(bSpd, p.iv, p.level);
+        if(p.hp > p.maxHp) p.hp = p.maxHp;
+    }
+
+    // Helper to ensure stats exist on old saves
+    function ensureStats(p) {
+        if(!p.atk || !p.def || !p.spd) {
+            p.baseAtk = p.baseAtk || 50; p.baseDef = p.baseDef || 50; p.baseSpd = p.baseSpd || 50;
+            recalcStats(p);
+        }
     }
 
     function handleEnter(e) { if(e.key === 'Enter') login(); }
@@ -443,14 +504,8 @@
                 let percent = Math.min(100, Math.floor((p.steps / p.maxSteps) * 100));
                 return `<div class="bag-row egg-row"><div style="display:flex;align-items:center;gap:10px"><img src="${URL_ITEMS}lucky-egg.png" width="40"><div><b>Mystery Egg</b><br><div class="xp-container"><div class="xp-fill" style="width:${percent}%; background:#f1c40f"></div></div><span style="font-size:0.7em">${p.steps}/${p.maxSteps} bước</span></div></div><div>${percent>=100 ? `<button class="btn-small" style="background:#f1c40f;color:black" onclick="hatchEgg(${realIdx})">NỞ!</button>` : '...'}</div></div>`;
             }
-            
-            // --- AUTO-FIX OLD SAVE DATA (v1.6) ---
-            let expectedHp = calculateMaxHp(p.baseHp || 40, p.iv || 0, p.level);
-            // Nếu maxHp không có, hoặc lớn bất thường so với công thức mới -> Cập nhật lại
-            if(typeof p.maxHp === 'undefined' || p.maxHp > expectedHp + 50) { 
-                p.maxHp = expectedHp; 
-                if(p.hp > p.maxHp) p.hp = p.maxHp; 
-            }
+            // Ensure stats
+            ensureStats(p);
 
             if(!p.types) p.types = ['normal'];
             const r = getRarity(p);
@@ -475,12 +530,16 @@
         let iv = Math.floor(Math.random() * 32); 
         
         let baseHp = data.stats.find(s => s.stat.name === 'hp').base_stat;
-        // TÍNH HP THEO CÔNG THỨC MỚI
-        let calculatedHp = calculateMaxHp(baseHp, iv, 1);
+        let baseAtk = data.stats.find(s => s.stat.name === 'attack').base_stat;
+        let baseDef = data.stats.find(s => s.stat.name === 'defense').base_stat;
+        let baseSpd = data.stats.find(s => s.stat.name === 'speed').base_stat;
+        
+        let p = { id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, baseHp: baseHp, baseAtk: baseAtk, baseDef: baseDef, baseSpd: baseSpd, level: 1, xp: 0, maxXp: 100 };
+        recalcStats(p); // Calc HP, Atk, Def, Spd
 
-        myBag[idx] = { id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, baseHp: baseHp, level: 1, xp: 0, maxXp: 100, maxHp: calculatedHp, hp: calculatedHp };
+        myBag[idx] = p;
         if(isShiny) userStats.shinies++; saveGame(); renderBag();
-        log(`<div class="embed" style="border-left-color:#f1c40f"><div class="embed-header"><div><span class="embed-title">🐣 TRỨNG NỞ!</span><div class="embed-desc">Chào mừng <b>${isShiny?'✨ ':''}${data.name.toUpperCase()}</b> (IV: ${iv}) - HP: ${calculatedHp}</div></div><img class="poke-sprite" src="${img}"></div></div>`);
+        log(`<div class="embed" style="border-left-color:#f1c40f"><div class="embed-header"><div><span class="embed-title">🐣 TRỨNG NỞ!</span><div class="embed-desc">Chào mừng <b>${isShiny?'✨ ':''}${data.name.toUpperCase()}</b> (IV: ${iv}) - HP: ${p.maxHp}</div></div><img class="poke-sprite" src="${img}"></div></div>`);
     }
 
     // --- BATTLE & HUNT ---
@@ -493,14 +552,17 @@
             const isShiny = Math.random() < 0.01; let img = data.sprites.other['official-artwork'].front_default || data.sprites.front_default; if(isShiny) img = data.sprites.front_shiny || img;
             
             let baseHp = data.stats.find(s => s.stat.name === 'hp').base_stat;
+            let baseAtk = data.stats.find(s => s.stat.name === 'attack').base_stat;
+            let baseDef = data.stats.find(s => s.stat.name === 'defense').base_stat;
+            let baseSpd = data.stats.find(s => s.stat.name === 'speed').base_stat;
             let iv = Math.floor(Math.random() * 32); 
             
-            // TÍNH HP THEO CÔNG THỨC MỚI
-            let calculatedHp = calculateMaxHp(baseHp, iv, 1);
+            let p = { id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, baseHp: baseHp, baseAtk: baseAtk, baseDef: baseDef, baseSpd: baseSpd, level: 1, xp: 0, maxXp: 100 };
+            recalcStats(p);
 
-            currentWild = { id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, baseHp: baseHp, level: 1, xp: 0, maxXp: 100, maxHp: calculatedHp, hp: calculatedHp };
+            currentWild = p;
             const r = getRarity(currentWild);
-            log(`<div class="embed" style="border-left-color:${isShiny?'#e74c3c':'#00b0f4'}"><div class="embed-header"><div><span class="rarity-tag ${r.class}">${r.label}</span> <span class="embed-title">${currentWild.name}</span><div class="embed-desc">IV: ${currentWild.iv}/31 | HP: ${calculatedHp}</div></div><img class="poke-sprite" src="${currentWild.img}"></div></div>`);
+            log(`<div class="embed" style="border-left-color:${isShiny?'#e74c3c':'#00b0f4'}"><div class="embed-header"><div><span class="rarity-tag ${r.class}">${r.label}</span> <span class="embed-title">${currentWild.name}</span><div class="embed-desc">IV: ${currentWild.iv}/31 | HP: ${p.maxHp}</div></div><img class="poke-sprite" src="${currentWild.img}"></div></div>`);
             renderBattleControls();
         } catch(e) { showMenu(); }
     }
@@ -540,10 +602,13 @@
     }
     function useItem(id) { inventory[id]--; saveGame(); if(id==='razz-berry') activeBuffs.berry=true; if(id==='lucky-egg') activeBuffs.egg=true; if(id==='incense') { spawnPokemon(); return; } updateStats(); renderBattleControls(); }
 
+    // --- BATTLE UI HANDLING ---
     function openBattleModal(idx) {
         selectedBattleIdx = idx; let p = myBag[idx];
         document.getElementById('battle-my-poke').innerText = `${p.name} (Lv.${p.level})`;
-        if(p.hp <= 0) document.getElementById('battle-hp-warn').style.display = 'block'; else document.getElementById('battle-hp-warn').style.display = 'none';
+        document.getElementById('battle-select-screen').style.display = 'block';
+        document.getElementById('battle-combat-screen').style.display = 'none';
+        
         let gymData = GYM_DB[gymProgress] || {name: "All Cleared", type: "none"};
         const gymBtn = document.getElementById('gym-btn');
         if(gymProgress < GYM_DB.length) { gymBtn.innerHTML = `<span>HARD: ${gymData.name} (${gymData.type.toUpperCase()})</span> <span>Badge: ${gymData.badge}</span>`; gymBtn.disabled = false; } else { gymBtn.innerHTML = `<span>CHAMPION! Đã thắng hết Gym.</span>`; gymBtn.disabled = true; }
@@ -551,78 +616,265 @@
     }
     function closeBattle() { document.getElementById('battle-modal').style.display = 'none'; }
     
-    function commitBattle(difficulty) {
-        closeBattle(); let p = myBag[selectedBattleIdx];
-        
-        // AUTO-FIX: Kiểm tra xem HP có bị sai (quá lớn) do Save cũ không
-        let trueMax = calculateMaxHp(p.baseHp||40, p.iv||0, p.level);
-        if(typeof p.hp === 'undefined' || p.maxHp > trueMax + 200) { recalcStats(p); }
+    // --- BATTLE LOGIC ENGINE v1.7 ---
+    async function startBattle(difficulty) {
+        let p = myBag[selectedBattleIdx];
+        ensureStats(p); // Calc stats if missing
+        if(p.hp <= 0) return alert("Pokemon này đã ngất! Hãy hồi máu.");
 
-        if(p.hp <= 0) return log(`<div class="embed" style="border-left-color:#ed4245"><div class="embed-desc">🚑 <b>${p.name}</b> đã ngất! Hãy dùng Potion hồi phục.</div></div>`);
+        document.getElementById('battle-select-screen').style.display = 'none';
+        document.getElementById('battle-combat-screen').style.display = 'flex';
         
-        let winRate = 0, rewardXP = 0, rewardCoin = 0, enemyName = "Wild Pokemon", baseDmg = 0;
-        let enemyTypes = [];
+        // Setup Enemy
+        let enemyName = "Wild Pokemon"; let enemySprite = ""; let enemyLevel = 1; let enemyTypes = ['normal'];
+        let gymData = null;
 
-        // --- NEW DAMAGE FORMULA (Scaled by Level) ---
-        // Damage giờ phụ thuộc vào Level để tránh One-shot
-        let dmgScale = Math.max(1, Math.floor(p.level * 0.3)); 
-
-        if(difficulty === 'easy') { 
-            enemyName = "Wild Pokemon"; winRate = 0.9; 
-            rewardXP = 50 + (p.level*2); 
-            baseDmg = dmgScale + Math.floor(Math.random() * 3); // Dmg thấp
-            enemyTypes = ['normal', 'bug']; 
-        }
-        else if(difficulty === 'medium') { 
-            enemyName = "Trainer Battle"; winRate = 0.5; 
-            rewardXP = 150 + (p.level*5); 
-            baseDmg = (dmgScale * 1.5) + Math.floor(Math.random() * 4); // Dmg trung bình
-            enemyTypes = ['electric', 'fighting']; 
-        }
-        else { 
-            let gym = GYM_DB[gymProgress]; enemyName = `Leader ${gym.name}`; enemyTypes = [gym.type]; 
-            winRate = 0.15; rewardXP = 1000 + (gymProgress * 200); rewardCoin = 500 + (gymProgress * 100); 
-            baseDmg = (dmgScale * 2.5) + (gymProgress * 2); // Dmg cao
-        }
-
-        let effectiveness = 1; let userTypes = p.types || ['normal'];
-        for(let uT of userTypes) { if(TYPE_ADVANTAGE[uT] && TYPE_ADVANTAGE[uT].some(t => enemyTypes.includes(t))) effectiveness = 2; }
-        
-        let msgType = ""; 
-        if(effectiveness === 2) { 
-            winRate += 0.25; 
-            baseDmg = Math.floor(baseDmg * 0.6); // Khắc hệ giảm dmg nhận vào
-            msgType = `<br><b style="color:#2ecc71">⚡ Khắc hệ! Tỉ lệ thắng tăng mạnh!</b>`; 
-        }
-
-        let damageTaken = Math.max(1, baseDmg); 
-        
-        let roll = Math.random(); let msg = ""; 
-        p.hp -= damageTaken; 
-        
-        if(roll < winRate) {
-            p.xp += rewardXP; coins += rewardCoin;
-            if(difficulty === 'hard') { userStats.hardWins++; msg = `<span style="color:#f1c40f">🏆 <b>CHIẾN THẮNG GYM LEADER!</b><br>Nhận ${GYM_DB[gymProgress].badge}!<br>Buff: ${GYM_DB[gymProgress].buff}</span>`; gymProgress++; }
-            else { msg = `<span style="color:#3ba55c">⚔️ <b>THẮNG!</b> ${p.name} hạ ${enemyName}.<br>+${rewardXP} XP ${rewardCoin>0?`| +${rewardCoin}💰`:''} | <span style="color:#e74c3c">-${damageTaken} HP</span>${msgType}</span>`; }
-            updateQuestProgress('win', 1);
+        if(difficulty === 'easy') {
+            let id = Math.floor(Math.random()*MAX_ID)+1;
+            let res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); let data = await res.json();
+            enemyName = data.name.toUpperCase(); enemySprite = data.sprites.front_default;
+            enemyLevel = Math.max(1, p.level + Math.floor(Math.random()*3) - 1);
+            enemyTypes = data.types.map(t=>t.type.name);
+        } else if(difficulty === 'medium') {
+            let id = Math.floor(Math.random()*MAX_ID)+1;
+            let res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); let data = await res.json();
+            enemyName = `Trainer's ${data.name.toUpperCase()}`; enemySprite = data.sprites.front_default;
+            enemyLevel = p.level + 2;
+            enemyTypes = data.types.map(t=>t.type.name);
         } else {
-            let critDmg = Math.floor(damageTaken * 0.5); p.hp -= critDmg; 
-            let pityXP = 20; p.xp += pityXP; 
-            msg = `<span style="color:#ed4245">🤕 <b>THUA!</b> ${enemyName} quá mạnh.<br>Nhận an ủi +${pityXP} XP | <span style="color:#e74c3c">-${damageTaken + critDmg} HP</span></span>`;
+            gymData = GYM_DB[gymProgress];
+            enemyName = `${gymData.name}'s Boss`; enemySprite = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${Math.floor(Math.random()*151)+1}.png`; // Placeholder image
+            enemyLevel = p.level + 5; enemyTypes = [gymData.type];
         }
+
+        // Generate Enemy Stats (Simulated)
+        let baseStat = 45 + (enemyLevel * 2);
+        let enemyStats = {
+            maxHp: calculateMaxHp(baseStat, 15, enemyLevel),
+            atk: calculateStat(baseStat, 15, enemyLevel),
+            def: calculateStat(baseStat, 15, enemyLevel),
+            spd: calculateStat(baseStat, 15, enemyLevel)
+        };
+        enemyStats.hp = enemyStats.maxHp;
+
+        battleState = {
+            active: true, finished: false,
+            player: p,
+            enemy: { name: enemyName, level: enemyLevel, types: enemyTypes, ...enemyStats, img: enemySprite },
+            turn: 0, difficulty: difficulty,
+            rewards: { xp: difficulty==='easy'?50: (difficulty==='medium'?150:1000), coin: difficulty==='medium'?100: (difficulty==='hard'?500:0) }
+        };
+
+        // Render UI
+        document.getElementById('enemy-name').innerText = battleState.enemy.name;
+        document.getElementById('enemy-lv').innerText = `Lv.${battleState.enemy.level}`;
+        document.getElementById('enemy-sprite').src = battleState.enemy.img;
+        document.getElementById('player-name').innerText = battleState.player.name;
+        document.getElementById('player-sprite').src = battleState.player.img || `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/${battleState.player.id}.png`;
         
-        if(p.hp < 0) p.hp = 0;
-
-        if(p.xp >= p.maxXp) { 
-            p.level++; p.xp -= p.maxXp; p.maxXp = Math.floor(p.maxXp * 1.2); 
-            recalcStats(p); // RECALC ON LEVEL UP
-            msg += `<br><b style="color:#faa61a">🆙 LEVEL UP! ${p.name} lên Lv.${p.level}. HP: ${p.maxHp} (Hồi đầy)!</b>`; 
-        }
-
-        incrementEggSteps(); saveGame(); updateStats(); openBag(); 
-        log(`<div class="embed" style="border-left-color:${roll<winRate?'#3ba55c':'#ed4245'}"><div class="embed-desc">${msg}</div></div>`);
+        updateBattleUI();
+        logBattle(`<b>${enemyName}</b> xuất hiện!`);
+        document.getElementById('battle-actions').style.display = 'grid';
+        document.getElementById('battle-end-btn').style.display = 'none';
+        document.getElementById('potion-count').innerText = inventory['potion'] || 0;
     }
 
+    function updateBattleUI() {
+        let p = battleState.player; let e = battleState.enemy;
+        // Update HP Bars
+        let pHpPct = Math.max(0, (p.hp / p.maxHp) * 100);
+        let eHpPct = Math.max(0, (e.hp / e.maxHp) * 100);
+        
+        document.getElementById('player-hp-bar').style.width = pHpPct + '%';
+        document.getElementById('player-hp-bar').style.background = getHpColor(pHpPct);
+        document.getElementById('player-hp-text').innerText = `${p.hp}/${p.maxHp}`;
+        
+        document.getElementById('enemy-hp-bar').style.width = eHpPct + '%';
+        document.getElementById('enemy-hp-bar').style.background = getHpColor(eHpPct);
+    }
+
+    function logBattle(msg) {
+        let box = document.getElementById('battle-log');
+        box.innerHTML += `<div>${msg}</div>`;
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function playerAttack() {
+        if(!battleState.active) return;
+        executeTurn('attack');
+    }
+    function playerHeal() {
+        if(!battleState.active) return;
+        if((inventory['potion'] || 0) <= 0) return logBattle("Hết Potion!");
+        executeTurn('heal');
+    }
+    function playerSkip() {
+        if(!battleState.active) return;
+        executeTurn('skip');
+    }
+    function playerRun() {
+        if(battleState.difficulty === 'hard') return logBattle("Không thể bỏ chạy khỏi Gym!");
+        logBattle("Đã bỏ chạy thành công!");
+        endBattle(false);
+    }
+
+    async function executeTurn(action) {
+        document.getElementById('battle-actions').style.pointerEvents = 'none'; // Lock input
+        document.getElementById('battle-actions').style.opacity = '0.5';
+
+        let p = battleState.player; let e = battleState.enemy;
+        let pSpeed = p.spd || 10; let eSpeed = e.spd || 10;
+        
+        // Determine order
+        let playerFirst = pSpeed >= eSpeed;
+        if(pSpeed === eSpeed) playerFirst = Math.random() < 0.5;
+
+        if(playerFirst) {
+            await doPlayerAction(action);
+            if(e.hp > 0) await doEnemyAction();
+        } else {
+            await doEnemyAction();
+            if(p.hp > 0) await doPlayerAction(action);
+        }
+
+        document.getElementById('battle-actions').style.pointerEvents = 'auto';
+        document.getElementById('battle-actions').style.opacity = '1';
+        checkWinCondition();
+    }
+
+    async function doPlayerAction(action) {
+        if(battleState.player.hp <= 0) return;
+        let p = battleState.player; let e = battleState.enemy;
+        
+        if(action === 'attack') {
+            // Get move based on type
+            let pType = p.types[0];
+            let move = MOVES[pType] || MOVES['normal'];
+            logBattle(`<b>${p.name}</b> dùng ${move.name}!`);
+            
+            // Calc Damage
+            let typeMod = getEffectiveness(pType, e.types);
+            let dmg = calculateDamage(p.level, move.pwr, p.atk, e.def, typeMod);
+            
+            // Animation
+            document.getElementById('player-sprite').style.transform = "translateX(20px)";
+            setTimeout(()=>document.getElementById('player-sprite').style.transform="translateX(0)", 200);
+            
+            await sleep(500);
+            if(typeMod > 1) logBattle(`<span style="color:#f1c40f">Siêu hiệu quả!</span>`);
+            if(typeMod < 1) logBattle(`<span style="color:#aaa">Không hiệu quả lắm...</span>`);
+            
+            applyDamage(e, dmg, 'enemy');
+        } else if (action === 'heal') {
+            inventory['potion']--;
+            let heal = 50;
+            p.hp = Math.min(p.maxHp, p.hp + heal);
+            logBattle(`<span style="color:#2ecc71">${p.name} hồi ${heal} HP.</span>`);
+            updateBattleUI();
+            document.getElementById('potion-count').innerText = inventory['potion'];
+            await sleep(500);
+        } else {
+            logBattle(`${p.name} đang nghỉ ngơi...`);
+            await sleep(500);
+        }
+    }
+
+    async function doEnemyAction() {
+        if(battleState.enemy.hp <= 0) return;
+        let p = battleState.player; let e = battleState.enemy;
+        
+        let eType = e.types[0];
+        let move = MOVES[eType] || MOVES['normal'];
+        logBattle(`Địch dùng ${move.name}!`);
+        
+        let typeMod = getEffectiveness(eType, p.types);
+        let dmg = calculateDamage(e.level, move.pwr, e.atk, p.def, typeMod);
+        
+        document.getElementById('enemy-sprite').style.transform = "translateX(-20px)";
+        setTimeout(()=>document.getElementById('enemy-sprite').style.transform="translateX(0)", 200);
+        
+        await sleep(500);
+        applyDamage(p, dmg, 'player');
+    }
+
+    function calculateDamage(level, power, atk, def, typeMod) {
+        // Standard formula simplified
+        // Damage = ((((2 * Level / 5 + 2) * Power * A / D) / 50) + 2) * Modifier
+        let base = ((((2 * level / 5 + 2) * power * (atk / def)) / 50) + 2);
+        return Math.floor(base * typeMod * (Math.random() * 0.15 + 0.85)); // 85-100% variance
+    }
+
+    function getEffectiveness(atkType, defTypes) {
+        let mod = 1;
+        defTypes.forEach(dT => {
+            if(TYPE_ADVANTAGE[atkType] && TYPE_ADVANTAGE[atkType].includes(dT)) mod *= 2;
+            // Simplified resistance: if defType has advantage over atkType, it resists
+            if(TYPE_ADVANTAGE[dT] && TYPE_ADVANTAGE[dT].includes(atkType)) mod *= 0.5;
+        });
+        return mod;
+    }
+
+    function applyDamage(target, dmg, who) {
+        target.hp -= dmg;
+        if(target.hp < 0) target.hp = 0;
+        updateBattleUI();
+        
+        // Shake effect
+        let spriteId = who === 'enemy' ? 'enemy-sprite' : 'player-sprite';
+        let el = document.getElementById(spriteId);
+        el.classList.add('shake');
+        setTimeout(()=>el.classList.remove('shake'), 500);
+        
+        logBattle(`<span style="color:#e74c3c">Mất ${dmg} HP!</span>`);
+    }
+
+    function checkWinCondition() {
+        if(battleState.enemy.hp <= 0) {
+            battleState.active = false;
+            logBattle(`<b style="color:#f1c40f">CHIẾN THẮNG!</b>`);
+            document.getElementById('battle-actions').style.display = 'none';
+            document.getElementById('battle-end-btn').style.display = 'block';
+            battleState.finished = true;
+            processWin();
+        } else if(battleState.player.hp <= 0) {
+            battleState.active = false;
+            logBattle(`<b style="color:#ed4245">THẤT BẠI...</b>`);
+            document.getElementById('battle-actions').style.display = 'none';
+            document.getElementById('battle-end-btn').style.display = 'block';
+            battleState.finished = true;
+        }
+    }
+
+    function processWin() {
+        let r = battleState.rewards;
+        let p = battleState.player;
+        p.xp += r.xp; coins += r.coin;
+        
+        if(battleState.difficulty === 'hard') {
+            userStats.hardWins++;
+            gymProgress++;
+            logBattle(`Nhận Badge! Nhận ${r.coin} xu.`);
+        } else {
+            logBattle(`+${r.xp} XP | +${r.coin} xu.`);
+        }
+        
+        if(p.xp >= p.maxXp) {
+            p.level++; p.xp -= p.maxXp; p.maxXp = Math.floor(p.maxXp * 1.2);
+            recalcStats(p);
+            logBattle(`🆙 Lên cấp ${p.level}! Full HP.`);
+        }
+        updateQuestProgress('win', 1);
+        saveGame();
+    }
+
+    function endBattle() {
+        document.getElementById('battle-modal').style.display = 'none';
+        updateStats();
+        openBag(); // Refresh bag UI
+    }
+
+    function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+    
     // --- DAILY SYSTEM ---
     function openDaily() {
         if(currentWild) return;
@@ -825,7 +1077,12 @@
     function closePokedex() { document.getElementById('dex-modal').style.display = 'none'; }
     function showPokedex() { document.getElementById('dex-count').innerText = pokedex.size; document.getElementById('dex-modal').style.display = 'flex'; }
     function run() { currentWild=null; showMenu(); log("Bỏ chạy."); }
-    function checkEvolution(idx, btn) { btn.innerHTML = "⏳"; btn.classList.add('loading'); (async () => { let p = myBag[idx]; try { let res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${p.id}`); let data = await res.json(); let chain = await (await fetch(data.evolution_chain.url)).json(); let node = findNodeInChain(chain.chain, data.name); if(!node || node.evolves_to.length === 0) { btn.innerHTML="Max"; btn.classList.remove('loading'); return; } let nextEvo = node.evolves_to[0]; let details = nextEvo.evolution_details[0]; let reqType = details ? details.trigger.name : 'level-up'; let canEvolve = false; if (reqType === "level-up") { let minLv = (details && details.min_level) ? details.min_level : 25; if (p.level >= minLv) canEvolve = true; } else if (reqType === "use-item") { if (inventory['evo-stone'] > 0) canEvolve = true; } else { if (p.level >= 25) canEvolve = true; } if(canEvolve) { if(reqType === "use-item") inventory['evo-stone']--; let newId = nextEvo.species.name; let d2 = await (await fetch(`https://pokeapi.co/api/v2/pokemon/${newId}`)).json(); p.id = d2.id; p.name = d2.name.toUpperCase(); p.img = d2.sprites.other['official-artwork'].front_default; p.types = d2.types.map(t=>t.type.name); p.baseHp = d2.stats.find(s=>s.stat.name==='hp').base_stat; recalcStats(p); saveGame(); openBag(); log(`<div class="embed" style="border-left-color:#9b59b6"><div class="embed-header"><div><span class="embed-title">TIẾN HÓA!</span><div class="embed-desc"><b>${p.name}</b><br>HP: ${p.maxHp}</div></div><img class="poke-sprite" src="${p.img}"></div></div>`); } else { btn.innerHTML = "Evo"; btn.classList.remove('loading'); let reqText = reqType === 'use-item' ? 'Cần Evo Stone' : `Cần Level ${(details && details.min_level) || 25}`; alert(`Chưa đủ điều kiện!\n${reqText}`); } } catch(e) { console.log(e); btn.innerHTML="Err"; btn.classList.remove('loading'); } })(); }
+    function checkEvolution(idx, btn) { btn.innerHTML = "⏳"; btn.classList.add('loading'); (async () => { let p = myBag[idx]; try { let res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${p.id}`); let data = await res.json(); let chain = await (await fetch(data.evolution_chain.url)).json(); let node = findNodeInChain(chain.chain, data.name); if(!node || node.evolves_to.length === 0) { btn.innerHTML="Max"; btn.classList.remove('loading'); return; } let nextEvo = node.evolves_to[0]; let details = nextEvo.evolution_details[0]; let reqType = details ? details.trigger.name : 'level-up'; let canEvolve = false; if (reqType === "level-up") { let minLv = (details && details.min_level) ? details.min_level : 25; if (p.level >= minLv) canEvolve = true; } else if (reqType === "use-item") { if (inventory['evo-stone'] > 0) canEvolve = true; } else { if (p.level >= 25) canEvolve = true; } if(canEvolve) { if(reqType === "use-item") inventory['evo-stone']--; let newId = nextEvo.species.name; let d2 = await (await fetch(`https://pokeapi.co/api/v2/pokemon/${newId}`)).json(); p.id = d2.id; p.name = d2.name.toUpperCase(); p.img = d2.sprites.other['official-artwork'].front_default; p.types = d2.types.map(t=>t.type.name); 
+    p.baseHp = d2.stats.find(s=>s.stat.name==='hp').base_stat; 
+    p.baseAtk = d2.stats.find(s=>s.stat.name==='attack').base_stat; 
+    p.baseDef = d2.stats.find(s=>s.stat.name==='defense').base_stat; 
+    p.baseSpd = d2.stats.find(s=>s.stat.name==='speed').base_stat; 
+    recalcStats(p); saveGame(); openBag(); log(`<div class="embed" style="border-left-color:#9b59b6"><div class="embed-header"><div><span class="embed-title">TIẾN HÓA!</span><div class="embed-desc"><b>${p.name}</b><br>HP: ${p.maxHp} | ATK: ${p.atk}</div></div><img class="poke-sprite" src="${p.img}"></div></div>`); } else { btn.innerHTML = "Evo"; btn.classList.remove('loading'); let reqText = reqType === 'use-item' ? 'Cần Evo Stone' : `Cần Level ${(details && details.min_level) || 25}`; alert(`Chưa đủ điều kiện!\n${reqText}`); } } catch(e) { console.log(e); btn.innerHTML="Err"; btn.classList.remove('loading'); } })(); }
     function findNodeInChain(node, name) { if (node.species.name === name) return node; for (let child of node.evolves_to) { let f = findNodeInChain(child, name); if (f) return f; } return null; }
 </script>
 </body>
