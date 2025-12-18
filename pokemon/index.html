@@ -1106,7 +1106,7 @@ function getLearnsetForType(type) {
     { id: 'rich', name: 'Nhà Giàu', desc: 'Có 20,000 Coins', req: (s)=>coins>=20000, reward: {type:'item', id:'nugget', qty:1} },
     { id: 'breaker', name: 'Kẻ Phá Gym', desc: 'Thắng Gym 5 lần', req: (s)=>s.hardWins>=5, reward: {type:'item', id:'rare-candy', qty:1} },
     { id: 'champion', name: 'Vô Địch', desc: 'Thắng Gym 20 lần', req: (s)=>s.hardWins>=20, reward: {type:'item', id:'master-ball', qty:1} },
-    { id: 'hoarder', name: 'Túi Ba Gang', desc: 'Túi chứa 50 Pokemon', req: (s)=>myBag.length>=50, reward: {type:'item', id:'bag-upgrade', qty:1} },
+    { id: 'hoarder', name: 'Túi Ba Gang', desc: 'Túi chứa 50 Pokemon', req: (s)=>myBag.length>=50, reward: {type:'item', id:'great-ball', qty:10} },
 
     // --- MỚI THÊM VÀO (NEW) ---
     { id: 'tycoon', name: 'Tỷ Phú', desc: 'Sở hữu 100,000 Coins', req: (s)=>coins>=100000, reward: {type:'item', id:'master-ball', qty:2} },
@@ -1166,7 +1166,7 @@ const REPAIR_QUESTIONS = [
     let dailyQuizStatus = { date: "", milestones: [] };
     let coins = 5000; let myBag = []; let pokedex = new Set(); let inventory = { 'poke-ball': 20, 'potion': 5, 'bag-upgrade': 0 }; let lastDailyDate = "";
     let userStats = { catches: 0, spent: 0, hardWins: 0, mining: 0, shinies: 0 };
-    let completedAchievements = []; let gymProgress = 0; let maxBagSize = 20; let pickaxe = { durability: 30, max: 30 }; let dailyRepairs = { date: "", count: 0 };
+    let completedAchievements = []; let gymProgress = 0; let maxBagSize = 200; let pickaxe = { durability: 30, max: 30 }; let dailyRepairs = { date: "", count: 0 };
     let dailyQuests = [];
     let daycare = { unlocked: 1, slots: [{pokemon: null, depositTime: 0}] };
     const DAYCARE_PRICES = [0, 5000, 15000, 50000, 100000];
@@ -2920,7 +2920,19 @@ function playCry(id) {
             dailyQuests = [];
             let rE = Math.random(); if(rE < 0.33) dailyQuests.push({date: today, type: 'mine', target: 50 + Math.floor(Math.random()*21), progress: 0, reward: {type:'item', id:'poke-ball', qty:20}, difficulty: 0, text: "Đào mỏ", claimed: false}); else if(rE < 0.66) dailyQuests.push({date: today, type: 'catch', target: 15 + Math.floor(Math.random()*6), progress: 0, reward: {type:'item', id:'great-ball', qty:8}, difficulty: 0, text: "Bắt Pokemon", claimed: false}); else dailyQuests.push({date: today, type: 'spend', target: 5000 + Math.floor(Math.random()*2000), progress: 0, reward: {type:'item', id:'potion', qty:5}, difficulty: 0, text: "Tiêu Coins", claimed: false});
             let rM = Math.random(); if(rM < 0.33) dailyQuests.push({date: today, type: 'mine', target: 150 + Math.floor(Math.random()*51), progress: 0, reward: {type:'item', id:'stardust', qty:10}, difficulty: 1, text: "Đào mỏ", claimed: false}); else if(rM < 0.66) dailyQuests.push({date: today, type: 'catch', target: 30 + Math.floor(Math.random()*11), progress: 0, reward: {type:'item', id:'ultra-ball', qty:5}, difficulty: 1, text: "Bắt Pokemon", claimed: false}); else dailyQuests.push({date: today, type: 'win', target: 8 + Math.floor(Math.random()*4), progress: 0, reward: {type:'item', id:'rare-candy', qty:2}, difficulty: 1, text: "Thắng Arena", claimed: false});
-            let rH = Math.random(); if(rH < 0.33) dailyQuests.push({date: today, type: 'win', target: 20 + Math.floor(Math.random()*6), progress: 0, reward: {type:'item', id:'master-ball', qty:1}, difficulty: 2, text: "Thắng Arena", claimed: false}); else if(rH < 0.66) dailyQuests.push({date: today, type: 'spend', target: 100000 + Math.floor(Math.random()*20001), progress: 0, reward: {type:'item', id:'nugget', qty:3}, difficulty: 2, text: "Tiêu Coins", claimed: false}); else dailyQuests.push({date: today, type: 'catch', target: 50 + Math.floor(Math.random()*21), progress: 0, reward: {type:'item', id:'bag-upgrade', qty:2}, difficulty: 2, text: "Bắt Pokemon", claimed: false});
+            let rH = Math.random(); 
+if(rH < 0.33) dailyQuests.push({date: today, type: 'win', target: 20 + Math.floor(Math.random()*6), progress: 0, reward: {type:'item', id:'master-ball', qty:1}, difficulty: 2, text: "Thắng Arena", claimed: false}); 
+else if(rH < 0.66) dailyQuests.push({date: today, type: 'spend', target: 100000 + Math.floor(Math.random()*20001), progress: 0, reward: {type:'item', id:'nugget', qty:3}, difficulty: 2, text: "Tiêu Coins", claimed: false}); 
+else dailyQuests.push({
+    date: today, 
+    type: 'catch', 
+    target: 50 + Math.floor(Math.random()*21), 
+    progress: 0, 
+    reward: {type:'item', id:'rare-candy', qty:3}, // <-- ĐÃ ĐỔI TỪ BAG UPGRADE SANG RARE CANDY
+    difficulty: 2, 
+    text: "Bắt Pokemon", 
+    claimed: false
+});
             dailyQuests.forEach(q => { if(q.type === 'mine') q.text = `Đào mỏ ${q.target} lần`; if(q.type === 'catch') q.text = `Bắt ${q.target} Pokemon`; if(q.type === 'spend') q.text = `Tiêu ${q.target.toLocaleString()} Coins`; if(q.type === 'win') q.text = `Thắng ${q.target} trận đấu`; });
             saveGame();
         }
@@ -4059,6 +4071,7 @@ function redeemCode(code) {
 </script>
 </body>
 </html>
+
 
 
 
