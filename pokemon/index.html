@@ -866,6 +866,7 @@ const REPAIR_QUESTIONS = [
     { q: "Pokemon hệ Lửa sợ hệ gì?", a: ["Cỏ", "Nước", "Băng", "Tiên"], correct: 1 }
 ];
     let quizStreak = 0;
+    let dailyQuizStatus = { date: "", milestones: [] };
     let coins = 5000; let myBag = []; let pokedex = new Set(); let inventory = { 'poke-ball': 20, 'potion': 5, 'bag-upgrade': 0 }; let lastDailyDate = "";
     let userStats = { catches: 0, spent: 0, hardWins: 0, mining: 0, shinies: 0 };
     let completedAchievements = []; let gymProgress = 0; let maxBagSize = 20; let pickaxe = { durability: 30, max: 30 }; let dailyRepairs = { date: "", count: 0 };
@@ -1029,6 +1030,7 @@ async function login() {
         pokedex: Array.from(pokedex),
         inventory: inventory,
         lastDailyDate: lastDailyDate,
+        dailyQuizStatus: dailyQuizStatus,
         userStats: userStats,
         completedAchievements: completedAchievements,
         daycare: daycare,
@@ -1074,7 +1076,7 @@ async function login() {
             pokedex = new Set(d.pokedex || []);
             inventory = { ...inventory, ...d.inventory };
             lastDailyDate = d.lastDailyDate || "";
-            
+            if (d.dailyQuizStatus) dailyQuizStatus = d.dailyQuizStatus;
             if (d.userStats) userStats = d.userStats;
             if (d.completedAchievements) completedAchievements = d.completedAchievements;
             if (d.gymProgress) gymProgress = d.gymProgress;
@@ -2335,49 +2337,67 @@ function startQuiz() {
 }
 
 function submitQuiz(ans, btnElement) {
-    // Khóa nút để không bấm nhiều lần
+    // 1. Khóa nút
     const allBtns = document.querySelectorAll('.quiz-opt');
     allBtns.forEach(b => b.onclick = null);
-
-    // Hiện hình ảnh
     document.getElementById('quiz-image').classList.add('revealed');
 
+    // 2. Kiểm tra ngày mới để reset quà
+    const today = new Date().toDateString();
+    if (dailyQuizStatus.date !== today) {
+        dailyQuizStatus = { date: today, milestones: [] };
+    }
+
     if(ans === quizAnswer) {
-        // --- TRẢ LỜI ĐÚNG ---
-        btnElement.style.background = '#2ecc71'; // Màu xanh lá
+        // --- ĐÚNG ---
+        btnElement.style.background = '#2ecc71';
         btnElement.style.color = 'black';
         
         quizStreak++; // Tăng chuỗi
-        
-        // 1. TÍNH TIỀN
-        let baseCoin = 150; // Tăng giá cơ bản từ 50 -> 150
-        let streakBonus = (quizStreak * 20); // Mỗi chuỗi +20 xu
-        if(streakBonus > 500) streakBonus = 500; // Max bonus
-        
+
+        // Tính tiền (Vẫn nhận tiền bình thường)
+        let baseCoin = 150;
+        let streakBonus = (quizStreak * 20);
+        if(streakBonus > 500) streakBonus = 500;
         let totalWin = baseCoin + streakBonus;
         coins += totalWin;
 
-        // 2. TÍNH QUÀ MỐC (Milestone)
+        // --- LOGIC KIỂM TRA QUÀ MỐC (ITEM) ---
         let itemReward = "";
-        
+        let rewardType = null;
+        let rewardQty = 1;
+        let milestoneId = quizStreak; // Lưu mốc hiện tại (ví dụ: 3, 5, 10...)
+
+        // Xác định quà của mốc này (nếu có)
         if(quizStreak % 10 === 0) {
-            // Chuỗi 10, 20...: Tặng NUGGET
-            if(!inventory['nugget']) inventory['nugget'] = 0;
-            inventory['nugget']++;
-            itemReward = `<div class="quiz-reward-item">🎁 Thưởng chuỗi 10: <b>1x Nugget</b></div>`;
-            playSFX('levelup'); // Tiếng vui tai
+            rewardType = 'nugget'; 
+            rewardMsg = '1x Nugget';
         } 
         else if(quizStreak % 5 === 0) {
-             // Chuỗi 5, 15...: Tặng KẸO
-            if(!inventory['rare-candy']) inventory['rare-candy'] = 0;
-            inventory['rare-candy']++;
-            itemReward = `<div class="quiz-reward-item">🍬 Thưởng chuỗi 5: <b>1x Rare Candy</b></div>`;
+            rewardType = 'rare-candy';
+            rewardMsg = '1x Rare Candy';
         }
         else if(quizStreak % 3 === 0) {
-            // Chuỗi 3, 6, 9...: Tặng GREAT BALL
-            if(!inventory['great-ball']) inventory['great-ball'] = 0;
-            inventory['great-ball']++;
-            itemReward = `<div class="quiz-reward-item">🔵 Thưởng chuỗi 3: <b>1x Great Ball</b></div>`;
+            rewardType = 'great-ball';
+            rewardMsg = '1x Great Ball';
+        }
+
+        // Nếu mốc này có quà VÀ chưa nhận hôm nay
+        if (rewardType) {
+            if (!dailyQuizStatus.milestones.includes(milestoneId)) {
+                // CHƯA NHẬN -> TRAO QUÀ
+                if(!inventory[rewardType]) inventory[rewardType] = 0;
+                inventory[rewardType] += rewardQty;
+                
+                // Đánh dấu đã nhận mốc này
+                dailyQuizStatus.milestones.push(milestoneId);
+                
+                itemReward = `<div class="quiz-reward-item">🎁 Thưởng chuỗi ${quizStreak}: <b>${rewardMsg}</b></div>`;
+                playSFX('levelup'); 
+            } else {
+                // ĐÃ NHẬN -> THÔNG BÁO
+                itemReward = `<div class="quiz-reward-item" style="filter:grayscale(1); opacity:0.7">🎁 Chuỗi ${quizStreak}: Đã nhận hôm nay</div>`;
+            }
         }
 
         // Log ra màn hình
@@ -2388,10 +2408,9 @@ function submitQuiz(ans, btnElement) {
         </div>`);
 
     } else {
-        // --- TRẢ LỜI SAI ---
-        btnElement.style.background = '#ed4245'; // Màu đỏ
+        // --- SAI ---
+        btnElement.style.background = '#ed4245';
         
-        // Hiện đáp án đúng
         allBtns.forEach(b => {
             if(b.innerText === quizAnswer.toUpperCase()) {
                 b.style.background = '#2ecc71';
@@ -2399,23 +2418,19 @@ function submitQuiz(ans, btnElement) {
             }
         });
 
-        // Reset chuỗi
         if(quizStreak >= 3) {
-            log(`<span style="color:#ed4245">Sai rồi! Bạn đã mất chuỗi ${quizStreak} 🔥.</span>`);
+            log(`<span style="color:#ed4245">Sai rồi! Mất chuỗi ${quizStreak} 🔥.</span>`);
         } else {
-            log(`<span style="color:#ed4245">Sai rồi! Đáp án là ${quizAnswer.toUpperCase()}.</span>`);
+            log(`<span style="color:#ed4245">Sai! Đáp án: ${quizAnswer.toUpperCase()}.</span>`);
         }
-        quizStreak = 0;
+        quizStreak = 0; // Reset chuỗi về 0
     }
 
     incrementEggSteps();
     saveGame();
     updateStats();
 
-    // Tự động chuyển câu tiếp theo sau 2 giây
-    setTimeout(() => {
-        startQuiz(); 
-    }, 2000);
+    setTimeout(() => { startQuiz(); }, 2000);
 }
     function updateMiningUI() { if(pickaxe.durability <= 0) { document.getElementById('btn-mining').style.display = 'none'; document.getElementById('btn-repair').style.display = 'flex'; } else { document.getElementById('btn-mining').style.display = 'flex'; document.getElementById('btn-repair').style.display = 'none'; let percent = (pickaxe.durability / pickaxe.max) * 100; document.getElementById('durability-bar-fill').style.width = percent + '%'; document.getElementById('durability-text').innerText = `${pickaxe.durability}/${pickaxe.max}`; } }
     // --- HÀM ĐÀO MỎ (ĐÃ CÂN BẰNG KINH TẾ) ---
@@ -2828,6 +2843,7 @@ function closeLearnMove() {
 </script>
 </body>
 </html>
+
 
 
 
