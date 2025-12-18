@@ -1693,6 +1693,53 @@ function catchAttempt(ballType) {
 }
 // Hàm lắc bóng đơn giản
 // Hàm diễn hoạt lắc bóng (Kết quả đã định đoạt trước)
+    // --- HÀM XỬ LÝ KHI BẮT DÍNH POKEMON (Bị thiếu) ---
+function captureSuccess() {
+    // 1. Hiệu ứng âm thanh
+    playSFX('catch');
+
+    // 2. Thêm vào Pokedex & Túi
+    let isNew = !pokedex.has(currentWild.id);
+    pokedex.add(currentWild.id);
+    myBag.push(currentWild);
+
+    // 3. Tính tiền thưởng
+    let m = 100 + (currentWild.iv * 5); // Tiền cơ bản theo IV
+    if (currentWild.isShiny) m *= 5;    // Shiny nhân 5 tiền
+
+    // Bonus Amulet Coin (nếu có)
+    let amulets = inventory['amulet-coin'] || 0;
+    if(amulets > 10) amulets = 10;
+    let bonus = Math.floor(m * (amulets * 0.05));
+
+    // Reset Berry nếu có dùng
+    if(activeBuffs.berry) { activeBuffs.berry = false; }
+
+    coins += m + bonus;
+    userStats.catches++;
+    if (currentWild.isShiny) userStats.shinies++;
+
+    // 4. Lưu game & Cập nhật nhiệm vụ hàng ngày
+    if(typeof updateQuestProgress === "function") updateQuestProgress('catch', 1);
+    incrementEggSteps();
+    saveGame();
+    updateStats();
+
+    // 5. Thông báo kết quả đẹp mắt
+    let newBadge = isNew ? `<span style="background:#e67e22; color:white; padding:2px 5px; border-radius:3px; animation:pulse 1s infinite">NEW!</span>` : "";
+    
+    log(`<div style="border:2px solid #3ba55c; padding:10px; border-radius:5px; margin-top:5px; background:rgba(59, 165, 92, 0.1)">
+        <h3 style="color:#3ba55c; margin:0">✨ GOTCHA!</h3>
+        <div style="margin:5px 0">Đã bắt được <b>${currentWild.name}</b> ${newBadge}</div>
+        <div style="font-size:0.9em; color:#f1c40f">+${m+bonus} Coins</div>
+    </div>`);
+
+    if(isNew) alert(`Chúc mừng! Dữ liệu của ${currentWild.name} đã được thêm vào Pokedex!`);
+
+    // 6. Dọn dẹp và về Menu
+    currentWild = null;
+    showMenu();
+}
 function processFixedShake(success, shakeCount) {
     setTimeout(() => {
         if (success) {
@@ -3016,6 +3063,7 @@ function closeLearnMove() {
 </script>
 </body>
 </html>
+
 
 
 
