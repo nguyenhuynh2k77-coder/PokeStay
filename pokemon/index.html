@@ -2124,7 +2124,9 @@ function startMining() {
     function claimEmergency() { if(confirm("Nhận trợ cấp?")) { coins += 200; inventory['poke-ball'] += 5; saveGame(); updateStats(); openJobs(); alert("Đã nhận 200 Coins & 5 Poke Balls."); } }
     function closePokedex() { document.getElementById('dex-modal').style.display = 'none'; }
     // --- CẢI TIẾN: VISUAL POKEDEX ---
-// --- DỮ LIỆU CÁC VÙNG (GEN 1 - GEN 5) ---
+
+
+// --- 1. KHAI BÁO DỮ LIỆU REGION (TOÀN CỤC) ---
 const REGIONS = [
     { name: 'Kanto (1-151)', start: 1, end: 151 },
     { name: 'Johto (152-251)', start: 152, end: 251 },
@@ -2133,24 +2135,25 @@ const REGIONS = [
     { name: 'Unova (494-649)', start: 494, end: 649 }
 ];
 
-let currentDexGen = 0; // Mặc định xem Gen 1
+let currentDexGen = 0; // Biến lưu vùng đang xem hiện tại
 
+// --- 2. HÀM MỞ MODAL & VẼ KHUNG ---
 function showPokedex() {
     const modal = document.getElementById('dex-modal');
     const innerBox = modal.querySelector('.inner-box');
     
-    // Tạo giao diện khung bao gồm các nút chọn vùng
+    // Chỉ vẽ khung, tiêu đề và nút bấm 1 lần duy nhất tại đây
     innerBox.innerHTML = `
         <h2 style="color: #3498db; margin:0 0 5px 0;">📖 Pokedex Quốc Gia</h2>
         
         <div style="font-size: 0.9em; margin-bottom: 10px; display:flex; justify-content:space-between; width:100%">
-            <span>Đã bắt: <b style="color:#f1c40f">${pokedex.size}</b> / ${MAX_ID}</span>
+            <span>Tổng đã bắt: <b style="color:#f1c40f">${pokedex.size}</b> / ${MAX_ID}</span>
         </div>
 
         <div style="display:flex; gap:5px; overflow-x:auto; width:100%; padding-bottom:5px; margin-bottom:5px">
             ${REGIONS.map((r, idx) => `
-                <button class="btn-small" 
-                    style="background:${idx === currentDexGen ? '#f1c40f' : '#444'}; color:${idx === currentDexGen ? 'black' : 'white'}; flex: 0 0 auto; padding:5px 10px" 
+                <button id="dex-btn-${idx}" class="btn-small" 
+                    style="flex: 0 0 auto; padding:8px 10px; border:1px solid #555; transition:0.2s" 
                     onclick="switchDexRegion(${idx})">
                     ${r.name}
                 </button>
@@ -2165,26 +2168,45 @@ function showPokedex() {
 
     modal.style.display = 'flex';
     
-    // Gọi hàm render vùng hiện tại
+    // Sau khi vẽ khung xong, gọi hàm render nội dung vùng hiện tại
     renderDexRegion(currentDexGen);
 }
 
-// Hàm chuyển vùng khi bấm nút
+// --- 3. HÀM CHUYỂN VÙNG (Chỉ xử lý logic chuyển) ---
 function switchDexRegion(genIdx) {
-    currentDexGen = genIdx;
-    showPokedex(); // Vẽ lại giao diện để cập nhật màu nút bấm
+    currentDexGen = genIdx; // Cập nhật biến toàn cục
+    renderDexRegion(genIdx); // Gọi hàm vẽ lại lưới
 }
 
-// Hàm render chi tiết hình ảnh
+// --- 4. HÀM VẼ LƯỚI ẢNH & CẬP NHẬT MÀU NÚT ---
 function renderDexRegion(genIdx) {
+    // A. Cập nhật màu sắc các nút bấm (Active / Inactive)
+    REGIONS.forEach((r, idx) => {
+        const btn = document.getElementById(`dex-btn-${idx}`);
+        if(btn) {
+            if(idx === genIdx) {
+                // Nút đang chọn: Màu vàng, chữ đen
+                btn.style.background = '#f1c40f';
+                btn.style.color = 'black';
+                btn.style.fontWeight = 'bold';
+            } else {
+                // Nút khác: Màu tối, chữ trắng
+                btn.style.background = '#2f3136';
+                btn.style.color = '#bbb';
+                btn.style.fontWeight = 'normal';
+            }
+        }
+    });
+
+    // B. Vẽ lưới Pokemon tương ứng
     const container = document.getElementById('dex-grid-container');
     const region = REGIONS[genIdx];
     let html = '';
 
-    // Vòng lặp từ Start đến End của vùng đó (Ví dụ Gen 5 là 494 đến 649)
+    // Loop từ start -> end của vùng đó
     for (let i = region.start; i <= region.end; i++) {
         const isCaught = pokedex.has(i);
-        // Dùng ảnh nhỏ (icon) cho nhẹ, hoặc dùng ảnh official
+        // Dùng icon nhỏ (pixel) để load nhanh hơn
         const imgSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${i}.png`;
         
         html += `
@@ -2192,20 +2214,21 @@ function renderDexRegion(genIdx) {
                 <span class="dex-id">#${i}</span>
                 <img class="dex-img" src="${imgSrc}" loading="lazy">
                 <div style="font-size:0.7em; font-weight:bold; margin-top:5px; color:${isCaught?'white':'#555'}">
-                    ${isCaught ? 'X' : '?'}
+                    ${isCaught ? '✔' : '?'}
                 </div>
             </div>
         `;
     }
+    
     container.innerHTML = html;
+    // Reset thanh cuộn về đầu khi chuyển trang
+    container.scrollTop = 0;
 }
 
-// Hàm phụ: Bấm vào Pokemon trong Dex để nghe tiếng kêu (nếu đã bắt)
+// Hàm nghe tiếng kêu (giữ nguyên)
 function speakDex(id, isCaught) {
-    if(isCaught) {
+    if(isCaught && typeof playCry === "function") {
         playCry(id);
-    } else {
-        // Chưa bắt thì không biết nó là con gì
     }
 }
     function run() { currentWild=null; showMenu(); log("Bỏ chạy."); }
@@ -2369,6 +2392,7 @@ function openRepairModal() {
 </script>
 </body>
 </html>
+
 
 
 
