@@ -310,6 +310,31 @@
     background: #555;
     border-radius: 2px;
 }
+        /* --- CSS CHO QUIZ COMBO --- */
+.combo-text {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #f1c40f;
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    margin-bottom: 5px;
+    text-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
+
+@keyframes popIn {
+    0% { transform: scale(0); opacity: 0; }
+    80% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.quiz-reward-item {
+    background: rgba(46, 204, 113, 0.2);
+    border: 1px solid #2ecc71;
+    color: #2ecc71;
+    padding: 5px;
+    border-radius: 5px;
+    margin-top: 5px;
+    font-size: 0.9em;
+}
     </style>
 </head>
 <body>
@@ -366,7 +391,57 @@
     
     <div id="buy-modal"><div class="box-style"><div class="inner-box"><h3 style="color: #faa61a; margin: 5px 0;" id="buy-name">Item</h3><img id="buy-img" src="" width="60" style="margin: 10px auto; display:block"><div style="margin-bottom: 10px; color:#bbb">Giá: <span id="buy-price" style="color:white; font-weight:bold">0</span>💰</div><div style="display:flex; justify-content:center; align-items:center; gap:10px; margin: 10px 0;"><input type="number" id="buy-qty" class="login-input" style="width:60px; margin:0" value="1" min="1" oninput="calcTotal()"></div><div style="font-size: 1.1em; margin-bottom: 15px;">Tổng: <span id="buy-total" style="color:#3ba55c; font-weight:bold">0</span>💰</div><div style="display:flex; gap:10px; width:100%"><button class="btn-auth" style="background:#7f8c8d; margin:0" onclick="closeBuy()">HỦY</button><button class="btn-auth btn-login" style="margin:0" onclick="submitBuy()">MUA</button></div></div></div></div>
     
-    <div id="job-modal"><div class="box-style"><h2 style="color: #7289da; margin: 0 0 10px 0;">💼 Job Center</h2><div id="job-menu" style="width:100%"><button id="btn-mining" class="btn-auth" style="background:#40444b; text-align:left; display:flex; align-items:center; gap:10px" onclick="startMining()"><span style="font-size:1.5em">⛏️</span> <div style="flex:1"><div style="display:flex; justify-content:space-between"><span>Đào Mỏ</span><span id="durability-text" style="font-size:0.8em; color:#bbb">30/30</span></div><div style="width:100%;height:6px;background:#202225;border-radius:3px;overflow:hidden;margin-top:3px"><div id="durability-bar-fill" style="height:100%;background:#3ba55c;width:100%;transition:width 0.2s"></div></div></div></button><button id="btn-repair" class="btn-auth" style="background:#e74c3c; display:none; animation:pulse 1s infinite" onclick="openRepairModal()">🔧 CÚP GÃY! Sửa ngay</button><button class="btn-auth" style="background:#40444b; margin-top:10px" onclick="startQuiz()">🎓 Quiz Giáo Sư Oak</button><div id="emergency-aid" style="margin-top:10px; border-top:1px solid #555; padding-top:10px; display:none;"><button class="btn-auth" style="background:#ed4245" onclick="claimEmergency()">🆘 Trợ cấp khẩn cấp</button><div style="font-size:0.7em; color:#bbb; margin-top:2px">(Dành cho người nghèo)</div></div></div><div id="quiz-ui" style="display:none; width:100%"><div style="color:#bbb; font-size:0.9em">Who's that Pokemon?</div><img id="quiz-image" class="quiz-img" src=""><div id="quiz-options" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px"></div></div><button class="btn-close" style="margin-top:15px" onclick="closeJobs()">Đóng</button></div></div>
+    <div id="job-modal">
+    <div class="box-style">
+        <h2 style="color: #7289da; margin: 0 0 15px 0;">💼 Job Center</h2>
+        
+        <div id="job-menu" style="width:100%">
+            
+            <button id="btn-mining" class="btn-auth" style="background:#40444b; text-align:left; display:flex; align-items:center; gap:10px; margin-bottom:8px" onclick="startMining()">
+                <span style="font-size:1.5em">⛏️</span> 
+                <div style="flex:1">
+                    <div style="display:flex; justify-content:space-between">
+                        <span>Đào Mỏ (Mining)</span>
+                        <span id="durability-text" style="font-size:0.8em; color:#bbb">30/30</span>
+                    </div>
+                    <div style="width:100%;height:6px;background:#202225;border-radius:3px;overflow:hidden;margin-top:5px">
+                        <div id="durability-bar-fill" style="height:100%;background:#3ba55c;width:100%;transition:width 0.2s"></div>
+                    </div>
+                </div>
+            </button>
+
+            <button id="btn-repair" class="btn-auth" style="background:#e74c3c; display:none; animation:pulse 1s infinite; margin-bottom:8px" onclick="openRepairModal()">
+                🔧 CÚP GÃY! Sửa ngay (500💰)
+            </button>
+
+            <button class="btn-auth" style="background:#40444b; display:flex; align-items:center; gap:10px" onclick="startQuiz()">
+                <span style="font-size:1.5em">🎓</span>
+                <div style="text-align:left; flex:1">
+                    <div>Giáo Sư Oak's Quiz</div>
+                    <div style="font-size:0.75em; color:#bbb">Trả lời đúng liên tiếp nhận quà!</div>
+                </div>
+            </button>
+
+            <div id="emergency-aid" style="margin-top:15px; border-top:1px solid #555; padding-top:10px; display:none;">
+                <button class="btn-auth" style="background:#ed4245" onclick="claimEmergency()">🆘 Trợ cấp khẩn cấp</button>
+                <div style="font-size:0.7em; color:#bbb; margin-top:2px; text-align:center">(Dành cho người chơi < 200 coins)</div>
+            </div>
+        </div>
+
+        <div id="quiz-ui" style="display:none; width:100%; text-align:center">
+            <div id="quiz-combo-display" class="combo-text" style="display:none">🔥 Streak: 0</div>
+            
+            <div style="color:#bbb; font-size:0.9em; margin-bottom:5px">Who's that Pokemon?</div>
+            
+            <img id="quiz-image" class="quiz-img" src="" style="width:120px; height:120px; margin:0 auto; display:block">
+            
+            <div id="quiz-options" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:15px; width:100%">
+                </div>
+        </div>
+
+        <button class="btn-close" style="margin-top:15px" onclick="closeJobs()">Đóng</button>
+    </div>
+</div>
     
     <div id="daily-modal"><div class="box-style"><h2 style="color: #eb459e; margin: 0 0 10px 0;">🎁 Daily Zone</h2><div class="daily-section" style="background:rgba(0,0,0,0.2);padding:10px;border-radius:5px;border:1px solid #444;text-align:left"><div style="font-weight:bold; color:#f1c40f">📅 Điểm danh</div><div style="font-size:0.8em; color:#bbb; margin-bottom:5px">Nhận 5,000 Coins</div><button id="btn-claim-daily" class="btn-small" style="background:#3ba55c; width:100%; padding:8px" onclick="claimDailyReward()">Nhận</button></div><div class="daily-section" style="margin-top:10px;background:rgba(0,0,0,0.2);padding:10px;border-radius:5px;border:1px solid #444;text-align:left"><div style="font-weight:bold; color:#3498db; margin-bottom:5px">📜 Nhiệm vụ ngày</div><div id="daily-quests-container"></div></div><button class="btn-close" style="margin-top:15px" onclick="closeDaily()">Đóng</button></div></div>
     
@@ -790,8 +865,8 @@ const REPAIR_QUESTIONS = [
     { q: "Con gì gáy ò ó o?", a: ["Chó", "Mèo", "Gà trống", "Vịt"], correct: 2 },
     { q: "Pokemon hệ Lửa sợ hệ gì?", a: ["Cỏ", "Nước", "Băng", "Tiên"], correct: 1 }
 ];
-
-    let coins = 000; let myBag = []; let pokedex = new Set(); let inventory = { 'poke-ball': 20, 'potion': 5, 'bag-upgrade': 0 }; let lastDailyDate = "";
+    let quizStreak = 0;
+    let coins = 5000; let myBag = []; let pokedex = new Set(); let inventory = { 'poke-ball': 20, 'potion': 5, 'bag-upgrade': 0 }; let lastDailyDate = "";
     let userStats = { catches: 0, spent: 0, hardWins: 0, mining: 0, shinies: 0 };
     let completedAchievements = []; let gymProgress = 0; let maxBagSize = 20; let pickaxe = { durability: 30, max: 30 }; let dailyRepairs = { date: "", count: 0 };
     let dailyQuests = [];
@@ -2207,8 +2282,141 @@ async function spawnPokemon() {
     function claimAchieve(id) { if(completedAchievements.includes(id)) return; const a = ACHIEVEMENT_DB.find(x => x.id === id); if(a) { completedAchievements.push(id); if(a.reward.type === 'item') { if(!inventory[a.reward.id]) inventory[a.reward.id]=0; inventory[a.reward.id]+=a.reward.qty; } saveGame(); openAchieve(); } }
     function openRepairModal() { document.getElementById('job-modal').style.display = 'none'; const today = new Date().toDateString(); if(dailyRepairs.date !== today) { dailyRepairs = {date: today, count: 0}; saveGame(); } if(dailyRepairs.count >= 10) { alert("Hôm nay bạn đã sửa 10 lần! Hãy quay lại vào ngày mai."); openJobs(); return; } document.getElementById('repair-limit-text').innerText = `Lượt sửa hôm nay: ${dailyRepairs.count}/10`; let a = Math.floor(Math.random() * 10) + 1; let b = Math.floor(Math.random() * 10) + 1; repairAnswer = a + b; document.getElementById('repair-question').innerText = `${a} + ${b} = ?`; let opts = [repairAnswer]; while(opts.length < 4) { let fake = Math.floor(Math.random() * 20) + 1; if(!opts.includes(fake)) opts.push(fake); } opts.sort(() => Math.random() - 0.5); document.getElementById('repair-options').innerHTML = opts.map(n => `<button class="btn-auth" onclick="submitRepair(${n})">${n}</button>`).join(''); document.getElementById('repair-modal').style.display = 'flex'; }
     function submitRepair(ans) { document.getElementById('repair-modal').style.display = 'none'; if(ans === repairAnswer) { pickaxe.durability = pickaxe.max; dailyRepairs.count++; alert("Sửa thành công!"); saveGame(); openJobs(); } else { alert("Sai rồi! Cúp vẫn gãy. Thử lại sau."); setTimeout(() => openJobs(), 2000); } }
-    function startQuiz() { document.getElementById('job-menu').style.display = 'none'; document.getElementById('quiz-ui').style.display = 'block'; document.getElementById('quiz-options').innerHTML = 'Loading...'; (async () => { let id = Math.floor(Math.random() * 386) + 1; let res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); let data = await res.json(); quizAnswer = data.name; document.getElementById('quiz-image').src = data.sprites.front_default; document.getElementById('quiz-image').classList.remove('revealed'); let opts = [quizAnswer]; while(opts.length<4) { let r = await fetch(`https://pokeapi.co/api/v2/pokemon/${Math.floor(Math.random()*386)+1}`); let d = await r.json(); if(!opts.includes(d.name)) opts.push(d.name); } opts.sort(()=>Math.random()-0.5); document.getElementById('quiz-options').innerHTML = opts.map(n => `<div class="quiz-opt" onclick="submitQuiz('${n}', this)">${n.toUpperCase()}</div>`).join(''); })(); }
-    function submitQuiz(ans, btnElement) { const allBtns = document.querySelectorAll('.quiz-opt'); allBtns.forEach(b => b.onclick = null); document.getElementById('quiz-image').classList.add('revealed'); if(ans===quizAnswer) { btnElement.style.background = '#2ecc71'; coins+=50; log(`<span style="color:#3ba55c">Quiz: Đúng! +50💰</span>`); } else { btnElement.style.background = '#e74c3c'; log(`<span style="color:#ed4245">Quiz: Sai!</span>`); allBtns.forEach(b => { if(b.innerText === quizAnswer.toUpperCase()) b.style.background = '#2ecc71'; }); } incrementEggSteps(); saveGame(); updateStats(); setTimeout(()=>{ openJobs() }, 2000); }
+    // --- HỆ THỐNG QUIZ NÂNG CẤP (STREAK REWARDS) ---
+
+function startQuiz() {
+    document.getElementById('job-menu').style.display = 'none';
+    document.getElementById('quiz-ui').style.display = 'block';
+    
+    // Hiển thị Combo hiện tại
+    const comboEl = document.getElementById('quiz-combo-display');
+    if(quizStreak > 0) {
+        comboEl.style.display = 'block';
+        comboEl.innerText = `🔥 Streak: ${quizStreak}`;
+    } else {
+        comboEl.style.display = 'none';
+    }
+
+    document.getElementById('quiz-options').innerHTML = '<div style="grid-column:span 2; color:yellow">Đang tải dữ liệu...</div>';
+
+    (async () => {
+        try {
+            // Random Pokemon (Gen 1-3 cho dễ đoán, hoặc full 649 tùy bạn)
+            let id = Math.floor(Math.random() * 649) + 1; 
+            let res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+            let data = await res.json();
+            
+            quizAnswer = data.name;
+            document.getElementById('quiz-image').src = data.sprites.front_default;
+            document.getElementById('quiz-image').classList.remove('revealed'); // Đen thui
+
+            // Tạo đáp án giả
+            let opts = [quizAnswer];
+            while(opts.length < 4) {
+                let rId = Math.floor(Math.random() * 649) + 1;
+                let r = await fetch(`https://pokeapi.co/api/v2/pokemon/${rId}`);
+                let d = await r.json();
+                if(!opts.includes(d.name)) opts.push(d.name);
+            }
+            
+            // Xáo trộn đáp án
+            opts.sort(() => Math.random() - 0.5);
+            
+            document.getElementById('quiz-options').innerHTML = opts.map(n => 
+                `<button class="quiz-opt" style="padding:12px; border:1px solid #555; background:#2f3136; color:white; border-radius:5px; cursor:pointer; font-weight:bold" onclick="submitQuiz('${n}', this)">${n.toUpperCase()}</button>`
+            ).join('');
+            
+        } catch(e) {
+            console.error(e);
+            alert("Lỗi tải Quiz, thử lại sau!");
+            openJobs();
+        }
+    })();
+}
+
+function submitQuiz(ans, btnElement) {
+    // Khóa nút để không bấm nhiều lần
+    const allBtns = document.querySelectorAll('.quiz-opt');
+    allBtns.forEach(b => b.onclick = null);
+
+    // Hiện hình ảnh
+    document.getElementById('quiz-image').classList.add('revealed');
+
+    if(ans === quizAnswer) {
+        // --- TRẢ LỜI ĐÚNG ---
+        btnElement.style.background = '#2ecc71'; // Màu xanh lá
+        btnElement.style.color = 'black';
+        
+        quizStreak++; // Tăng chuỗi
+        
+        // 1. TÍNH TIỀN
+        let baseCoin = 150; // Tăng giá cơ bản từ 50 -> 150
+        let streakBonus = (quizStreak * 20); // Mỗi chuỗi +20 xu
+        if(streakBonus > 500) streakBonus = 500; // Max bonus
+        
+        let totalWin = baseCoin + streakBonus;
+        coins += totalWin;
+
+        // 2. TÍNH QUÀ MỐC (Milestone)
+        let itemReward = "";
+        
+        if(quizStreak % 10 === 0) {
+            // Chuỗi 10, 20...: Tặng NUGGET
+            if(!inventory['nugget']) inventory['nugget'] = 0;
+            inventory['nugget']++;
+            itemReward = `<div class="quiz-reward-item">🎁 Thưởng chuỗi 10: <b>1x Nugget</b></div>`;
+            playSFX('levelup'); // Tiếng vui tai
+        } 
+        else if(quizStreak % 5 === 0) {
+             // Chuỗi 5, 15...: Tặng KẸO
+            if(!inventory['rare-candy']) inventory['rare-candy'] = 0;
+            inventory['rare-candy']++;
+            itemReward = `<div class="quiz-reward-item">🍬 Thưởng chuỗi 5: <b>1x Rare Candy</b></div>`;
+        }
+        else if(quizStreak % 3 === 0) {
+            // Chuỗi 3, 6, 9...: Tặng GREAT BALL
+            if(!inventory['great-ball']) inventory['great-ball'] = 0;
+            inventory['great-ball']++;
+            itemReward = `<div class="quiz-reward-item">🔵 Thưởng chuỗi 3: <b>1x Great Ball</b></div>`;
+        }
+
+        // Log ra màn hình
+        log(`<div style="border-left:3px solid #2ecc71; padding-left:5px; margin-bottom:5px">
+            <div style="color:#2ecc71"><b>Chính xác!</b> (Streak: ${quizStreak})</div>
+            <div>+${totalWin} Coins ${streakBonus > 0 ? `(+${streakBonus} bonus)` : ''}</div>
+            ${itemReward}
+        </div>`);
+
+    } else {
+        // --- TRẢ LỜI SAI ---
+        btnElement.style.background = '#ed4245'; // Màu đỏ
+        
+        // Hiện đáp án đúng
+        allBtns.forEach(b => {
+            if(b.innerText === quizAnswer.toUpperCase()) {
+                b.style.background = '#2ecc71';
+                b.style.color = 'black';
+            }
+        });
+
+        // Reset chuỗi
+        if(quizStreak >= 3) {
+            log(`<span style="color:#ed4245">Sai rồi! Bạn đã mất chuỗi ${quizStreak} 🔥.</span>`);
+        } else {
+            log(`<span style="color:#ed4245">Sai rồi! Đáp án là ${quizAnswer.toUpperCase()}.</span>`);
+        }
+        quizStreak = 0;
+    }
+
+    incrementEggSteps();
+    saveGame();
+    updateStats();
+
+    // Tự động chuyển câu tiếp theo sau 2 giây
+    setTimeout(() => {
+        startQuiz(); 
+    }, 2000);
+}
     function updateMiningUI() { if(pickaxe.durability <= 0) { document.getElementById('btn-mining').style.display = 'none'; document.getElementById('btn-repair').style.display = 'flex'; } else { document.getElementById('btn-mining').style.display = 'flex'; document.getElementById('btn-repair').style.display = 'none'; let percent = (pickaxe.durability / pickaxe.max) * 100; document.getElementById('durability-bar-fill').style.width = percent + '%'; document.getElementById('durability-text').innerText = `${pickaxe.durability}/${pickaxe.max}`; } }
     // --- HÀM ĐÀO MỎ (ĐÃ CÂN BẰNG KINH TẾ) ---
 function startMining() {
@@ -2620,6 +2828,7 @@ function closeLearnMove() {
 </script>
 </body>
 </html>
+
 
 
 
