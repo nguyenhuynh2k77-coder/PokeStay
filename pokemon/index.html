@@ -319,9 +319,16 @@
         <div id="controls"></div>
         
         <div class="footer">
-            <div><span class="footer-link" onclick="logout()" style="cursor:pointer; color:#ed4245">[Thoát]</span> <span class="footer-link" onclick="resetGame()" style="cursor:pointer; color:#777">[Xóa]</span></div>
-            <div class="footer-link donate-btn-text" onclick="showDonate()">💖 Ủng hộ</div>
-        </div>
+    <div style="display:flex; gap:10px">
+        <span class="footer-link" onclick="logout()" style="cursor:pointer; color:#ed4245">[Thoát]</span> 
+        <span class="footer-link" onclick="resetGame()" style="cursor:pointer; color:#777">[Xóa]</span>
+    </div>
+
+    <div style="display:flex; gap:15px">
+        <span class="footer-link" onclick="openFeedback()" style="cursor:pointer; color:#3498db; font-weight:bold">📩 Góp ý</span>
+        <span class="footer-link donate-btn-text" onclick="showDonate()">💖 Ủng hộ</span>
+    </div>
+</div>
     </div>
 
     <div id="shop-modal"><div class="box-style" style="width:95%; max-width:500px"><h2 style="color: #faa61a; margin: 0 0 10px 0;">🛒 Poke Mart</h2><div style="text-align:right; width:100%; margin-bottom:5px">Số dư: <span id="shop-coin-display" style="color:#f1c40f; font-weight:bold">0</span>💰</div><div id="shop-list" class="shop-grid" style="overflow-y:auto; max-height:60vh"></div><button class="btn-close" onclick="closeShop()">Đóng</button></div></div>
@@ -2582,6 +2589,7 @@ function closeLearnMove() {
 </script>
 </body>
 </html>
+
 
 
 
