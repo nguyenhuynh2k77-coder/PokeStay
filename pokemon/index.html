@@ -542,7 +542,7 @@
         
     ];
 
-    let coins = 1000; let myBag = []; let pokedex = new Set(); let inventory = { 'poke-ball': 20, 'potion': 5, 'bag-upgrade': 0 }; let lastDailyDate = "";
+    let coins = 000; let myBag = []; let pokedex = new Set(); let inventory = { 'poke-ball': 20, 'potion': 5, 'bag-upgrade': 0 }; let lastDailyDate = "";
     let userStats = { catches: 0, spent: 0, hardWins: 0, mining: 0, shinies: 0 };
     let completedAchievements = []; let gymProgress = 0; let maxBagSize = 20; let pickaxe = { durability: 30, max: 30 }; let dailyRepairs = { date: "", count: 0 };
     let dailyQuests = [];
@@ -1945,7 +1945,66 @@ async function spawnPokemon() {
     function startQuiz() { document.getElementById('job-menu').style.display = 'none'; document.getElementById('quiz-ui').style.display = 'block'; document.getElementById('quiz-options').innerHTML = 'Loading...'; (async () => { let id = Math.floor(Math.random() * 386) + 1; let res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); let data = await res.json(); quizAnswer = data.name; document.getElementById('quiz-image').src = data.sprites.front_default; document.getElementById('quiz-image').classList.remove('revealed'); let opts = [quizAnswer]; while(opts.length<4) { let r = await fetch(`https://pokeapi.co/api/v2/pokemon/${Math.floor(Math.random()*386)+1}`); let d = await r.json(); if(!opts.includes(d.name)) opts.push(d.name); } opts.sort(()=>Math.random()-0.5); document.getElementById('quiz-options').innerHTML = opts.map(n => `<div class="quiz-opt" onclick="submitQuiz('${n}', this)">${n.toUpperCase()}</div>`).join(''); })(); }
     function submitQuiz(ans, btnElement) { const allBtns = document.querySelectorAll('.quiz-opt'); allBtns.forEach(b => b.onclick = null); document.getElementById('quiz-image').classList.add('revealed'); if(ans===quizAnswer) { btnElement.style.background = '#2ecc71'; coins+=50; log(`<span style="color:#3ba55c">Quiz: Đúng! +50💰</span>`); } else { btnElement.style.background = '#e74c3c'; log(`<span style="color:#ed4245">Quiz: Sai!</span>`); allBtns.forEach(b => { if(b.innerText === quizAnswer.toUpperCase()) b.style.background = '#2ecc71'; }); } incrementEggSteps(); saveGame(); updateStats(); setTimeout(()=>{ openJobs() }, 2000); }
     function updateMiningUI() { if(pickaxe.durability <= 0) { document.getElementById('btn-mining').style.display = 'none'; document.getElementById('btn-repair').style.display = 'flex'; } else { document.getElementById('btn-mining').style.display = 'flex'; document.getElementById('btn-repair').style.display = 'none'; let percent = (pickaxe.durability / pickaxe.max) * 100; document.getElementById('durability-bar-fill').style.width = percent + '%'; document.getElementById('durability-text').innerText = `${pickaxe.durability}/${pickaxe.max}`; } }
-    function startMining() { if(pickaxe.durability <= 0) return updateMiningUI(); pickaxe.durability--; userStats.mining++; let r = Math.random(); let earned = Math.floor(Math.random() * 6) + 10; coins += earned; if (r < 0.005) { inventory['nugget']++; } else if (r < 0.03) { inventory['stardust']++; } incrementEggSteps(); updateQuestProgress('mine', 1); saveGame(); updateStats(); updateMiningUI(); const btn = document.getElementById('btn-mining'); const old = btn.innerHTML; btn.innerHTML = `<div style="color:#2ecc71; font-size:1.2em; text-align:center">+${earned}💰</div>`; btn.disabled = true; setTimeout(() => { btn.innerHTML = old; btn.disabled = false; updateMiningUI(); }, 600); }
+    // --- HÀM ĐÀO MỎ (ĐÃ CÂN BẰNG KINH TẾ) ---
+function startMining() {
+    // 1. Kiểm tra độ bền cúp
+    if(pickaxe.durability <= 0) return updateMiningUI();
+
+    // 2. Trừ độ bền và tăng thống kê
+    pickaxe.durability--;
+    userStats.mining++;
+
+    // 3. TÍNH TIỀN THƯỞNG MỚI
+    // Random từ 50 đến 150 xu (Đủ để người chơi mới sống sót)
+    let earned = Math.floor(Math.random() * 101) + 50; 
+
+    // 4. XỬ LÝ RỚT ĐỒ HIẾM (LUCKY DROPS)
+    let r = Math.random();
+    let bonusText = "";
+
+    // 0.5% cơ hội nhận Nugget (Bán giá cao)
+    if (r < 0.005) { 
+        if(!inventory['nugget']) inventory['nugget'] = 0;
+        inventory['nugget']++; 
+        bonusText = " + 1 Nugget! 💎";
+        log(`<span style="color:#f1c40f; font-weight:bold">⛏️ WOW! Đào trúng vỉa vàng! Nhận 1 Nugget.</span>`);
+    } 
+    // 3% cơ hội nhận Stardust
+    else if (r < 0.035) { 
+        if(!inventory['stardust']) inventory['stardust'] = 0;
+        inventory['stardust']++; 
+        bonusText = " + Stardust ✨";
+        log(`<span style="color:#a29bfe">⛏️ Tìm thấy bụi sao! Nhận 1 Stardust.</span>`);
+    }
+
+    // 5. CẬP NHẬT DỮ LIỆU
+    coins += earned;
+    incrementEggSteps(); // Ấp trứng
+    updateQuestProgress('mine', 1); // Nhiệm vụ hàng ngày
+    
+    saveGame();
+    updateStats();
+    updateMiningUI();
+
+    // 6. HIỆU ỨNG NÚT BẤM (VISUAL)
+    const btn = document.getElementById('btn-mining');
+    const oldHtml = btn.innerHTML; // Lưu giao diện cũ
+    
+    // Hiện số tiền vừa kiếm được đè lên nút
+    btn.innerHTML = `<div style="color:#2ecc71; font-size:1.1em; text-align:center; font-weight:bold; display:flex; flex-direction:column; justify-content:center; height:100%">
+        <span>+${earned}💰</span>
+        <span style="font-size:0.8em; color:#f1c40f">${bonusText}</span>
+    </div>`;
+    
+    btn.disabled = true; // Khóa nút tạm thời để tránh spam quá nhanh
+
+    // Sau 0.8 giây thì trả lại nút bình thường
+    setTimeout(() => { 
+        btn.innerHTML = oldHtml; 
+        btn.disabled = false; 
+        updateMiningUI(); // Cập nhật lại thanh độ bền lần nữa cho chắc
+    }, 800);
+}
     function claimEmergency() { if(confirm("Nhận trợ cấp?")) { coins += 200; inventory['poke-ball'] += 5; saveGame(); updateStats(); openJobs(); alert("Đã nhận 200 Coins & 5 Poke Balls."); } }
     function closePokedex() { document.getElementById('dex-modal').style.display = 'none'; }
     function showPokedex() { document.getElementById('dex-count').innerText = pokedex.size; document.getElementById('dex-modal').style.display = 'flex'; }
@@ -2061,6 +2120,7 @@ function submitFeedback() {
 </script>
 </body>
 </html>
+
 
 
 
