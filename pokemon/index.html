@@ -25,12 +25,23 @@
             body { background: #202225; }
             #app { max-width: 100%; border: none; box-shadow: none; height: 100dvh; position: fixed; top: 0; left: 0; }
             #controls { padding-bottom: 20px; gap: 5px; }
-            .btn { padding: 14px 0; font-size: 1em; width: 48%; }
+            
+            /* Chỉnh lại kích thước nút trên điện thoại */
+            .btn { padding: 12px 0; font-size: 0.9em; width: 48%; }
+            
+            /* Nút Săn to nhất */
             .btn-hunt { width: 100% !important; margin-bottom: 5px; font-size: 1.2em; }
-            .btn-shop, .btn-bag { width: 49% !important; }
-            .btn-job, .btn-achieve, .btn-daycare { width: 32% !important; font-size: 0.8em; padding: 10px 0; }
-            .btn-daily, .btn-center { width: 49% !important; }
-            .btn-dex { display:none; }
+            
+            /* Hàng 2 nút (Shop, Bag, Daily, Center) */
+            .btn-shop, .btn-bag, .btn-daily, .btn-center { width: 49% !important; }
+
+            /* Hàng 3 nút (Job, Achieve, Care, Dex, Log) - CHỈNH SỬA Ở ĐÂY */
+            .btn-job, .btn-achieve, .btn-daycare, .btn-dex, .btn-log { 
+                width: 32% !important; /* Chia 3 cột đều nhau */
+                font-size: 0.8em; 
+                padding: 10px 0; 
+                display: flex !important; /* Bắt buộc hiện */
+            }
         }
         #login-screen, #donate-modal, #update-modal, #shop-modal, #buy-modal, #battle-modal, #job-modal, #achieve-modal, #daycare-modal, #repair-modal, #dex-modal, #daily-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         #donate-modal, #update-modal, #shop-modal, #buy-modal, #battle-modal, #job-modal, #achieve-modal, #daycare-modal, #repair-modal, #dex-modal, #daily-modal { display: none; z-index: 1000; }
@@ -2423,6 +2434,7 @@ function openRepairModal() {
 </script>
 </body>
 </html>
+
 
 
 
