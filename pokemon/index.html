@@ -167,6 +167,61 @@
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+        /* --- CSS CHO VISUAL POKEDEX --- */
+.dex-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 10px;
+    width: 100%;
+    padding: 10px;
+    overflow-y: auto;
+    max-height: 60vh;
+}
+
+.dex-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid #444;
+    border-radius: 5px;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.dex-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #3498db;
+}
+
+.dex-card.owned {
+    border-color: #f1c40f; /* Viền vàng cho con đã bắt */
+    background: rgba(241, 196, 15, 0.1);
+}
+
+.dex-img {
+    width: 60px;
+    height: 60px;
+    image-rendering: pixelated;
+    filter: brightness(0); /* Mặc định đen thui (chưa bắt) */
+    opacity: 0.5;
+    transition: 0.3s;
+}
+
+.dex-card.owned .dex-img {
+    filter: brightness(1); /* Sáng lên nếu đã bắt */
+    opacity: 1;
+}
+
+.dex-id {
+    font-size: 0.7em;
+    color: #777;
+    position: absolute;
+    top: 2px;
+    left: 4px;
+}
     </style>
 </head>
 <body>
@@ -1248,16 +1303,41 @@ async function spawnPokemon() {
     function catchAttempt(bid, rate) {
         inventory[bid]--; saveGame(); log(`<i>Ném bóng...</i>`);
         setTimeout(() => {
-            if(Math.random() < rate) { 
-                playSFX('catch');
-                pokedex.add(currentWild.id); myBag.push(currentWild); 
-                let m = 100 + (currentWild.iv * 5); if(currentWild.isShiny) m *= 5; 
-                let amulets = inventory['amulet-coin'] || 0; if(amulets>10) amulets=10; let bonus = Math.floor(m * (amulets * 0.05));
-                if(activeBuffs.egg) { m *= 2; bonus *= 2; activeBuffs.egg = false; } 
-                coins += m + bonus; userStats.catches++; if(currentWild.isShiny) userStats.shinies++; incrementEggSteps();
-                updateQuestProgress('catch', 1);
-                saveGame(); log(`<span style="color:#3ba55c">✨ <b>GOTCHA!</b> +${m+bonus} Coins</span>`); currentWild = null; updateStats(); showMenu(); 
-            } else { 
+           if(Math.random() < rate) { 
+    playSFX('catch');
+    
+    // --- KIỂM TRA POKEDEX MỚI ---
+    let isNew = !pokedex.has(currentWild.id); // Kiểm tra trước khi add
+    pokedex.add(currentWild.id); 
+    myBag.push(currentWild); 
+    
+    let m = 100 + (currentWild.iv * 5); 
+    if(currentWild.isShiny) m *= 5; 
+    let amulets = inventory['amulet-coin'] || 0; if(amulets>10) amulets=10; 
+    let bonus = Math.floor(m * (amulets * 0.05));
+    if(activeBuffs.egg) { m *= 2; bonus *= 2; activeBuffs.egg = false; } 
+    
+    coins += m + bonus; 
+    userStats.catches++; 
+    if(currentWild.isShiny) userStats.shinies++; 
+    incrementEggSteps();
+    updateQuestProgress('catch', 1);
+    
+    saveGame(); 
+    
+    // --- THÔNG BÁO CẢI TIẾN ---
+    let newBadge = isNew ? `<span style="background:#e67e22; color:white; padding:2px 5px; border-radius:3px; animation:pulse 1s infinite">NEW!</span>` : "";
+    
+    log(`<span style="color:#3ba55c">✨ <b>GOTCHA!</b> ${newBadge} +${m+bonus} Coins</span>`); 
+    
+    if(isNew) {
+        alert(`Chúc mừng! Bạn đã đăng ký ${currentWild.name} vào Pokedex!`);
+    }
+
+    currentWild = null; 
+    updateStats(); 
+    showMenu(); 
+} else { 
                 let consolation = Math.floor(Math.random() * 11) + 10; coins += consolation; log(`<span style="color:#ed4245">Bóng bật ra! (+${consolation}💰 an ủi)</span>`); 
                 if(Math.random() < 0.25) { log(`<span style="color:#bbb">💨 Pokemon đã chạy mất!</span>`); currentWild = null; activeBuffs.egg = false; updateStats(); showMenu(); } 
                 else { streakBonus += 0.06; log(`<span style="color:#faa61a; font-size:0.8em">Cố lên! (+6% Tỉ lệ)</span>`); renderBattleControls(); } 
@@ -2043,7 +2123,64 @@ function startMining() {
 }
     function claimEmergency() { if(confirm("Nhận trợ cấp?")) { coins += 200; inventory['poke-ball'] += 5; saveGame(); updateStats(); openJobs(); alert("Đã nhận 200 Coins & 5 Poke Balls."); } }
     function closePokedex() { document.getElementById('dex-modal').style.display = 'none'; }
-    function showPokedex() { document.getElementById('dex-count').innerText = pokedex.size; document.getElementById('dex-modal').style.display = 'flex'; }
+    // --- CẢI TIẾN: VISUAL POKEDEX ---
+async function showPokedex() {
+    const modal = document.getElementById('dex-modal');
+    const innerBox = modal.querySelector('.inner-box');
+    
+    // Xóa nội dung cũ (trừ nút đóng và tiêu đề nếu muốn giữ, nhưng ta sẽ render lại hết cho sạch)
+    // Cập nhật lại HTML của modal Pokedex để chứa lưới
+    innerBox.innerHTML = `
+        <h2 style="color: #3498db; margin:0 0 10px 0;">📖 Pokedex Quốc Gia</h2>
+        <div style="font-size: 0.9em; margin-bottom: 10px; display:flex; justify-content:space-between; width:100%">
+            <span>Tiến độ: <b style="color:#f1c40f">${pokedex.size}</b> / ${MAX_ID}</span>
+            <span style="font-size:0.8em; color:#bbb">Gen 1 - Gen 5</span>
+        </div>
+        <div id="dex-grid-container" class="dex-grid">
+            <div style="color:yellow; width:100%; text-align:center">Đang tải dữ liệu...</div>
+        </div>
+        <button class="btn-close" onclick="closePokedex()" style="margin-top:10px">Đóng</button>
+    `;
+
+    modal.style.display = 'flex';
+
+    // Tạo lưới Pokemon (Load danh sách Gen 1-5)
+    // Lưu ý: Load 649 ảnh một lúc có thể hơi lag trên máy yếu, ta sẽ dùng kỹ thuật tải ảnh khi cần thiết
+    // Để tối ưu, ta chỉ hiển thị khung trước, ảnh sẽ load từ từ
+    
+    let html = '';
+    // Giới hạn hiển thị 151 con đầu tiên trước (Gen 1) để test cho mượt, hoặc loop tới MAX_ID
+    // Ở đây tôi loop tới 151 (Kanto) demo trước, bạn có thể sửa thành MAX_ID
+    for (let i = 1; i <= 151; i++) {
+        const isCaught = pokedex.has(i);
+        // Link ảnh pixel nhỏ cho nhẹ (sprites/pokemon/icon/...) hoặc dùng link cũ
+        const imgSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${i}.png`;
+        
+        html += `
+            <div class="dex-card ${isCaught ? 'owned' : ''}" onclick="speakDex(${i}, ${isCaught})">
+                <span class="dex-id">#${i}</span>
+                <img class="dex-img" src="${imgSrc}" loading="lazy">
+                <div style="font-size:0.7em; font-weight:bold; margin-top:5px; color:${isCaught?'white':'#555'}">
+                    ${isCaught ? 'CAUGHT' : '???'}
+                </div>
+            </div>
+        `;
+    }
+    
+    // Thêm nút "Tải thêm Gen sau..." nếu muốn, hoặc render hết (nếu render hết 649 thì bỏ loop 151 thay bằng MAX_ID)
+    // Tạm thời render Gen 1 (151) cho nhanh. Nếu bạn muốn hết thì đổi i <= MAX_ID
+    
+    document.getElementById('dex-grid-container').innerHTML = html;
+}
+
+// Hàm phụ: Bấm vào Pokemon trong Dex để nghe tiếng kêu (nếu đã bắt)
+function speakDex(id, isCaught) {
+    if(isCaught) {
+        playCry(id);
+    } else {
+        // Chưa bắt thì không biết nó là con gì
+    }
+}
     function run() { currentWild=null; showMenu(); log("Bỏ chạy."); }
     function checkEvolution(idx, btn) { btn.innerHTML = "⏳"; btn.classList.add('loading'); (async () => { let p = myBag[idx]; try { let res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${p.id}`); let data = await res.json(); let chain = await (await fetch(data.evolution_chain.url)).json(); let node = findNodeInChain(chain.chain, data.name); if(!node || node.evolves_to.length === 0) { btn.innerHTML="Max"; btn.classList.remove('loading'); return; } let nextEvo = node.evolves_to[0]; let details = nextEvo.evolution_details[0]; let reqType = details ? details.trigger.name : 'level-up'; let canEvolve = false; if (reqType === "level-up") { let minLv = (details && details.min_level) ? details.min_level : 25; if (p.level >= minLv) canEvolve = true; } else if (reqType === "use-item") { if (inventory['evo-stone'] > 0) canEvolve = true; } else { if (p.level >= 25) canEvolve = true; } if(canEvolve) { if(reqType === "use-item") inventory['evo-stone']--; let newId = nextEvo.species.name; let d2 = await (await fetch(`https://pokeapi.co/api/v2/pokemon/${newId}`)).json(); p.id = d2.id; p.name = d2.name.toUpperCase(); p.img = d2.sprites.other['official-artwork'].front_default; p.types = d2.types.map(t=>t.type.name); 
     p.baseHp = d2.stats.find(s=>s.stat.name==='hp').base_stat; 
@@ -2205,6 +2342,7 @@ function openRepairModal() {
 </script>
 </body>
 </html>
+
 
 
 
