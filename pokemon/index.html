@@ -1898,7 +1898,7 @@ function playSFX(type) {
     
     if(src) {
         let a = new Audio(src);
-        a.volume = 0.2;
+        a.volume = 0.1;
         a.play().catch(e => { console.warn("Lỗi SFX (bỏ qua):", e); });
     }
 }
@@ -1906,7 +1906,7 @@ function playSFX(type) {
 function playCry(id) {
     if(isMuted) return;
     let audio = new Audio(`https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`);
-    audio.volume = 0.;
+    audio.volume = 0.15;
     audio.play().catch(e => { console.warn("Lỗi Cry (bỏ qua):", e); });
 }
     function useItem(id) { inventory[id]--; saveGame(); if(id==='razz-berry') activeBuffs.berry=true; if(id==='lucky-egg') activeBuffs.egg=true; if(id==='incense') { spawnPokemon(); return; } updateStats(); renderBattleControls(); }
@@ -3253,6 +3253,7 @@ function sellSelectedItems() {
 </script>
 </body>
 </html>
+
 
 
 
