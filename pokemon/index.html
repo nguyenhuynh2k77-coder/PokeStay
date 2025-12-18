@@ -1118,7 +1118,7 @@ function getLearnsetForType(type) {
         { id: 'lucky-egg', name: 'Lucky Egg', price: 300, type: 'item', desc: 'x2 Coins', img: 'lucky-egg.png' },
         { id: 'incense', name: 'Incense', price: 200, type: 'item', desc: 'Reroll', img: 'super-repel.png' },
         { id: 'evo-stone', name: 'Evo Stone', price: 1000, type: 'item', desc: 'Tiến hóa', img: 'fire-stone.png' },
-        { id: 'old-map', name: 'Bản Đồ Cũ',  price: 1, img: 'map.png',type: 'misc', desc: 'Bản đồ cũ nát, mờ mờ dòng chữ: "UPDATE241"'},
+        { id: 'old-map', name: 'Bản Đồ Cũ', price: 500, img: 'map.png', type: 'misc', desc: 'Tấm bản đồ cũ nát, soi lên đèn thấy dòng chữ: "UPDATE241"',uniqueKey: 'UPDATE241' },
         { id: 'amulet-coin', name: 'Amulet Coin', price: 5000, type: 'item', desc: '+5% Coin/Catch (Max 10)', img: 'amulet-coin.png' },
         { id: 'nugget', name: 'Nugget', price: 5000, type: 'sell', desc: 'Bán lấy tiền', img: 'nugget.png' },
         { id: 'shiny-charm', name: 'Shiny Charm', price: 1000000, type: 'item', desc: 'Tăng 3x tỉ lệ gặp Shiny (Vĩnh viễn)', img: 'shiny-charm.png' },
@@ -1144,6 +1144,7 @@ const REPAIR_QUESTIONS = [
     let lastStaminaTime = Date.now();
     const MAX_STAMINA = 100;
     let bossTeamIndices = [];
+    let limitedShopHistory = {};
     let isSelectMode = false;
     let selectedIndices = new Set(); // Dùng Set để lưu index không bị trùng
     let quizStreak = 0;
@@ -1309,6 +1310,7 @@ async function login() {
         coins: coins,
         myBag: myBag,
         usedCodes: usedCodes,
+        limitedShopHistory: limitedShopHistory,
         pokedex: Array.from(pokedex),
         inventory: inventory,
         lastDailyDate: lastDailyDate,
@@ -1361,6 +1363,7 @@ async function login() {
             pokedex = new Set(d.pokedex || []);
             inventory = { ...inventory, ...d.inventory };
             lastDailyDate = d.lastDailyDate || "";
+            if (d.limitedShopHistory) limitedShopHistory = d.limitedShopHistory;
             if (typeof d.stamina !== 'undefined') stamina = d.stamina;
             if (d.lastStaminaTime) lastStaminaTime = d.lastStaminaTime;
             if (d.bossTeamIndices) bossTeamIndices = d.bossTeamIndices;
@@ -1776,31 +1779,72 @@ function sellItemDirectly(id, name, price) {
         document.getElementById('buy-total').innerText = (item.price * qty).toLocaleString();
     }
 
-    function submitBuy() {
-        const item = SHOP_DB.find(i => i.id === selectedItemId);
-        let qty = parseInt(document.getElementById('buy-qty').value);
-        if(qty < 1) qty = 1;
-        let total = item.price * qty;
+    // --- HÀM XÁC NHẬN MUA (Đã thêm giới hạn mua 1 lần) ---
+function submitBuy() {
+    // 1. Lấy thông tin từ giao diện
+    const qtyInput = document.getElementById('shop-buy-qty'); // Ô nhập số lượng
+    const qty = parseInt(qtyInput.value);
+    const id = currentBuyItem; // ID vật phẩm đang chọn (biến toàn cục)
+
+    // 2. Kiểm tra cơ bản
+    if (qty <= 0 || isNaN(qty)) return alert("Số lượng không hợp lệ!");
+    
+    const item = SHOP_DB.find(i => i.id === id);
+    if (!item) return alert("Vật phẩm không tồn tại!");
+
+    // --- [MỚI] LOGIC KIỂM TRA GIỚI HẠN MUA ---
+    if (item.uniqueKey) {
+        // Kiểm tra lịch sử
+        if (limitedShopHistory[id] === item.uniqueKey) {
+            closeShopModal(); // Đóng bảng mua
+            return alert("✋ Bạn đã mua vật phẩm này rồi! Hãy kiểm tra lại trong túi.");
+        }
         
-        if(coins >= total) {
-            coins -= total;
-            userStats.spent += total;
-            if(item.type === 'upgrade') {
-                 maxBagSize += (5 * qty);
-                 alert(`Đã nâng cấp túi thêm ${5*qty} slot!`);
-            } else {
-                if(!inventory[item.id]) inventory[item.id] = 0;
-                inventory[item.id] += qty;
-            }
-            updateQuestProgress('spend', total);
-            saveGame();
-            updateStats();
-            closeBuy();
-            alert(`Mua thành công ${qty}x ${item.name}!`);
-        } else {
-            alert("Không đủ tiền!");
+        // Chặn mua số lượng nhiều
+        if (qty > 1) {
+            return alert("Vật phẩm đặc biệt này chỉ được mua 1 cái!");
         }
     }
+    // -----------------------------------------
+
+    // 3. Tính tiền
+    let cost = item.price * qty;
+    if (coins < cost) return alert("Không đủ tiền!");
+
+    // 4. Trừ tiền & Cộng đồ
+    coins -= cost;
+    if (!inventory[id]) inventory[id] = 0;
+    inventory[id] += qty;
+
+    // --- [MỚI] LƯU LỊCH SỬ ĐÃ MUA ---
+    if (item.uniqueKey) {
+        limitedShopHistory[id] = item.uniqueKey;
+    }
+    // --------------------------------
+
+    // 5. Lưu & Cập nhật giao diện
+    saveGame();
+    updateStats();
+    
+    // Nếu đang ở trong Shop thì update lại số dư
+    const coinDisplay = document.getElementById('shop-coin-display');
+    if(coinDisplay) coinDisplay.innerText = coins.toLocaleString();
+
+    closeShopModal(); // Đóng modal mua
+    
+    // 6. Thông báo & Hiệu ứng
+    playSFX('buy'); // Hoặc 'levelup' nếu chưa có sound buy
+    
+    // Nếu mua Bản Đồ, hiện luôn gợi ý ra màn hình chat
+    if(item.uniqueKey) {
+        log(`<div style="color:#f1c40f; border:1px dashed #f1c40f; padding:10px; margin:5px 0; background:rgba(241, 196, 15, 0.1)">
+            🗺️ <b>BẠN ĐÃ MUA ${item.name.toUpperCase()}!</b><br>
+            <i>"${item.desc}"</i>
+        </div>`);
+    } else {
+        alert(`Đã mua ${qty}x ${item.name} thành công!`);
+    }
+}
 
     function closeBuy() { 
         document.getElementById('buy-modal').style.display = 'none'; 
@@ -3977,6 +4021,7 @@ function redeemCode(code) {
 </script>
 </body>
 </html>
+
 
 
 
