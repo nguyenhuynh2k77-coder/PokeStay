@@ -335,6 +335,28 @@
     margin-top: 5px;
     font-size: 0.9em;
 }
+        /* --- CSS CHO SHOP TABS --- */
+.shop-tabs {
+    display: flex;
+    width: 100%;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #444;
+}
+.shop-tab-btn {
+    flex: 1;
+    padding: 10px;
+    background: #2f3136;
+    color: #bbb;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+.shop-tab-btn.active {
+    background: #faa61a; /* Màu cam của Shop */
+    color: black;
+    box-shadow: 0 0 10px rgba(250, 166, 26, 0.4);
+}
     </style>
 </head>
 <body>
@@ -1328,25 +1350,115 @@ function renderBag() {
         }
     }
 
-    function shop() {
-        if(currentWild) return;
-        const list = document.getElementById('shop-list');
-        document.getElementById('shop-coin-display').innerText = coins.toLocaleString();
-        list.innerHTML = SHOP_DB.map(i => {
-             let action = "openBuy";
-             if(i.type === 'sell') return ``; 
-             return `
-             <div class="shop-card" onclick="${action}('${i.id}')">
-                <img src="${URL_ITEMS}${i.img}" width="50">
-                <div style="font-weight:bold; color:#faa61a">${i.name}</div>
-                <div style="font-size:0.8em; color:#bbb">${i.price}💰</div>
-             </div>`;
-        }).join('');
-        document.getElementById('shop-modal').style.display = 'flex';
+    // --- HỆ THỐNG SHOP NÂNG CẤP (MUA & BÁN) ---
+let currentShopTab = 'buy'; // Mặc định vào là tab Mua
+
+function shop() {
+    if(currentWild) return;
+    document.getElementById('shop-modal').style.display = 'flex';
+    switchShopTab('buy'); // Mở tab mua trước
+}
+
+function closeShop() {
+    document.getElementById('shop-modal').style.display = 'none';
+}
+
+function switchShopTab(mode) {
+    currentShopTab = mode;
+    const list = document.getElementById('shop-list');
+    const coinDisplay = document.getElementById('shop-coin-display');
+    
+    // Cập nhật số dư
+    coinDisplay.innerText = coins.toLocaleString();
+
+    // 1. Cập nhật giao diện Tab (HTML cứng trong JS để khỏi sửa file HTML)
+    const modalBox = document.querySelector('#shop-modal .box-style');
+    // Tìm hoặc tạo thanh Tab nếu chưa có
+    let tabContainer = document.getElementById('shop-tabs-container');
+    if(!tabContainer) {
+        // Chèn thanh tab vào dưới tiêu đề
+        const title = modalBox.querySelector('h2');
+        tabContainer = document.createElement('div');
+        tabContainer.id = 'shop-tabs-container';
+        tabContainer.className = 'shop-tabs';
+        title.insertAdjacentElement('afterend', tabContainer);
     }
+    
+    // Vẽ nút Tab
+    tabContainer.innerHTML = `
+        <button class="shop-tab-btn ${mode==='buy'?'active':''}" onclick="switchShopTab('buy')">MUA ĐỒ</button>
+        <button class="shop-tab-btn ${mode==='sell'?'active':''}" onclick="switchShopTab('sell')">BÁN ĐỒ</button>
+    `;
 
-    function closeShop() { document.getElementById('shop-modal').style.display = 'none'; }
+    // 2. Render danh sách hàng hóa
+    list.innerHTML = '';
 
+    if(mode === 'buy') {
+        // --- TAB MUA: Hiện đồ có giá (trừ loại 'sell' ra) ---
+        SHOP_DB.forEach(item => {
+            if(item.type === 'sell') return; // Không hiện đồ rác ở tab mua
+            
+            list.innerHTML += `
+            <div class="shop-card" onclick="openBuy('${item.id}')">
+               <img src="${URL_ITEMS}${item.img}" width="50">
+               <div style="font-weight:bold; color:#faa61a; text-align:center">${item.name}</div>
+               <div style="font-size:0.8em; color:#bbb">${item.price.toLocaleString()}💰</div>
+            </div>`;
+        });
+    } 
+    else {
+        // --- TAB BÁN: Quét túi đồ xem có gì bán được không ---
+        let hasItemToSell = false;
+
+        SHOP_DB.forEach(item => {
+            // Kiểm tra xem user có món này trong túi không
+            let qty = inventory[item.id] || 0;
+            if (qty > 0) {
+                // Tính giá bán lại (thường là 50% giá mua, riêng Nugget/Stardust thì 100% giá gốc)
+                let sellPrice = item.type === 'sell' ? item.price : Math.floor(item.price / 2);
+                
+                hasItemToSell = true;
+                list.innerHTML += `
+                <div class="shop-card" style="border-color:#ed4245" onclick="sellItemDirectly('${item.id}', '${item.name}', ${sellPrice})">
+                   <div style="position:absolute; top:5px; right:5px; background:#ed4245; color:white; font-size:0.7em; padding:2px 5px; border-radius:3px">x${qty}</div>
+                   <img src="${URL_ITEMS}${item.img}" width="50">
+                   <div style="font-weight:bold; color:#fff; text-align:center">${item.name}</div>
+                   <div style="font-size:0.8em; color:#2ecc71">Bán: ${sellPrice.toLocaleString()}💰</div>
+                </div>`;
+            }
+        });
+
+        if(!hasItemToSell) {
+            list.innerHTML = `<div style="width:200%; text-align:center; color:#777; padding:20px">Túi đồ sạch bách!<br>Không còn gì để bán.</div>`;
+        }
+    }
+}
+
+// Hàm bán nhanh trong Shop
+function sellItemDirectly(id, name, price) {
+    let qty = inventory[id] || 0;
+    if(qty <= 0) return;
+
+    // Hỏi muốn bán bao nhiêu (Mặc định bán 1, hoặc bán hết nếu là đồ rác)
+    let amount = 1;
+    // Nếu là đồ rác (Nugget/Stardust) thì bán hết luôn cho lẹ, hoặc prompt hỏi
+    if(confirm(`Bán 1x ${name} với giá ${price} coins?`)) {
+        inventory[id]--;
+        coins += price;
+        
+        saveGame();
+        
+        // Hiệu ứng update
+        switchShopTab('sell'); // Vẽ lại tab bán
+        updateStats(); // Cập nhật tiền trên UI chính
+        
+        // Log nhỏ
+        const coinDisplay = document.getElementById('shop-coin-display');
+        coinDisplay.innerText = coins.toLocaleString();
+        coinDisplay.style.color = '#2ecc71';
+        setTimeout(() => coinDisplay.style.color = '#f1c40f', 500);
+    }
+}
     function openBuy(id) {
         selectedItemId = id;
         const item = SHOP_DB.find(i => i.id === id);
@@ -2843,6 +2955,7 @@ function closeLearnMove() {
 </script>
 </body>
 </html>
+
 
 
 
