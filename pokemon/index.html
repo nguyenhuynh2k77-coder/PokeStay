@@ -522,11 +522,11 @@
     { id: 'legend', name: 'Huyền Thoại', desc: 'Sở hữu 1 Pokemon Huyền Thoại', req: (s)=>myBag.some(p => LEGENDARY_IDS.includes(p.id)), reward: {type:'item', id:'master-ball', qty:1} }
 ];
     const SHOP_DB = [
-        { id: 'poke-ball', name: 'Poké Ball', price: 100, type: 'ball', rate: 0.30, img: 'poke-ball.png' },
-        { id: 'great-ball', name: 'Great Ball', price: 300, type: 'ball', rate: 0.50, img: 'great-ball.png' },
-        { id: 'ultra-ball', name: 'Ultra Ball', price: 800, type: 'ball', rate: 0.75, img: 'ultra-ball.png' },
-        { id: 'master-ball', name: 'Master Ball', price: 5000, type: 'ball', rate: 1.0, img: 'master-ball.png' },
-        { id: 'potion', name: 'Potion', price: 200, type: 'item', desc: 'Hồi 50 HP (Chỉ dùng trong Battle)', img: 'potion.png' },
+        { id: 'poke-ball', name: 'Poké Ball', price: 200, type: 'ball', rate: 0.30, img: 'poke-ball.png' },
+        { id: 'great-ball', name: 'Great Ball', price: 600, type: 'ball', rate: 0.50, img: 'great-ball.png' },
+        { id: 'ultra-ball', name: 'Ultra Ball', price: 1200, type: 'ball', rate: 0.75, img: 'ultra-ball.png' },
+        { id: 'master-ball', name: 'Master Ball', price: 50000, type: 'ball', rate: 1.0, img: 'master-ball.png' },
+        { id: 'potion', name: 'Potion', price: 300, type: 'item', desc: 'Hồi 50 HP (Chỉ dùng trong Battle)', img: 'potion.png' },
         { id: 'super-potion', name: 'Super Potion', price: 500, type: 'item', desc: 'Hồi Full HP (Chỉ dùng trong Battle)', img: 'super-potion.png' },
         { id: 'rare-candy', name: 'Rare Candy', price: 3000, type: 'item', desc: '+1 Level', img: 'rare-candy.png' }, 
         { id: 'mystery-egg', name: 'Mystery Egg', price: 1000, type: 'item', desc: 'Ấp nở thú hiếm', img: 'lucky-egg.png' }, 
@@ -537,7 +537,9 @@
         { id: 'evo-stone', name: 'Evo Stone', price: 1000, type: 'item', desc: 'Tiến hóa', img: 'fire-stone.png' },
         { id: 'amulet-coin', name: 'Amulet Coin', price: 5000, type: 'item', desc: '+5% Coin/Catch (Max 10)', img: 'amulet-coin.png' },
         { id: 'nugget', name: 'Nugget', price: 5000, type: 'sell', desc: 'Bán lấy tiền', img: 'nugget.png' },
+        { id: 'shiny-charm', name: 'Shiny Charm', price: 100000, type: 'item', desc: 'Tăng 3x tỉ lệ gặp Shiny (Vĩnh viễn)', img: 'shiny-charm.png' },
         { id: 'stardust', name: 'Stardust', price: 1000, type: 'sell', desc: 'Bán lấy tiền', img: 'stardust.png' }
+        
     ];
 
     let coins = 1000; let myBag = []; let pokedex = new Set(); let inventory = { 'poke-ball': 20, 'potion': 5, 'bag-upgrade': 0 }; let lastDailyDate = "";
@@ -915,31 +917,88 @@ function showMenu() {
     function getHpColor(pct) { if(pct > 50) return '#2ecc71'; if(pct > 20) return '#f1c40f'; return '#ed4245'; }
     function openBag() { if(currentWild) return; renderBag(); }
     
-    function renderBag() {
-        if(myBag.length===0) { log("Túi rỗng."); return; }
-        const listHtml = myBag.slice().reverse().map((p,i) => {
-            const realIdx = myBag.length - 1 - i;
-            if(p.isEgg) {
-                let percent = Math.min(100, Math.floor((p.steps / p.maxSteps) * 100));
-                return `<div class="bag-row egg-row"><div style="display:flex;align-items:center;gap:10px"><img src="${URL_ITEMS}lucky-egg.png" width="40"><div><b>Mystery Egg</b><br><div class="xp-container"><div class="xp-fill" style="width:${percent}%; background:#f1c40f"></div></div><span style="font-size:0.7em">${p.steps}/${p.maxSteps} bước</span></div></div><div>${percent>=100 ? `<button class="btn-small" style="background:#f1c40f;color:black" onclick="hatchEgg(${realIdx})">NỞ!</button>` : '...'}</div></div>`;
-            }
-            ensureDataIntegrity(p);
-            if(!p.types) p.types = ['normal'];
-            const r = getRarity(p);
-            let rarityBonus = r.val * 50; if(r.code === 'L') rarityBonus += 1000; if(r.code === 'sr') rarityBonus += 300;
-            let pr = Math.floor((p.baseXp * 0.5 + p.iv * 3) + rarityBonus); if(pr < 10) pr = 10;
-            
-            let displayHp = (typeof p.hp === 'number' && !isNaN(p.hp)) ? p.hp : 0;
-            let maxHp = (typeof p.maxHp === 'number' && !isNaN(p.maxHp)) ? p.maxHp : 100;
-            let hpPercent = (displayHp / maxHp) * 100; 
-            let hpColor = getHpColor(hpPercent);
-            
-            let evoBtn = `<button class="btn-small btn-evo" onclick="checkEvolution(${realIdx}, this)">Evo</button>`;
-            let candyBtn = inventory['rare-candy'] > 0 ? `<button class="btn-small btn-candy" onclick="useCandy(${realIdx})">Candy</button>` : '';
-            return `<div class="bag-row"><div style="display:flex;align-items:center;gap:10px; flex:1"><img src="${p.img}" width="40" style="${displayHp<=0?'filter:grayscale(1)':''}"><div style="width:100%"><div style="display:flex;justify-content:space-between"><span><span class="rarity-tag ${r.class}">${r.label}</span> <b>${p.name}</b></span><span style="font-size:0.8em;font-weight:bold;color:${hpColor}">${displayHp}/${maxHp}</span></div><span style="font-size:0.7em; color:#aaa">Lv.${p.level} | IV:${p.iv}</span><div class="hp-container"><div class="hp-fill" style="width:${hpPercent}%; background:${hpColor}"></div></div></div></div><div class="bag-actions"><button class="btn-small btn-battle" onclick="openBattleModal(${realIdx})">ĐẤU</button> ${candyBtn} ${evoBtn}<button class="btn-small btn-sell" onclick="sell(${realIdx},${pr})">Bán +${pr}</button></div></div>`;
-        }).join('');
-        log(`<div class="embed" style="border-left-color:#5865f2"><span class="embed-title">🎒 Backpack</span><div class="embed-desc" style="max-height:300px;overflow-y:auto">${listHtml}</div></div>`);
+   // --- CẬP NHẬT HÀM HIỂN THỊ TÚI (VỚI GIÁ BÁN MỚI) ---
+function renderBag() {
+    if(myBag.length === 0) { 
+        log("Túi rỗng."); 
+        return; 
     }
+
+    const listHtml = myBag.slice().reverse().map((p, i) => {
+        const realIdx = myBag.length - 1 - i;
+
+        // 1. XỬ LÝ TRỨNG (Giữ nguyên)
+        if(p.isEgg) {
+            let percent = Math.min(100, Math.floor((p.steps / p.maxSteps) * 100));
+            return `<div class="bag-row egg-row">
+                <div style="display:flex;align-items:center;gap:10px">
+                    <img src="${URL_ITEMS}lucky-egg.png" width="40">
+                    <div>
+                        <b>Mystery Egg</b><br>
+                        <div class="xp-container"><div class="xp-fill" style="width:${percent}%; background:#f1c40f"></div></div>
+                        <span style="font-size:0.7em">${p.steps}/${p.maxSteps} bước</span>
+                    </div>
+                </div>
+                <div>${percent >= 100 ? `<button class="btn-small" style="background:#f1c40f;color:black" onclick="hatchEgg(${realIdx})">NỞ!</button>` : '...'}</div>
+            </div>`;
+        }
+
+        // 2. XỬ LÝ POKEMON THƯỜNG
+        ensureDataIntegrity(p);
+        if(!p.types) p.types = ['normal'];
+        const r = getRarity(p);
+
+        // --- CÔNG THỨC TÍNH TIỀN MỚI (ECONOMY BALANCING) ---
+        // a. Giá trị cốt lõi: Level và IV quyết định giá
+        let basePrice = (p.baseXp * 0.2) + (p.iv * 10) + (p.level * 5);
+
+        // b. Thưởng độ hiếm đặc biệt
+        let rarityBonus = 0;
+        if (LEGENDARY_IDS.includes(p.id)) rarityBonus += 5000; // Legend: +5000 xu
+        if (p.isShiny) rarityBonus += 10000;                   // Shiny: +10000 xu (Quý nhất)
+        if (r.val >= 3 && !LEGENDARY_IDS.includes(p.id)) rarityBonus += 500; // Super Rare thường
+
+        // c. Tổng kết giá
+        let pr = Math.floor(basePrice + rarityBonus);
+        if (pr < 50) pr = 50; // Giá tối thiểu 50 xu
+        // ----------------------------------------------------
+
+        let displayHp = (typeof p.hp === 'number' && !isNaN(p.hp)) ? p.hp : 0;
+        let maxHp = (typeof p.maxHp === 'number' && !isNaN(p.maxHp)) ? p.maxHp : 100;
+        let hpPercent = (displayHp / maxHp) * 100; 
+        let hpColor = getHpColor(hpPercent);
+        
+        let evoBtn = `<button class="btn-small btn-evo" onclick="checkEvolution(${realIdx}, this)">Evo</button>`;
+        let candyBtn = inventory['rare-candy'] > 0 ? `<button class="btn-small btn-candy" onclick="useCandy(${realIdx})">Candy</button>` : '';
+        
+        // Hiển thị Shiny Icon nếu có
+        let shinyIcon = p.isShiny ? '✨' : '';
+
+        return `<div class="bag-row">
+            <div style="display:flex;align-items:center;gap:10px; flex:1">
+                <img src="${p.img}" width="40" style="${displayHp <= 0 ? 'filter:grayscale(1)' : ''}">
+                <div style="width:100%">
+                    <div style="display:flex;justify-content:space-between">
+                        <span><span class="rarity-tag ${r.class}">${r.label}</span> <b>${shinyIcon}${p.name}</b></span>
+                        <span style="font-size:0.8em;font-weight:bold;color:${hpColor}">${displayHp}/${maxHp}</span>
+                    </div>
+                    <span style="font-size:0.7em; color:#aaa">Lv.${p.level} | IV:${p.iv}</span>
+                    <div class="hp-container"><div class="hp-fill" style="width:${hpPercent}%; background:${hpColor}"></div></div>
+                </div>
+            </div>
+            <div class="bag-actions">
+                <button class="btn-small btn-battle" onclick="openBattleModal(${realIdx})">ĐẤU</button> 
+                ${candyBtn} ${evoBtn}
+                <button class="btn-small btn-sell" onclick="sell(${realIdx},${pr})">Bán +${pr.toLocaleString()}</button>
+            </div>
+        </div>`;
+    }).join('');
+
+    log(`<div class="embed" style="border-left-color:#5865f2">
+        <span class="embed-title">🎒 Backpack (${myBag.length}/${maxBagSize})</span>
+        <div class="embed-desc" style="max-height:300px;overflow-y:auto">${listHtml}</div>
+    </div>`);
+}
 
     function sell(idx, price) {
         if(!myBag[idx]) return;
@@ -1051,32 +1110,89 @@ function showMenu() {
 
     async function hunt() { controls.innerHTML=`<div style="color:#faa61a">Đang tìm...</div>`; streakBonus=0; activeBuffs.berry=false; updateStats(); await spawnPokemon(); }
     
-    async function spawnPokemon() {
-        if(myBag.length >= maxBagSize) { showMenu(); return alert("Túi đầy! Hãy nâng cấp hoặc bán bớt."); }
-        try {
-            const id = Math.floor(Math.random()*MAX_ID)+1; const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); const data = await res.json();
-            const isShiny = Math.random() < 0.01; let img = data.sprites.other['official-artwork'].front_default || data.sprites.front_default; if(isShiny) img = data.sprites.front_shiny || img;
-            
-            let stats = {};
-            data.stats.forEach(s => { stats[s.stat.name] = s.base_stat; });
-            let iv = Math.floor(Math.random() * 32); 
-            
-            let p = { 
-                id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, 
-                baseHp: stats['hp'], baseAtk: stats['attack'], baseDef: stats['defense'], baseSpA: stats['special-attack'], baseSpD: stats['special-defense'], baseSpd: stats['speed'],
-                level: 5, xp: 0, maxXp: 100 
-            };
-            recalcStats(p);
-            assignMoves(p);
-
-            // Trong hàm spawnPokemon()
-            currentWild = p;
-            playCry(p.id); // <--- THÊM DÒNG NÀY: Kêu khi xuất hiện
-            const r = getRarity(currentWild);
-            log(`<div class="embed" style="border-left-color:${isShiny?'#e74c3c':'#00b0f4'}"><div class="embed-header"><div><span class="rarity-tag ${r.class}">${r.label}</span> <span class="embed-title">${currentWild.name}</span><div class="embed-desc">IV: ${currentWild.iv}/31 | HP: ${p.maxHp}</div></div><img class="poke-sprite" src="${currentWild.img}"></div></div>`);
-            renderBattleControls();
-        } catch(e) { showMenu(); }
+    // --- HỆ THỐNG SPAWN POKEMON (HARDCORE MODE) ---
+async function spawnPokemon() {
+    if(myBag.length >= maxBagSize) { 
+        showMenu(); 
+        return alert("Túi đầy! Hãy nâng cấp hoặc bán bớt."); 
     }
+
+    try {
+        // --- 1. XÁC ĐỊNH ĐỘ HIẾM (RARITY TIER) ---
+        // Tỉ lệ gặp Legend giống Pokemew (Rất thấp)
+        let id = 1;
+        let randTier = Math.random(); 
+
+        if (randTier < 0.002) { 
+            // 0.2% Cơ hội gặp HUYỀN THOẠI (1/500)
+            id = LEGENDARY_IDS[Math.floor(Math.random() * LEGENDARY_IDS.length)];
+        } else {
+            // 99.8% còn lại là Pokemon thường
+            // Lặp lại việc random nếu lỡ trúng ID huyền thoại (để đảm bảo Legend thực sự hiếm)
+            do {
+                id = Math.floor(Math.random() * MAX_ID) + 1;
+            } while (LEGENDARY_IDS.includes(id));
+        }
+
+        // --- 2. LOGIC SHINY & SHINY CHARM ---
+        // Kiểm tra xem trong túi có Shiny Charm không
+        let hasCharm = (inventory['shiny-charm'] || 0) > 0;
+        
+        // Tỉ lệ gốc: 1/4096 (~0.024%)
+        // Tỉ lệ có Charm: 3/4096 (~1/1365 - 0.073%)
+        let shinyThreshold = hasCharm ? (3 / 4096) : (1 / 4096);
+        
+        const isShiny = Math.random() < shinyThreshold;
+
+        // --- 3. FETCH DỮ LIỆU ---
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); 
+        const data = await res.json();
+        
+        let img = data.sprites.other['official-artwork'].front_default || data.sprites.front_default; 
+        if(isShiny) img = data.sprites.front_shiny || img;
+        
+        let stats = {};
+        data.stats.forEach(s => { stats[s.stat.name] = s.base_stat; });
+        let iv = Math.floor(Math.random() * 32); 
+        
+        let p = { 
+            id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, 
+            baseHp: stats['hp'], baseAtk: stats['attack'], baseDef: stats['defense'], baseSpA: stats['special-attack'], baseSpD: stats['special-defense'], baseSpd: stats['speed'],
+            level: 5, xp: 0, maxXp: 100 
+        };
+        recalcStats(p);
+        assignMoves(p);
+
+        // --- 4. HIỂN THỊ ---
+        currentWild = p;
+        if(typeof playCry === "function") playCry(p.id);
+
+        const r = getRarity(currentWild);
+        // Hiệu ứng màu viền đặc biệt nếu gặp Legend hoặc Shiny
+        let borderColor = '#00b0f4'; // Thường (Xanh dương)
+        if (LEGENDARY_IDS.includes(p.id)) borderColor = '#f1c40f'; // Legend (Vàng)
+        if (isShiny) borderColor = '#e74c3c'; // Shiny (Đỏ)
+
+        // Nếu có Shiny Charm, hiển thị icon nhỏ để người chơi biết nó đang hoạt động
+        let charmIcon = hasCharm ? `<span title="Shiny Charm Active" style="font-size:0.8em">✨Charm</span>` : '';
+
+        log(`<div class="embed" style="border-left-color:${borderColor}">
+            <div class="embed-header">
+                <div>
+                    <span class="rarity-tag ${r.class}">${r.label}</span> 
+                    <span class="embed-title">${currentWild.name}</span>
+                    <div class="embed-desc">IV: ${currentWild.iv}/31 | HP: ${p.maxHp} ${charmIcon}</div>
+                </div>
+                <img class="poke-sprite" src="${currentWild.img}">
+            </div>
+        </div>`);
+        
+        renderBattleControls();
+    } catch(e) { 
+        console.error(e); 
+        showMenu(); 
+    }
+}
 
     function renderBattleControls() {
         const balls = SHOP_DB.filter(i => i.type === 'ball');
@@ -1945,6 +2061,7 @@ function submitFeedback() {
 </script>
 </body>
 </html>
+
 
 
 
