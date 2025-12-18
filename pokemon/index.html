@@ -1565,6 +1565,9 @@ function sellItemDirectly(id, name, price) {
     async function hunt() { controls.innerHTML=`<div style="color:#faa61a">Đang tìm...</div>`; streakBonus=0; activeBuffs.berry=false; updateStats(); await spawnPokemon(); }
     
     // --- HỆ THỐNG SPAWN POKEMON (HARDCORE MODE) ---
+let originalEnemyImgSrc = ""; 
+
+// --- 1. HÀM SPAWN POKEMON (Đã thêm ID active-wild-sprite) ---
 async function spawnPokemon() {
     if(myBag.length >= maxBagSize) { 
         showMenu(); 
@@ -1572,33 +1575,24 @@ async function spawnPokemon() {
     }
 
     try {
-        // --- 1. XÁC ĐỊNH ĐỘ HIẾM (RARITY TIER) ---
-        // Tỉ lệ gặp Legend giống Pokemew (Rất thấp)
+        // A. XÁC ĐỊNH ĐỘ HIẾM & ID
         let id = 1;
         let randTier = Math.random(); 
 
         if (randTier < 0.002) { 
-            // 0.2% Cơ hội gặp HUYỀN THOẠI (1/500)
             id = LEGENDARY_IDS[Math.floor(Math.random() * LEGENDARY_IDS.length)];
         } else {
-            // 99.8% còn lại là Pokemon thường
-            // Lặp lại việc random nếu lỡ trúng ID huyền thoại (để đảm bảo Legend thực sự hiếm)
             do {
                 id = Math.floor(Math.random() * MAX_ID) + 1;
             } while (LEGENDARY_IDS.includes(id));
         }
 
-        // --- 2. LOGIC SHINY & SHINY CHARM ---
-        // Kiểm tra xem trong túi có Shiny Charm không
+        // B. CHECK SHINY
         let hasCharm = (inventory['shiny-charm'] || 0) > 0;
-        
-        // Tỉ lệ gốc: 1/4096 (~0.024%)
-        // Tỉ lệ có Charm: 3/4096 (~1/1365 - 0.073%)
         let shinyThreshold = hasCharm ? (3 / 4096) : (1 / 4096);
-        
         const isShiny = Math.random() < shinyThreshold;
 
-        // --- 3. FETCH DỮ LIỆU ---
+        // C. FETCH DỮ LIỆU
         const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); 
         const data = await res.json();
         
@@ -1608,32 +1602,36 @@ async function spawnPokemon() {
         let stats = {};
         data.stats.forEach(s => { stats[s.stat.name] = s.base_stat; });
         let iv = Math.floor(Math.random() * 32); 
-        let baseRate = 255; // Mặc định dễ bắt
-if (data.base_experience > 250) baseRate = 30;    // Legend/Mythical (Mewtwo, Arceus...)
-else if (data.base_experience > 200) baseRate = 90;  // Semi-Legend/Rất hiếm (Dragonite...)
-else if (data.base_experience > 150) baseRate = 120;  // Cấp trung bình khá
-else if (data.base_experience > 100) baseRate = 180; // Cấp trung bình
-else baseRate = 200; // Pokemon cơ bản
+
+        // D. TÍNH CATCH RATE (QUAN TRỌNG)
+        let baseRate = 255; 
+        if (data.base_experience > 250) baseRate = 15;      // Rất khó
+        else if (data.base_experience > 200) baseRate = 80; // Khó
+        else if (data.base_experience > 150) baseRate = 120; // Trung bình
+        else if (data.base_experience > 100) baseRate = 180; // Dễ
+        
         let p = { 
-            id: data.id, name: data.name.toUpperCase(), catchRate: baseRate, types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, 
+            id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, 
             baseHp: stats['hp'], baseAtk: stats['attack'], baseDef: stats['defense'], baseSpA: stats['special-attack'], baseSpD: stats['special-defense'], baseSpd: stats['speed'],
-            level: 5, xp: 0, maxXp: 100 
+            level: 5, xp: 0, maxXp: 100,
+            catchRate: baseRate // Lưu rate vào object
         };
         recalcStats(p);
         assignMoves(p);
 
-        // --- 4. HIỂN THỊ ---
+        // E. HIỂN THỊ (QUAN TRỌNG: GÁN ID active-wild-sprite)
         currentWild = p;
-        if(typeof playCry === "function") playCry(p.id);
+        playCry(p.id);
 
         const r = getRarity(currentWild);
-        // Hiệu ứng màu viền đặc biệt nếu gặp Legend hoặc Shiny
-        let borderColor = '#00b0f4'; // Thường (Xanh dương)
-        if (LEGENDARY_IDS.includes(p.id)) borderColor = '#f1c40f'; // Legend (Vàng)
-        if (isShiny) borderColor = '#e74c3c'; // Shiny (Đỏ)
-
-        // Nếu có Shiny Charm, hiển thị icon nhỏ để người chơi biết nó đang hoạt động
+        let borderColor = '#00b0f4'; 
+        if (LEGENDARY_IDS.includes(p.id)) borderColor = '#f1c40f'; 
+        if (isShiny) borderColor = '#e74c3c'; 
         let charmIcon = hasCharm ? `<span title="Shiny Charm Active" style="font-size:0.8em">✨Charm</span>` : '';
+
+        // Xóa ID cũ nếu còn sót
+        const oldSprite = document.getElementById('active-wild-sprite');
+        if(oldSprite) oldSprite.removeAttribute('id');
 
         log(`<div class="embed" style="border-left-color:${borderColor}">
             <div class="embed-header">
@@ -1642,7 +1640,7 @@ else baseRate = 200; // Pokemon cơ bản
                     <span class="embed-title">${currentWild.name}</span>
                     <div class="embed-desc">IV: ${currentWild.iv}/31 | HP: ${p.maxHp} ${charmIcon}</div>
                 </div>
-                <img class="poke-sprite" src="${currentWild.img}">
+                <img id="active-wild-sprite" class="poke-sprite" src="${currentWild.img}">
             </div>
         </div>`);
         
@@ -1652,7 +1650,6 @@ else baseRate = 200; // Pokemon cơ bản
         showMenu(); 
     }
 }
-
     function renderBattleControls() {
     const balls = SHOP_DB.filter(i => i.type === 'ball');
     
@@ -1693,22 +1690,24 @@ function catchAttempt(ballType) {
     let p = currentWild;
     let rate = p.catchRate || 255; 
 
-    // --- HIỆU ỨNG VISUAL: BIẾN POKEMON THÀNH BÓNG ---
-    const enemyImg = document.getElementById('enemy-sprite');
-    if(!originalEnemyImg) originalEnemyImg = enemyImg.src; // Lưu ảnh gốc
+    // A. TÌM ẢNH ĐANG HIỂN THỊ
+    const enemyImg = document.getElementById('active-wild-sprite');
     
-    // Tìm hình ảnh quả bóng tương ứng từ Shop DB
-    let ballItem = SHOP_DB.find(i => i.id === ballType);
-    let ballImgSrc = URL_ITEMS + (ballItem ? ballItem.img : 'poke-ball.png');
-    
-    // Đổi ảnh Pokemon thành ảnh Bóng
-    enemyImg.src = ballImgSrc;
-    enemyImg.style.width = "60px"; // Thu nhỏ lại chút cho giống quả bóng
-    enemyImg.style.marginTop = "40px"; // Căn chỉnh lại vị trí
+    if (enemyImg) {
+        // Lưu ảnh gốc
+        if(!originalEnemyImgSrc) originalEnemyImgSrc = enemyImg.src; 
+        
+        // Tìm ảnh quả bóng tương ứng
+        let ballItem = SHOP_DB.find(i => i.id === ballType);
+        let ballImgSrc = URL_ITEMS + (ballItem ? ballItem.img : 'poke-ball.png');
+        
+        // Đổi ảnh
+        enemyImg.src = ballImgSrc;
+        enemyImg.style.width = "60px"; 
+        enemyImg.style.marginTop = "20px"; 
+    }
 
-    // ------------------------------------------------
-
-    // Tính toán tỷ lệ (giữ nguyên logic cũ)
+    // B. TÍNH TỶ LỆ
     let ballMult = 1;
     if (ballType === 'great-ball') ballMult = 1.5;
     if (ballType === 'ultra-ball') ballMult = 2.0;
@@ -1718,20 +1717,15 @@ function catchAttempt(ballType) {
     let chance = (rate * ballMult * buffMult) / 255;
     if(streakBonus) chance += (streakBonus * 0.05);
 
-    log(`<i>Bạn ném ${ballType} về phía ${p.name}!</i>`);
+    log(`<i>Bạn ném ${ballType.replace('-', ' ')}...</i>`);
 
-    // Xác định kết quả
-    let isCaught = false;
-    if (chance >= 1 || Math.random() < chance) isCaught = true;
+    let isCaught = (chance >= 1 || Math.random() < chance);
 
-    // Gọi hàm lắc bóng Visual mới
+    // C. GỌI HIỆU ỨNG LẮC
     setTimeout(() => {
         processVisualShake(isCaught, 1);
-    }, 500); // Chờ 0.5s để bóng bay tới
+    }, 500);
 }
-// Hàm lắc bóng đơn giản
-// Hàm diễn hoạt lắc bóng (Kết quả đã định đoạt trước)
-    // --- HÀM XỬ LÝ KHI BẮT DÍNH POKEMON (Bị thiếu) ---
 function captureSuccess() {
     // 1. Hiệu ứng âm thanh
     playSFX('catch');
@@ -1779,58 +1773,44 @@ function captureSuccess() {
     showMenu();
 }
 function processVisualShake(success, shakeCount) {
-    const ballElement = document.getElementById('enemy-sprite');
+    const ballElement = document.getElementById('active-wild-sprite');
+    if(!ballElement) return;
     
-    // Thêm class lắc
-    ballElement.classList.remove('shaking'); // Reset trước
-    void ballElement.offsetWidth; // Hack để trigger lại animation
-    ballElement.classList.add('shaking'); // Thêm lại
+    // Trigger animation CSS
+    ballElement.classList.remove('shaking');
+    void ballElement.offsetWidth; // Hack để reset animation
+    ballElement.classList.add('shaking'); 
     
-    // Âm thanh (nếu muốn)
-    // playSFX('shake'); 
-
     if (success) {
-        // --- TRƯỜNG HỢP BẮT DÍNH ---
+        // TRƯỜNG HỢP: BẮT DÍNH
         if (shakeCount < 3) {
             log(`<span style="color:#bbb">... Lắc (${shakeCount})...</span>`);
-            // Đợi animation chạy xong (0.5s) + nghỉ (0.5s) rồi lắc tiếp
-            setTimeout(() => {
-                processVisualShake(true, shakeCount + 1);
-            }, 1000); 
+            setTimeout(() => { processVisualShake(true, shakeCount + 1); }, 1000); 
         } else {
-            // Đã lắc đủ 3 cái -> CHỐT
             setTimeout(() => {
                 ballElement.classList.remove('shaking');
-                ballElement.classList.add('caught-anim'); // Hiệu ứng sáng lên
-                captureSuccess();
-                // Reset lại style ảnh cho trận sau
-                setTimeout(resetEnemySprite, 2000);
+                ballElement.classList.add('caught-anim'); // Sáng lên
+                captureSuccess(); // Gọi hàm thành công
+                originalEnemyImgSrc = ""; // Reset biến ảnh gốc
             }, 600);
         }
     } else {
-        // --- TRƯỜNG HỢP TRƯỢT ---
-        // Vẫn lắc 1-2 cái cho hồi hộp rồi mới bung
+        // TRƯỜNG HỢP: TRƯỢT
+        // Random lắc thêm 1-2 cái cho hồi hộp
         if (shakeCount < 3 && Math.random() < 0.5) {
             log(`<span style="color:#bbb">... Lắc (${shakeCount})...</span>`);
-            setTimeout(() => {
-                processVisualShake(false, shakeCount + 1);
-            }, 1000);
+            setTimeout(() => { processVisualShake(false, shakeCount + 1); }, 1000);
         } else {
-            // BUNG BÓNG RA!
+            // Bung bóng
             setTimeout(() => {
                 ballElement.classList.remove('shaking');
+                resetEnemySprite(); // Trả lại hình con Pokemon
                 
-                // Hiệu ứng bung: Trả lại hình con Pokemon
-                resetEnemySprite();
-                
-                let msg = "Bóng bật ra!";
-                if(shakeCount === 3) msg = "Aaa! Suýt nữa thì được!";
-                log(`<span style="color:#ed4245; font-weight:bold">${msg}</span>`);
-                
+                log(`<span style="color:#ed4245; font-weight:bold">Bóng bật ra!</span>`);
                 activeBuffs.berry = false;
                 updateStats();
                 
-                // Logic bỏ chạy
+                // Tỷ lệ bỏ chạy 25%
                 if (Math.random() < 0.25) {
                     setTimeout(() => {
                         log(`💨 <b>${currentWild.name}</b> đã bỏ chạy!`);
@@ -1847,15 +1827,36 @@ function processVisualShake(success, shakeCount) {
     }
 }
 
-// Hàm phụ: Trả lại hình dáng Pokemon ban đầu
+// --- 4. HÀM TRẢ LẠI ẢNH GỐC (Khi bắt hụt) ---
 function resetEnemySprite() {
-    const enemyImg = document.getElementById('enemy-sprite');
-    if(originalEnemyImg) {
-        enemyImg.src = originalEnemyImg;
-        enemyImg.style.width = "96px"; // Kích thước gốc
-        enemyImg.style.marginTop = "0"; // Vị trí gốc
-        originalEnemyImg = ""; // Reset
+    const enemyImg = document.getElementById('active-wild-sprite');
+    if(enemyImg && originalEnemyImgSrc) {
+        enemyImg.src = originalEnemyImgSrc;
+        enemyImg.style.width = ""; 
+        enemyImg.style.marginTop = ""; 
+        originalEnemyImgSrc = "";
     }
+}
+
+// --- 5. HỆ THỐNG ÂM THANH (Fix lỗi Console đỏ) ---
+function playSFX(type) {
+    if(isMuted) return;
+    let src = "";
+    if(type === 'levelup') src = "https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/132.ogg";
+    if(type === 'catch') src = "https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/25.ogg";
+    
+    if(src) {
+        let a = new Audio(src);
+        a.volume = 0.5;
+        a.play().catch(e => { console.warn("Lỗi SFX (bỏ qua):", e); });
+    }
+}
+
+function playCry(id) {
+    if(isMuted) return;
+    let audio = new Audio(`https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`);
+    audio.volume = 0.3;
+    audio.play().catch(e => { console.warn("Lỗi Cry (bỏ qua):", e); });
 }
     function useItem(id) { inventory[id]--; saveGame(); if(id==='razz-berry') activeBuffs.berry=true; if(id==='lucky-egg') activeBuffs.egg=true; if(id==='incense') { spawnPokemon(); return; } updateStats(); renderBattleControls(); }
 
@@ -3131,6 +3132,7 @@ function closeLearnMove() {
 </script>
 </body>
 </html>
+
 
 
 
