@@ -457,6 +457,76 @@
     margin-bottom: 2px;
     font-size: 0.9em;
 }
+        /* --- BOSS TEAM & STAMINA --- */
+.stamina-bar-container {
+    width: 100%;
+    background: #333;
+    height: 12px;
+    border-radius: 6px;
+    border: 1px solid #555;
+    position: relative;
+    margin: 5px 0 15px 0;
+}
+.stamina-fill {
+    height: 100%;
+    background: #3498db; /* Màu xanh năng lượng */
+    width: 100%;
+    border-radius: 5px;
+    transition: width 0.5s;
+}
+.stamina-text {
+    position: absolute;
+    top: -2px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 0.7em;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 0 3px black;
+}
+
+/* Lưới chọn team */
+.team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+.team-card {
+    background: #2f3136;
+    border: 2px solid #444;
+    border-radius: 5px;
+    padding: 5px;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+}
+.team-card.selected {
+    border-color: #f1c40f;
+    background: rgba(241, 196, 15, 0.2);
+}
+.team-card img {
+    width: 50px;
+    height: 50px;
+}
+.team-slot-indicator {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: #f1c40f;
+    color: black;
+    font-size: 0.7em;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    font-weight: bold;
+    display: none; /* Ẩn mặc định */
+}
+.team-card.selected .team-slot-indicator {
+    display: block; /* Hiện khi chọn */
+}
     </style>
 </head>
 <body>
@@ -579,23 +649,44 @@
 
     <div id="boss-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:3000; justify-content:center; align-items:center;">
     <div class="box-style" style="width:95%; max-width:500px; border-color:#ed4245">
-        <h2 style="color: #ed4245; margin: 0 0 10px 0;">☠️ WORLD BOSS</h2>
+        <h2 style="color: #ed4245; margin: 0 0 5px 0;">☠️ WORLD BOSS</h2>
         
-        <div id="boss-display-area">
-            <div style="color:yellow">Đang triệu hồi Boss...</div>
+        <div class="stamina-bar-container">
+            <div id="stamina-bar-fill" class="stamina-fill"></div>
+            <div id="stamina-text" class="stamina-text">100/100</div>
         </div>
 
-        <div style="margin-top:15px; text-align:left; width:100%">
-            <h4 style="color:#f1c40f; margin:0 0 5px 0">🏆 Top Sát Thương</h4>
-            <div id="boss-dps-list" style="height:150px; overflow-y:auto; background:rgba(0,0,0,0.5); padding:5px; border-radius:5px">
-                </div>
+        <div id="boss-display-area">
+            <div style="color:yellow">Đang tải dữ liệu Boss...</div>
         </div>
+
+        <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center">
+            <h4 style="color:#f1c40f; margin:0">🏆 Top Sát Thương</h4>
+            <button class="btn-small" style="background:#7289da; width:auto; padding:5px 10px" onclick="openBossTeamSelect()">
+                👥 Chỉnh Team (<span id="team-count-display">0</span>/6)
+            </button>
+        </div>
+
+        <div id="boss-dps-list" style="height:120px; overflow-y:auto; background:rgba(0,0,0,0.5); padding:5px; border-radius:5px; margin-top:5px"></div>
 
         <div style="margin-top:15px; display:flex; gap:10px; justify-content:center">
-            <button id="btn-attack-boss" class="btn-auth" style="background:#ed4245" onclick="attackWorldBoss()">⚔️ TẤN CÔNG (10 Stamina)</button>
+            <button id="btn-attack-boss" class="btn-auth" style="background:#ed4245" onclick="attackWorldBoss()">⚔️ TẤN CÔNG (10 Energy)</button>
             <button class="btn-auth" style="background:#7f8c8d; width:auto" onclick="closeWorldBoss()">Đóng</button>
         </div>
-        <div id="boss-cooldown" style="font-size:0.8em; color:#bbb; margin-top:5px"></div>
+        <div id="boss-regen-timer" style="font-size:0.8em; color:#bbb; margin-top:5px">Hồi 1 năng lượng mỗi phút</div>
+    </div>
+    </div>
+
+<div id="boss-team-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3100; justify-content:center; align-items:center;">
+    <div class="box-style" style="border-color:#7289da">
+        <h3 style="color:#7289da">Chọn Đội Hình (Tối đa 6)</h3>
+        <div style="font-size:0.8em; color:#bbb; margin-bottom:10px">Chọn Pokemon mạnh nhất để tối ưu sát thương!</div>
+        
+        <div id="boss-team-grid" class="team-grid"></div>
+        
+        <div style="margin-top:15px; display:flex; justify-content:center; gap:10px">
+            <button class="btn-auth" style="background:#3ba55c" onclick="saveBossTeam()">LƯU ĐỘI HÌNH</button>
+        </div>
     </div>
 </div>
     
@@ -1010,6 +1101,10 @@ const REPAIR_QUESTIONS = [
     { q: "Pokemon hệ Lửa sợ hệ gì?", a: ["Cỏ", "Nước", "Băng", "Tiên"], correct: 1 }
 ];
     // --- BIẾN TRẠNG THÁI CHỌN NHIỀU ---
+    let stamina = 100;
+    let lastStaminaTime = Date.now();
+    const MAX_STAMINA = 100;
+    let bossTeamIndices = [];
     let isSelectMode = false;
     let selectedIndices = new Set(); // Dùng Set để lưu index không bị trùng
     let quizStreak = 0;
@@ -1179,6 +1274,9 @@ async function login() {
         lastDailyDate: lastDailyDate,
         dailyQuizStatus: dailyQuizStatus,
         userStats: userStats,
+        stamina: stamina,
+        lastStaminaTime: lastStaminaTime,
+        bossTeamIndices: bossTeamIndices,
         completedAchievements: completedAchievements,
         daycare: daycare,
         gymProgress: gymProgress,
@@ -1223,6 +1321,12 @@ async function login() {
             pokedex = new Set(d.pokedex || []);
             inventory = { ...inventory, ...d.inventory };
             lastDailyDate = d.lastDailyDate || "";
+            if (typeof d.stamina !== 'undefined') stamina = d.stamina;
+            if (d.lastStaminaTime) lastStaminaTime = d.lastStaminaTime;
+            if (d.bossTeamIndices) bossTeamIndices = d.bossTeamIndices;
+
+                // Tính toán Stamina hồi phục trong lúc offline
+            calculateOfflineStamina();
             if (d.dailyQuizStatus) dailyQuizStatus = d.dailyQuizStatus;
             if (d.userStats) userStats = d.userStats;
             if (d.completedAchievements) completedAchievements = d.completedAchievements;
@@ -3333,6 +3437,7 @@ let lastBossAttackTime = 0;
 function openWorldBoss() {
     if(!currentUser) return alert("Cần đăng nhập!");
     document.getElementById('boss-modal').style.display = 'flex';
+    updateStaminaUI();
     loadBossData();
 }
 
@@ -3372,7 +3477,7 @@ async function createNewBoss(weekId) {
         name: pokeData.name.toUpperCase(),
         img: pokeData.sprites.other['official-artwork'].front_default,
         hp: 10000, // 1 Triệu Máu (Chỉnh số này tùy lượng người chơi)
-        maxHp: 1000000,
+        maxHp: 10000,
         contributors: {}, // Danh sách người đánh
         isDead: false
     };
@@ -3535,9 +3640,155 @@ function getWeekNumber(d) {
     var weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
     return weekNo;
 }
+    // --- HỆ THỐNG STAMINA ---
+function calculateOfflineStamina() {
+    const now = Date.now();
+    const diffMs = now - lastStaminaTime;
+    const diffMins = Math.floor(diffMs / 60000); // 1 phút = 60000ms
+
+    if (diffMins > 0 && stamina < MAX_STAMINA) {
+        stamina = Math.min(MAX_STAMINA, stamina + diffMins);
+        lastStaminaTime = now; // Reset mốc thời gian
+        saveGame();
+    }
+}
+
+function updateStaminaUI() {
+    // Gọi hàm tính toán trước khi hiện
+    calculateOfflineStamina();
+    
+    const bar = document.getElementById('stamina-bar-fill');
+    const text = document.getElementById('stamina-text');
+    const teamText = document.getElementById('team-count-display');
+    
+    if(bar) {
+        let pct = (stamina / MAX_STAMINA) * 100;
+        bar.style.width = pct + '%';
+        text.innerText = `${stamina}/${MAX_STAMINA}`;
+    }
+    if(teamText) {
+        // Lọc lại phòng trường hợp bán mất Pokemon
+        bossTeamIndices = bossTeamIndices.filter(idx => myBag[idx]); 
+        teamText.innerText = bossTeamIndices.length;
+    }
+}
+
+// --- HỆ THỐNG CHỌN TEAM ---
+let tempTeamIndices = []; // Biến tạm khi đang chọn
+
+function openBossTeamSelect() {
+    document.getElementById('boss-team-modal').style.display = 'flex';
+    // Copy đội hình hiện tại sang biến tạm để thao tác
+    // Cần lọc lại index hợp lệ (trong trường hợp đã bán bớt Pokemon thì index sẽ sai, 
+    // nhưng để đơn giản ta giả sử người chơi chọn lại nếu thấy lỗi)
+    tempTeamIndices = [...bossTeamIndices]; 
+    renderTeamGrid();
+}
+
+function renderTeamGrid() {
+    const grid = document.getElementById('boss-team-grid');
+    grid.innerHTML = myBag.map((p, idx) => {
+        let isSelected = tempTeamIndices.includes(idx);
+        let slotNum = tempTeamIndices.indexOf(idx) + 1;
+        
+        // Tính tổng sức mạnh hiển thị cho dễ chọn
+        let power = (p.atk || 0) + (p.spA || 0);
+        
+        return `
+        <div class="team-card ${isSelected ? 'selected' : ''}" onclick="toggleTeamMember(${idx})">
+            <div class="team-slot-indicator">${slotNum}</div>
+            <img src="${p.img}">
+            <div style="font-size:0.7em; font-weight:bold">${p.name}</div>
+            <div style="font-size:0.65em; color:#ed4245">DMG: ${power}</div>
+        </div>`;
+    }).join('');
+}
+
+function toggleTeamMember(idx) {
+    if(tempTeamIndices.includes(idx)) {
+        // Bỏ chọn
+        tempTeamIndices = tempTeamIndices.filter(i => i !== idx);
+    } else {
+        // Chọn mới (Kiểm tra max 6)
+        if(tempTeamIndices.length >= 6) return alert("Chỉ được chọn tối đa 6 Pokemon!");
+        tempTeamIndices.push(idx);
+    }
+    renderTeamGrid();
+}
+
+function saveBossTeam() {
+    bossTeamIndices = [...tempTeamIndices];
+    saveGame();
+    updateStaminaUI(); // Cập nhật số lượng hiển thị
+    document.getElementById('boss-team-modal').style.display = 'none';
+}
+
+// --- CẬP NHẬT HÀM ĐÁNH BOSS (Sử dụng Stamina & Team thật) ---
+function attackWorldBoss() {
+    if(!currentBossData || currentBossData.hp <= 0) return alert("Boss chưa xuất hiện hoặc đã chết!");
+    
+    // 1. Kiểm tra Stamina
+    calculateOfflineStamina(); // Cập nhật mới nhất
+    if(stamina < 10) return alert(`Không đủ năng lượng! Cần 10, bạn có ${stamina}. (Hồi 1 điểm/phút)`);
+
+    // 2. Kiểm tra Đội hình
+    // Lọc bỏ các index không còn tồn tại (do bán Pokemon)
+    bossTeamIndices = bossTeamIndices.filter(idx => myBag[idx]);
+    
+    if(bossTeamIndices.length === 0) {
+        return alert("Bạn chưa chọn đội hình! Hãy bấm vào nút 'Chỉnh Team'.");
+    }
+
+    // 3. Trừ Stamina
+    stamina -= 10;
+    // Cập nhật lại thời gian để không bị tính double hồi phục
+    lastStaminaTime = Date.now(); 
+    updateStaminaUI();
+    saveGame();
+
+    // 4. Tính Damage dựa trên Team đã chọn
+    let totalAtk = 0;
+    
+    bossTeamIndices.forEach(idx => {
+        let p = myBag[idx];
+        if(p) {
+            // Đảm bảo có chỉ số
+            if(!p.atk) recalcStats(p); 
+            // Công thức: (Atk + SpA) * (Level / 10) -> Level càng cao càng mạnh
+            let pokeDmg = (p.atk + p.spA) * (1 + (p.level / 20));
+            totalAtk += pokeDmg;
+        }
+    });
+    
+    // Random dao động 90% - 110%
+    let damage = Math.floor(totalAtk * (0.9 + Math.random() * 0.2));
+    
+    // Crit 15%
+    if(Math.random() < 0.15) {
+        damage = Math.floor(damage * 1.5);
+        log(`<span style="color:#ed4245">Chí mạng vào Boss!</span>`);
+    }
+
+    // Gửi lên Firebase
+    const bossRef = firebase.database().ref('world_boss');
+    bossRef.child('hp').transaction((currentHp) => {
+        return (currentHp || 0) - damage;
+    });
+
+    firebase.database().ref(`world_boss/contributors/${currentUser}`).transaction((userData) => {
+        if(!userData) return { damage: damage };
+        return { damage: userData.damage + damage };
+    });
+    
+    playSFX('catch');
+    // Hiệu ứng rung màn hình
+    document.getElementById('boss-modal').classList.add('shake');
+    setTimeout(()=>document.getElementById('boss-modal').classList.remove('shake'), 500);
+}
 </script>
 </body>
 </html>
+
 
 
 
