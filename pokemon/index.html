@@ -1775,98 +1775,121 @@ function sellItemDirectly(id, name, price) {
         setTimeout(() => coinDisplay.style.color = '#f1c40f', 500);
     }
 }
-    function openBuy(id) {
-        selectedItemId = id;
-        const item = SHOP_DB.find(i => i.id === id);
-        if(!item) return;
-        document.getElementById('buy-name').innerText = item.name;
-        document.getElementById('buy-img').src = URL_ITEMS + item.img;
-        document.getElementById('buy-price').innerText = item.price;
-        document.getElementById('buy-qty').value = 1;
-        document.getElementById('buy-total').innerText = item.price;
-        document.getElementById('shop-modal').style.display = 'none';
-        document.getElementById('buy-modal').style.display = 'flex';
-    }
+    // --- HỆ THỐNG MUA HÀNG (ĐÃ SỬA LỖI & ĐỒNG BỘ) ---
 
-    function calcTotal() {
-        const item = SHOP_DB.find(i => i.id === selectedItemId);
-        let qty = parseInt(document.getElementById('buy-qty').value);
-        if(qty < 1) qty = 1;
-        document.getElementById('buy-total').innerText = (item.price * qty).toLocaleString();
-    }
+// 1. Biến lưu món đồ đang chọn (Quan trọng)
+let currentBuyItem = ""; 
 
-    // --- HÀM XÁC NHẬN MUA (Đã thêm giới hạn mua 1 lần) ---
-function submitBuy() {
-    // 1. Lấy thông tin từ giao diện
-    const qtyInput = document.getElementById('shop-buy-qty'); // Ô nhập số lượng
-    const qty = parseInt(qtyInput.value);
-    const id = currentBuyItem; // ID vật phẩm đang chọn (biến toàn cục)
+// 2. Hàm mở bảng mua chi tiết (Gắn vào ảnh món đồ)
+function openBuy(id) {
+    currentBuyItem = id; // Lưu ID lại để lát nữa mua
+    selectedItemId = id; // (Giữ tương thích ngược)
 
-    // 2. Kiểm tra cơ bản
-    if (qty <= 0 || isNaN(qty)) return alert("Số lượng không hợp lệ!");
+    const item = SHOP_DB.find(i => i.id === id);
+    if(!item) return;
+
+    // Điền thông tin vào bảng #buy-modal (Bảng to đẹp)
+    document.getElementById('buy-name').innerText = item.name;
+    document.getElementById('buy-img').src = URL_ITEMS + item.img;
+    document.getElementById('buy-price').innerText = item.price.toLocaleString();
     
+    // Reset số lượng về 1
+    const qtyInput = document.getElementById('buy-qty');
+    if(qtyInput) qtyInput.value = 1;
+    
+    document.getElementById('buy-total').innerText = item.price.toLocaleString();
+
+    // Ẩn Shop, Hiện bảng Mua
+    document.getElementById('shop-modal').style.display = 'none';
+    document.getElementById('buy-modal').style.display = 'flex';
+}
+
+// 3. Hàm tính tổng tiền khi nhập số lượng
+function calcTotal() {
+    const item = SHOP_DB.find(i => i.id === currentBuyItem);
+    if(!item) return;
+
+    let qtyInput = document.getElementById('buy-qty');
+    let qty = parseInt(qtyInput.value);
+    
+    if(qty < 1 || isNaN(qty)) {
+        qty = 1;
+        // Không set lại value ngay để tránh khó chịu khi đang gõ xóa
+    }
+    
+    document.getElementById('buy-total').innerText = (item.price * qty).toLocaleString();
+}
+
+// 4. Hàm đóng bảng mua (Quay về Shop)
+function closeBuy() {
+    document.getElementById('buy-modal').style.display = 'none';
+    document.getElementById('shop-modal').style.display = 'flex';
+}
+
+// 5. HÀM XỬ LÝ MUA (FIX LỖI CHÍNH TẠI ĐÂY)
+function submitBuy() {
+    // Lấy ID từ biến đã lưu
+    const id = currentBuyItem;
+    
+    // Lấy số lượng từ bảng #buy-modal (ID là 'buy-qty')
+    const qtyInput = document.getElementById('buy-qty');
+    
+    // Kiểm tra lỗi
+    if (!id) return alert("Lỗi: Không xác định được vật phẩm!");
+    if (!qtyInput) return alert("Lỗi: Không tìm thấy ô nhập số lượng!");
+
+    const qty = parseInt(qtyInput.value);
+    if (qty <= 0 || isNaN(qty)) return alert("Số lượng phải lớn hơn 0!");
+
     const item = SHOP_DB.find(i => i.id === id);
     if (!item) return alert("Vật phẩm không tồn tại!");
 
-    // --- [MỚI] LOGIC KIỂM TRA GIỚI HẠN MUA ---
+    // --- LOGIC GIỚI HẠN (Cho Old Map) ---
     if (item.uniqueKey) {
-        // Kiểm tra lịch sử
-        if (limitedShopHistory[id] === item.uniqueKey) {
-            closeShopModal(); // Đóng bảng mua
+        if (limitedShopHistory && limitedShopHistory[id] === item.uniqueKey) {
+            closeBuy();
             return alert("✋ Bạn đã mua vật phẩm này rồi! Hãy kiểm tra lại trong túi.");
         }
-        
-        // Chặn mua số lượng nhiều
-        if (qty > 1) {
-            return alert("Vật phẩm đặc biệt này chỉ được mua 1 cái!");
-        }
+        if (qty > 1) return alert("Vật phẩm đặc biệt này chỉ được mua 1 cái!");
     }
-    // -----------------------------------------
 
-    // 3. Tính tiền
+    // Tính tiền
     let cost = item.price * qty;
     if (coins < cost) return alert("Không đủ tiền!");
 
-    // 4. Trừ tiền & Cộng đồ
+    // Trừ tiền & Cộng đồ
     coins -= cost;
     if (!inventory[id]) inventory[id] = 0;
     inventory[id] += qty;
 
-    // --- [MỚI] LƯU LỊCH SỬ ĐÃ MUA ---
+    // Lưu lịch sử giới hạn
     if (item.uniqueKey) {
+        if(!limitedShopHistory) limitedShopHistory = {};
         limitedShopHistory[id] = item.uniqueKey;
     }
-    // --------------------------------
 
-    // 5. Lưu & Cập nhật giao diện
+    // Lưu game
     saveGame();
     updateStats();
     
-    // Nếu đang ở trong Shop thì update lại số dư
+    // Cập nhật số dư ở Shop
     const coinDisplay = document.getElementById('shop-coin-display');
     if(coinDisplay) coinDisplay.innerText = coins.toLocaleString();
 
-    closeShopModal(); // Đóng modal mua
+    closeBuy(); // Đóng bảng
     
-    // 6. Thông báo & Hiệu ứng
-    playSFX('buy'); // Hoặc 'levelup' nếu chưa có sound buy
-    
-    // Nếu mua Bản Đồ, hiện luôn gợi ý ra màn hình chat
+    // Hiệu ứng & Thông báo
+    if(typeof playSFX === 'function') playSFX('levelup'); 
+
     if(item.uniqueKey) {
-        log(`<div style="color:#f1c40f; border:1px dashed #f1c40f; padding:10px; margin:5px 0; background:rgba(241, 196, 15, 0.1)">
-            🗺️ <b>BẠN ĐÃ MUA ${item.name.toUpperCase()}!</b><br>
+        log(`<div style="color:#f1c40f; border:1px dashed #f1c40f; padding:10px; background:rgba(241, 196, 15, 0.1)">
+            🗺️ <b>ĐÃ MUA ${item.name.toUpperCase()}!</b><br>
             <i>"${item.desc}"</i>
         </div>`);
     } else {
         alert(`Đã mua ${qty}x ${item.name} thành công!`);
     }
 }
-
-    function closeBuy() { 
-        document.getElementById('buy-modal').style.display = 'none'; 
-        document.getElementById('shop-modal').style.display = 'flex'; 
-    }
-
     function incrementEggSteps() { let hatched = false; myBag.forEach(p => { if(p.isEgg && p.steps < p.maxSteps) { p.steps++; if(p.steps >= p.maxSteps) hatched = true; } }); if(hatched) log(`<span style="color:#f1c40f">🥚 Có trứng đã sẵn sàng nở! Vào túi kiểm tra ngay.</span>`); saveGame(); }
     
     async function hatchEgg(idx) {
@@ -4037,6 +4060,7 @@ function redeemCode(code) {
 </script>
 </body>
 </html>
+
 
 
 
