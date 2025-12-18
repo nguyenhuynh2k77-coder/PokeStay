@@ -1583,8 +1583,8 @@ async function spawnPokemon() {
         data.stats.forEach(s => { stats[s.stat.name] = s.base_stat; });
         let iv = Math.floor(Math.random() * 32); 
         let baseRate = 255; // Mặc định dễ bắt
-if (data.base_experience > 250) baseRate = ;    // Legend/Mythical (Mewtwo, Arceus...)
-else if (data.base_experience > 200) baseRate = ;  // Semi-Legend/Rất hiếm (Dragonite...)
+if (data.base_experience > 250) baseRate = 30;    // Legend/Mythical (Mewtwo, Arceus...)
+else if (data.base_experience > 200) baseRate = 90;  // Semi-Legend/Rất hiếm (Dragonite...)
 else if (data.base_experience > 150) baseRate = 120;  // Cấp trung bình khá
 else if (data.base_experience > 100) baseRate = 180; // Cấp trung bình
 else baseRate = 200; // Pokemon cơ bản
@@ -3016,6 +3016,7 @@ function closeLearnMove() {
 </script>
 </body>
 </html>
+
 
 
 
