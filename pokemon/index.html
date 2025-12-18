@@ -838,6 +838,21 @@
         </div>
     </div>
     </div>
+    <div id="shop-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:5000; justify-content:center; align-items:center;">
+    <div class="box-style" style="border-color:#f1c40f; width:300px; text-align:center; background:#222">
+        <h3 id="shop-buy-title" style="color:#f1c40f; margin:0 0 10px 0">Xác nhận mua</h3>
+        
+        <div style="margin-bottom:15px; color: white">
+            Số lượng: 
+            <input type="number" id="shop-buy-qty" value="1" min="1" style="width:60px; padding:5px; text-align:center; font-weight:bold; border-radius:5px; border:1px solid #555">
+        </div>
+
+        <div style="display:flex; justify-content:center; gap:10px">
+            <button class="btn-auth" style="background:#2ecc71" onclick="submitBuy()">✅ MUA NGAY</button>
+            <button class="btn-auth" style="background:#e74c3c" onclick="closeShopModal()">❌ HỦY</button>
+        </div>
+    </div>
+</div>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -4021,6 +4036,7 @@ function redeemCode(code) {
 </script>
 </body>
 </html>
+
 
 
 
