@@ -152,6 +152,17 @@
     background: rgba(0,0,0,0.2);
     min-height: 150px;       /* Chiều cao tối thiểu */
 }
+        #feedback-modal {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    z-index: 9999;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
     </style>
 </head>
 <body>
@@ -189,6 +200,7 @@
         <div id="controls"></div>
         <div class="footer">
             <div><span class="footer-link" onclick="logout()" style="cursor:pointer; color:#ed4245">[Thoát]</span> <span class="footer-link" onclick="resetGame()" style="cursor:pointer; color:#777">[Xóa]</span></div>
+            <div class="footer-link" onclick="openFeedback()" style="cursor:pointer; color:#3498db; font-weight:bold">📩 Góp ý</div>
             <div class="footer-link donate-btn-text" onclick="showDonate()">💖 Ủng hộ</div>
         </div>
     </div>
@@ -206,6 +218,21 @@
         <button class="btn-close" style="margin-top:15px" onclick="closeLeaderboard()">Đóng</button>
     </div>
     </div>
+    <div id="feedback-modal">
+    <div class="box-style">
+        <h2 style="color: #3498db; margin: 0 0 10px 0;">📩 Hòm Thư Góp Ý</h2>
+        <div style="font-size:0.9em; color:#bbb; margin-bottom:10px">
+            Ý tưởng của bạn sẽ được gửi trực tiếp đến Dev!
+        </div>
+        
+        <textarea id="feedback-text" style="width:100%; height:120px; background:#40444b; color:white; border:1px solid #202225; border-radius:5px; padding:10px; resize:none; font-family:inherit" placeholder="Ví dụ: Cần thêm Pokemon huyền thoại, giảm giá Shop..."></textarea>
+        
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px; width:100%">
+            <button class="btn-auth" style="background:#7f8c8d; width:auto" onclick="closeFeedback()">Hủy</button>
+            <button class="btn-auth" style="background:#3498db; width:auto" onclick="submitFeedback()">GỬI NGAY</button>
+        </div>
+    </div>
+</div>
     <div id="buy-modal"><div class="box-style"><div class="inner-box"><h3 style="color: #faa61a; margin: 5px 0;" id="buy-name">Item</h3><img id="buy-img" src="" width="60" style="margin: 10px auto; display:block"><div style="margin-bottom: 10px; color:#bbb">Giá: <span id="buy-price" style="color:white; font-weight:bold">0</span>💰</div><div style="display:flex; justify-content:center; align-items:center; gap:10px; margin: 10px 0;"><input type="number" id="buy-qty" class="login-input" style="width:60px; margin:0" value="1" min="1" oninput="calcTotal()"></div><div style="font-size: 1.1em; margin-bottom: 15px;">Tổng: <span id="buy-total" style="color:#3ba55c; font-weight:bold">0</span>💰</div><div style="display:flex; gap:10px; width:100%"><button class="btn-auth" style="background:#7f8c8d; margin:0" onclick="closeBuy()">HỦY</button><button class="btn-auth btn-login" style="margin:0" onclick="submitBuy()">MUA</button></div></div></div></div>
     <div id="job-modal"><div class="box-style"><h2 style="color: #7289da; margin: 0 0 10px 0;">💼 Job Center</h2><div id="job-menu" style="width:100%"><button id="btn-mining" class="btn-auth" style="background:#40444b; text-align:left; display:flex; align-items:center; gap:10px" onclick="startMining()"><span style="font-size:1.5em">⛏️</span> <div style="flex:1"><div style="display:flex; justify-content:space-between"><span>Đào Mỏ</span><span id="durability-text" style="font-size:0.8em; color:#bbb">30/30</span></div><div style="width:100%;height:6px;background:#202225;border-radius:3px;overflow:hidden;margin-top:3px"><div id="durability-bar-fill" style="height:100%;background:#3ba55c;width:100%;transition:width 0.2s"></div></div></div></button><button id="btn-repair" class="btn-auth" style="background:#e74c3c; display:none; animation:pulse 1s infinite" onclick="openRepairModal()">🔧 CÚP GÃY! Sửa ngay</button><button class="btn-auth" style="background:#40444b; margin-top:10px" onclick="startQuiz()">🎓 Quiz Giáo Sư Oak</button><div id="emergency-aid" style="margin-top:10px; border-top:1px solid #555; padding-top:10px; display:none;"><button class="btn-auth" style="background:#ed4245" onclick="claimEmergency()">🆘 Trợ cấp khẩn cấp</button><div style="font-size:0.7em; color:#bbb; margin-top:2px">(Dành cho người nghèo)</div></div></div><div id="quiz-ui" style="display:none; width:100%"><div style="color:#bbb; font-size:0.9em">Who's that Pokemon?</div><img id="quiz-image" class="quiz-img" src=""><div id="quiz-options" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px"></div></div><button class="btn-close" style="margin-top:15px" onclick="closeJobs()">Đóng</button></div></div>
     <div id="daily-modal"><div class="box-style"><h2 style="color: #eb459e; margin: 0 0 10px 0;">🎁 Daily Zone</h2><div class="daily-section" style="background:rgba(0,0,0,0.2);padding:10px;border-radius:5px;border:1px solid #444;text-align:left"><div style="font-weight:bold; color:#f1c40f">📅 Điểm danh</div><div style="font-size:0.8em; color:#bbb; margin-bottom:5px">Nhận 500 Coins</div><button id="btn-claim-daily" class="btn-small" style="background:#3ba55c; width:100%; padding:8px" onclick="claimDailyReward()">Nhận</button></div><div class="daily-section" style="margin-top:10px;background:rgba(0,0,0,0.2);padding:10px;border-radius:5px;border:1px solid #444;text-align:left"><div style="font-weight:bold; color:#3498db; margin-bottom:5px">📜 Nhiệm vụ ngày</div><div id="daily-quests-container"></div></div><button class="btn-close" style="margin-top:15px" onclick="closeDaily()">Đóng</button></div></div>
@@ -1838,9 +1865,40 @@ function renderLeaderboard(list) {
 function closeLeaderboard() {
     document.getElementById('leaderboard-modal').style.display = 'none';
 }
+    // --- HỆ THỐNG GÓP Ý (FEEDBACK) ---
+function openFeedback() {
+    if(!currentUser) return alert("Bạn cần đăng nhập để góp ý!");
+    document.getElementById('feedback-modal').style.display = 'flex';
+    document.getElementById('feedback-text').value = ""; // Xóa nội dung cũ
+}
+
+function closeFeedback() {
+    document.getElementById('feedback-modal').style.display = 'none';
+}
+
+function submitFeedback() {
+    const content = document.getElementById('feedback-text').value.trim();
+    if(content.length < 5) return alert("Nội dung quá ngắn! Hãy viết chi tiết hơn.");
+
+    // Gửi lên Firebase vào mục 'feedback'
+    firebase.database().ref('feedback').push({
+        user: currentUser,
+        content: content,
+        time: new Date().toLocaleString()
+    })
+    .then(() => {
+        alert("✅ Đã gửi thành công! Cảm ơn ý kiến của bạn.");
+        closeFeedback();
+    })
+    .catch((err) => {
+        console.error(err);
+        alert("Lỗi gửi tin! Vui lòng thử lại.");
+    });
+}
 </script>
 </body>
 </html>
+
 
 
 
