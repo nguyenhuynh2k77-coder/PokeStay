@@ -1118,6 +1118,7 @@ function getLearnsetForType(type) {
         { id: 'lucky-egg', name: 'Lucky Egg', price: 300, type: 'item', desc: 'x2 Coins', img: 'lucky-egg.png' },
         { id: 'incense', name: 'Incense', price: 200, type: 'item', desc: 'Reroll', img: 'super-repel.png' },
         { id: 'evo-stone', name: 'Evo Stone', price: 1000, type: 'item', desc: 'Tiến hóa', img: 'fire-stone.png' },
+        { id: 'old-map', name: 'Bản Đồ Cũ',  price: 1, img: 'map.png',type: 'misc', desc: 'Bản đồ cũ nát, mờ mờ dòng chữ: "UPDATE241"'},
         { id: 'amulet-coin', name: 'Amulet Coin', price: 5000, type: 'item', desc: '+5% Coin/Catch (Max 10)', img: 'amulet-coin.png' },
         { id: 'nugget', name: 'Nugget', price: 5000, type: 'sell', desc: 'Bán lấy tiền', img: 'nugget.png' },
         { id: 'shiny-charm', name: 'Shiny Charm', price: 1000000, type: 'item', desc: 'Tăng 3x tỉ lệ gặp Shiny (Vĩnh viễn)', img: 'shiny-charm.png' },
@@ -1464,6 +1465,7 @@ function toggleMenu() {
 
 // --- MENU CHÍNH (Đã xóa nút Góp ý bị thừa) ---
 // --- MENU CHÍNH (ĐÃ CẬP NHẬT NÚT PC) ---
+// --- MENU CHÍNH (UPDATE GIAO DIỆN GỌN GÀNG) ---
 function showMenu() {
     const displayStyle = isMenuOpen ? 'flex' : 'none';
     const btnText = isMenuOpen ? '❌ Đóng' : '☰ Menu';
@@ -1474,7 +1476,6 @@ function showMenu() {
     
     <div style="width:100%; display:flex; gap:5px; margin-bottom:5px">
         <button class="btn btn-bag" onclick="openBag()" style="background:#3498db !important"><span>💻 PC</span></button>
-        
         <button class="btn btn-center" onclick="healAll()"><span>🏥 Heal</span></button>
         <button id="btn-menu-toggle" class="btn" style="background:${btnColor}; color:white" onclick="toggleMenu()">
             <span>${btnText}</span>
@@ -1492,14 +1493,14 @@ function showMenu() {
         <div style="width:100%; display:flex; gap:5px">
              <button class="btn btn-job" onclick="openJobs()"><span>💼 Job</span></button>
              <button class="btn btn-daycare" onclick="openDaycare()"><span>🏡 Care</span></button>
-             <button class="btn btn-daily" onclick="openDaily()"><span>🎁 Quà</span></button>
+             <button class="btn btn-daily" onclick="openDaily()"><span>📅 Quà</span></button>
         </div>
         
         <div style="width:100%; display:flex; gap:5px">
             <button class="btn btn-achieve" onclick="openAchieve()"><span>🌟 Cup</span></button>
             <button class="btn btn-dex" onclick="showPokedex()"><span>📖 Dex</span></button>
-            <button class="btn" style="background:#e91e63; color:white" onclick="openGiftCodeModal()"><span>🎁 Giftcode</span></button>
-            <button class="btn btn-log" onclick="showUpdates()"><span>📜 Log</span></button>
+            
+            <button class="btn" style="background:#e91e63; color:white" onclick="openGiftCodeModal()"><span>🎁 Code</span></button>
         </div>
         
     </div>`;
@@ -1843,7 +1844,24 @@ async function spawnPokemon() {
         showMenu(); 
         return alert("Túi đầy! Hãy nâng cấp hoặc bán bớt."); 
     }
-
+if (Math.random() < 0.005) {
+    // Random một câu thoại bí ẩn
+    const secretCodes = [
+        { code: "POKESTAY", msg: "Bạn tìm thấy cái chai trôi dạt, bên trong là mã: ''" }
+    ];
+    
+    const found = secretCodes[Math.floor(Math.random() * secretCodes.length)];
+    
+    // In ra màn hình log với màu sắc nổi bật
+    log(`<div style="border:1px dashed #f1c40f; padding:10px; margin:10px 0; background:rgba(241, 196, 15, 0.1); color:#f1c40f">
+        📜 <b>MAY MẮN!</b><br>
+        ${found.msg}<br>
+        <span style="font-size:0.8em; color:#bbb">(Hãy nhập mã này vào mục Giftcode)</span>
+    </div>`);
+    
+    // Play sound nhẹ nhàng
+    playSFX('levelup');
+}
     try {
         // A. XÁC ĐỊNH ĐỘ HIẾM & ID
         let id = 1;
@@ -3959,6 +3977,7 @@ function redeemCode(code) {
 </script>
 </body>
 </html>
+
 
 
 
