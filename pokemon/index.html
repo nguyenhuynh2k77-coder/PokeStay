@@ -1418,10 +1418,38 @@ async function login() {
             if (d.dailyQuests && Array.isArray(d.dailyQuests)) dailyQuests = d.dailyQuests; 
             else dailyQuests = [];
 
+            // --- SỬA LỖI DAYCARE (Load slot chuẩn xác) ---
             if (d.daycare) {
-                if (d.daycare.slots) { daycare = d.daycare; } 
-                else { daycare = { unlocked: 1, slots: [{ pokemon: d.daycare.pokemon, depositTime: d.daycare.depositTime }] }; }
+                // 1. Lấy số slot đã mở (Nếu không có thì mặc định là 1)
+                let loadedUnlocked = d.daycare.unlocked || 1;
+                
+                // 2. Xử lý danh sách Slots (Chống lỗi Object/Array)
+                let loadedSlots = [];
+                if (d.daycare.slots) {
+                    if (Array.isArray(d.daycare.slots)) {
+                        loadedSlots = d.daycare.slots;
+                    } else {
+                        // Ép kiểu Object {0:{...}, 1:{...}} về Mảng [{...}, {...}]
+                        loadedSlots = Object.values(d.daycare.slots);
+                    }
+                } else {
+                    // Nếu mất dữ liệu slots, tạo slot trống
+                    loadedSlots = [{pokemon: null, depositTime: 0}];
+                }
+
+                // 3. Đảm bảo số lượng slot khớp với số đã mở
+                // (Ví dụ: Mở 3 slot mà dữ liệu chỉ còn 1 -> Tự bù thêm 2 slot trống)
+                while(loadedSlots.length < loadedUnlocked) {
+                    loadedSlots.push({pokemon: null, depositTime: 0});
+                }
+
+                // 4. Gán vào biến toàn cục
+                daycare = {
+                    unlocked: loadedUnlocked,
+                    slots: loadedSlots
+                };
             }
+            // ---------------------------------------------
 
             // --- FIX DATA & NÂNG CẤP (Giữ nguyên logic của bạn) ---
             myBag = myBag.filter(p => p && p.name && p.name !== 'undefined');
@@ -4092,6 +4120,7 @@ function redeemCode(code) {
 </script>
 </body>
 </html>
+
 
 
 
