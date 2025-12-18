@@ -174,9 +174,9 @@
         <div class="box-style">
             <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto">
             <h2 style="color: white; margin: 10px 0;">POKESTAY v2.4</h2>
-            <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Online Updates & New Adjustment><div>
+            <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Hardcore & Online Update</div>
             <div style="width:100%">
-                <input type="text" id="username-input" class="login-input" placeholder="Tên..." onkeypress="handleEnter(event)">
+                <input type="text" id="username-input" class="login-input" placeholder="Tên đăng nhập..." onkeypress="handleEnter(event)">
                 <input type="password" id="password-input" class="login-input" placeholder="Mật khẩu..." onkeypress="handleEnter(event)">
                 <button class="btn-auth btn-login" onclick="login()">ĐĂNG NHẬP</button>
                 <button class="btn-auth btn-register" onclick="register()">ĐĂNG KÝ</button>
@@ -185,120 +185,67 @@
     </div>
     
     <div id="app">
-       <header>
-    <div style="display:flex; flex-direction:column">
-        <div style="display:flex; align-items:center; gap:5px">
-            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" width="24" height="24">
-            <span>PokeStay v2.3</span>
-        </div>
-        <span id="display-username" style="font-size:0.8em; color:#bbb">TRAINER</span>
-    </div>
-    <div style="display:flex; align-items:center; gap:10px">
-        <button id="btn-mute" onclick="toggleMute()" style="background:none; border:none; cursor:pointer; font-size:1.2em">🔊</button>
-        <div class="stats"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/nugget.png" style="width:20px"> <span id="coin-display">0</span></div>
-    </div>
-    </header>
+        <header>
+            <div style="display:flex; flex-direction:column">
+                <div style="display:flex; align-items:center; gap:5px">
+                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" width="24" height="24">
+                    <span>PokeStay Online</span>
+                </div>
+                <span id="display-username" style="font-size:0.8em; color:#bbb">TRAINER</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px">
+                <button id="btn-mute" onclick="toggleMute()" style="background:none; border:none; cursor:pointer; font-size:1.2em">🔊</button>
+                <div class="stats"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/nugget.png" style="width:20px"> <span id="coin-display">0</span></div>
+            </div>
+        </header>
+
         <div id="badge-bar" style="display:none; gap:5px; justify-content:center; background:rgba(0,0,0,0.2); padding:5px;"></div>
         <div id="buff-bar" style="padding: 5px 15px; font-size: 0.75em; display: flex; gap: 10px; background: rgba(0,0,0,0.3); min-height: 20px;"></div>
+        
         <div id="chat-area"></div>
+        
         <div id="controls"></div>
+        
         <div class="footer">
             <div><span class="footer-link" onclick="logout()" style="cursor:pointer; color:#ed4245">[Thoát]</span> <span class="footer-link" onclick="resetGame()" style="cursor:pointer; color:#777">[Xóa]</span></div>
-            <div class="footer-link" onclick="openFeedback()" style="cursor:pointer; color:#3498db; font-weight:bold">📩 Góp ý</div>
             <div class="footer-link donate-btn-text" onclick="showDonate()">💖 Ủng hộ</div>
         </div>
     </div>
 
     <div id="shop-modal"><div class="box-style" style="width:95%; max-width:500px"><h2 style="color: #faa61a; margin: 0 0 10px 0;">🛒 Poke Mart</h2><div style="text-align:right; width:100%; margin-bottom:5px">Số dư: <span id="shop-coin-display" style="color:#f1c40f; font-weight:bold">0</span>💰</div><div id="shop-list" class="shop-grid" style="overflow-y:auto; max-height:60vh"></div><button class="btn-close" onclick="closeShop()">Đóng</button></div></div>
-    <div id="leaderboard-modal">
-    <div class="box-style" style="width:95%; max-width:400px">
-        <h2 style="color: #f1c40f; margin: 0 0 10px 0;">🏆 Bảng Phong Thần</h2>
-        <div style="font-size:0.8em; color:#bbb; margin-bottom:15px">Top 10 Đại Gia Server</div>
-        
-        <div id="leaderboard-list" style="width:100%; max-height:60vh; overflow-y:auto; display:flex; flex-direction:column; gap:5px">
-            <div style="color:white">Đang tải dữ liệu...</div>
-        </div>
-
-        <button class="btn-close" style="margin-top:15px" onclick="closeLeaderboard()">Đóng</button>
-    </div>
-    </div>
-    <div id="feedback-modal">
-    <div class="box-style">
-        <h2 style="color: #3498db; margin: 0 0 10px 0;">📩 Hòm Thư Góp Ý</h2>
-        <div style="font-size:0.9em; color:#bbb; margin-bottom:10px">
-            Ý tưởng của bạn sẽ được gửi trực tiếp đến Dev!
-        </div>
-        
-        <textarea id="feedback-text" style="width:100%; height:120px; background:#40444b; color:white; border:1px solid #202225; border-radius:5px; padding:10px; resize:none; font-family:inherit" placeholder="Ví dụ: Cần thêm Pokemon huyền thoại, giảm giá Shop..."></textarea>
-        
-        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px; width:100%">
-            <button class="btn-auth" style="background:#7f8c8d; width:auto" onclick="closeFeedback()">Hủy</button>
-            <button class="btn-auth" style="background:#3498db; width:auto" onclick="submitFeedback()">GỬI NGAY</button>
-        </div>
-    </div>
-</div>
+    
     <div id="buy-modal"><div class="box-style"><div class="inner-box"><h3 style="color: #faa61a; margin: 5px 0;" id="buy-name">Item</h3><img id="buy-img" src="" width="60" style="margin: 10px auto; display:block"><div style="margin-bottom: 10px; color:#bbb">Giá: <span id="buy-price" style="color:white; font-weight:bold">0</span>💰</div><div style="display:flex; justify-content:center; align-items:center; gap:10px; margin: 10px 0;"><input type="number" id="buy-qty" class="login-input" style="width:60px; margin:0" value="1" min="1" oninput="calcTotal()"></div><div style="font-size: 1.1em; margin-bottom: 15px;">Tổng: <span id="buy-total" style="color:#3ba55c; font-weight:bold">0</span>💰</div><div style="display:flex; gap:10px; width:100%"><button class="btn-auth" style="background:#7f8c8d; margin:0" onclick="closeBuy()">HỦY</button><button class="btn-auth btn-login" style="margin:0" onclick="submitBuy()">MUA</button></div></div></div></div>
+    
     <div id="job-modal"><div class="box-style"><h2 style="color: #7289da; margin: 0 0 10px 0;">💼 Job Center</h2><div id="job-menu" style="width:100%"><button id="btn-mining" class="btn-auth" style="background:#40444b; text-align:left; display:flex; align-items:center; gap:10px" onclick="startMining()"><span style="font-size:1.5em">⛏️</span> <div style="flex:1"><div style="display:flex; justify-content:space-between"><span>Đào Mỏ</span><span id="durability-text" style="font-size:0.8em; color:#bbb">30/30</span></div><div style="width:100%;height:6px;background:#202225;border-radius:3px;overflow:hidden;margin-top:3px"><div id="durability-bar-fill" style="height:100%;background:#3ba55c;width:100%;transition:width 0.2s"></div></div></div></button><button id="btn-repair" class="btn-auth" style="background:#e74c3c; display:none; animation:pulse 1s infinite" onclick="openRepairModal()">🔧 CÚP GÃY! Sửa ngay</button><button class="btn-auth" style="background:#40444b; margin-top:10px" onclick="startQuiz()">🎓 Quiz Giáo Sư Oak</button><div id="emergency-aid" style="margin-top:10px; border-top:1px solid #555; padding-top:10px; display:none;"><button class="btn-auth" style="background:#ed4245" onclick="claimEmergency()">🆘 Trợ cấp khẩn cấp</button><div style="font-size:0.7em; color:#bbb; margin-top:2px">(Dành cho người nghèo)</div></div></div><div id="quiz-ui" style="display:none; width:100%"><div style="color:#bbb; font-size:0.9em">Who's that Pokemon?</div><img id="quiz-image" class="quiz-img" src=""><div id="quiz-options" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px"></div></div><button class="btn-close" style="margin-top:15px" onclick="closeJobs()">Đóng</button></div></div>
-    <div id="daily-modal"><div class="box-style"><h2 style="color: #eb459e; margin: 0 0 10px 0;">🎁 Daily Zone</h2><div class="daily-section" style="background:rgba(0,0,0,0.2);padding:10px;border-radius:5px;border:1px solid #444;text-align:left"><div style="font-weight:bold; color:#f1c40f">📅 Điểm danh</div><div style="font-size:0.8em; color:#bbb; margin-bottom:5px">Nhận 500 Coins</div><button id="btn-claim-daily" class="btn-small" style="background:#3ba55c; width:100%; padding:8px" onclick="claimDailyReward()">Nhận</button></div><div class="daily-section" style="margin-top:10px;background:rgba(0,0,0,0.2);padding:10px;border-radius:5px;border:1px solid #444;text-align:left"><div style="font-weight:bold; color:#3498db; margin-bottom:5px">📜 Nhiệm vụ ngày</div><div id="daily-quests-container"></div></div><button class="btn-close" style="margin-top:15px" onclick="closeDaily()">Đóng</button></div></div>
+    
+    <div id="daily-modal"><div class="box-style"><h2 style="color: #eb459e; margin: 0 0 10px 0;">🎁 Daily Zone</h2><div class="daily-section" style="background:rgba(0,0,0,0.2);padding:10px;border-radius:5px;border:1px solid #444;text-align:left"><div style="font-weight:bold; color:#f1c40f">📅 Điểm danh</div><div style="font-size:0.8em; color:#bbb; margin-bottom:5px">Nhận 5,000 Coins</div><button id="btn-claim-daily" class="btn-small" style="background:#3ba55c; width:100%; padding:8px" onclick="claimDailyReward()">Nhận</button></div><div class="daily-section" style="margin-top:10px;background:rgba(0,0,0,0.2);padding:10px;border-radius:5px;border:1px solid #444;text-align:left"><div style="font-weight:bold; color:#3498db; margin-bottom:5px">📜 Nhiệm vụ ngày</div><div id="daily-quests-container"></div></div><button class="btn-close" style="margin-top:15px" onclick="closeDaily()">Đóng</button></div></div>
+    
     <div id="daycare-modal"><div class="box-style" style="width:95%; max-width:400px"><h2 style="color: #e91e63;">🏡 Daycare</h2><div style="font-size:0.8em; color:#bbb; margin-bottom:10px">Nhận 50 XP/phút cho mỗi Pokemon.</div><div id="daycare-list" style="width:100%"></div><button id="btn-buy-slot" class="btn-auth" style="background:#f1c40f; color:black; display:none" onclick="buyDaycareSlot()">Mở rộng Slot</button><button class="btn-close" onclick="closeDaycare()">Đóng</button></div></div>
+    
     <div id="repair-modal"><div class="box-style"><h2 style="color: #e67e22;">🔧 Sửa Cúp</h2><div style="margin-bottom:15px; color:#bbb">Trả lời câu hỏi:</div><div id="repair-question" style="font-size: 2em; font-weight:bold; color:white; margin-bottom:15px"></div><div id="repair-options" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%"></div><div id="repair-limit-text" style="color:#ed4245; font-size:0.8em; margin-top:10px"></div></div></div>
+    
     <div id="achieve-modal"><div class="box-style"><div class="inner-box"><h2 style="color: #f1c40f;">🏆 Thành Tựu</h2><div style="font-size:0.7em; color:#aaa; margin-bottom:10px">Bấm vào để xem phần thưởng</div><div id="achieve-list" style="overflow-y:auto; flex:1; width:100%; max-height:60vh"></div><button class="btn-close" onclick="closeAchieve()">Đóng</button></div></div></div>
+    
     <div id="dex-modal"><div class="box-style"><div class="inner-box"><h2 style="color: #3498db;">📖 Pokedex</h2><div style="font-size: 1.2em; margin-bottom: 20px;">Đã bắt: <span style="color: #f1c40f; font-weight: bold;" id="dex-count">0</span> / 649</div><button class="btn-close" onclick="closePokedex()">Đóng</button></div></div></div>
+    
     <div id="donate-modal"><div class="box-style" style="background:white; color:black"><h3 style="color: #6c38c6; margin:0 0 10px 0">Ủng Hộ Dev</h3><img src="38b84fc99acb15954cda.jpg" class="donate-qr" style="width:100%; border-radius:5px; border:1px solid #ddd"><div style="font-size:0.9em; margin-top:10px; font-weight:bold">TPBank QR</div><button class="btn-close" onclick="closeDonate()">Đóng</button></div></div>
+    
     <div id="update-modal">
-    <div class="box-style">
-        <h2 style="color: #faa61a; margin-bottom: 15px;">📜 Nhật Ký Cập Nhật</h2>
-        
-        <div class="update-list" style="text-align:left; width:100%; overflow-y:auto; max-height:60vh; padding-right:5px">
-            
-            <div style="margin-bottom:15px; border-bottom:1px solid #444; padding-bottom:15px">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
-                    <span style="background:#8e44ad; color:white; padding:3px 8px; border-radius:4px; font-weight:bold">v2.4</span>
-                    <span style="color:#f1c40f; font-weight:bold; font-size:0.9em; text-shadow: 0 0 5px rgba(241, 196, 15, 0.5)">ONLINE & HARDCORE</span>
-                </div>
-                
-                <ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde; line-height:1.6">
-                    <li style="margin-bottom:5px">☁️ <b>Hệ thống Online:</b>
-                        <br><span style="color:#aaa; font-size:0.9em">- Lưu trữ dữ liệu trên mây (Cloud Save).</span>
-                        <br><span style="color:#aaa; font-size:0.9em">- Bảng Xếp Hạng Top Đại Gia.</span>
-                        <br><span style="color:#aaa; font-size:0.9em">- Hòm thư góp ý kiến.</span>
-                    </li>
-
-                    <li style="margin-bottom:5px">⚖️ <b>Cân Bằng Kinh Tế (Rebalance):</b>
-                        <br><span style="color:#aaa; font-size:0.9em">- Tăng giá Bóng & Item (Master Ball 50k).</span>
-                        <br><span style="color:#aaa; font-size:0.9em">- Tăng giá Bán Pokemon (Tính theo IV/Level).</span>
-                        <br><span style="color:#2ecc71; font-size:0.9em">- Tăng Thu Nhập: Đào mỏ (50-150 xu), Điểm danh (5k xu), Battle (Hard 5k xu).</span>
-                    </li>
-
-                    <li style="margin-bottom:5px">🔥 <b>Chế độ Hardcore:</b>
-                        <br><span style="color:#aaa; font-size:0.9em">- Tỉ lệ Shiny chuẩn: <b>1/4096</b>.</span>
-                        <br><span style="color:#aaa; font-size:0.9em">- Tỉ lệ Huyền thoại: <b>0.2%</b> (Siêu hiếm).</span>
-                    </li>
-
-                    <li>✨ <b>Nội Dung Mới:</b>
-                        <br><span style="color:#aaa; font-size:0.9em">- Item: <b>Shiny Charm</b> (x3 tỉ lệ Shiny).</span>
-                        <br><span style="color:#aaa; font-size:0.9em">- 5 Thành tựu mới (Tỷ Phú, Vua Shiny...).</span>
-                        <br><span style="color:#aaa; font-size:0.9em">- Giao diện Menu rút gọn cho Mobile.</span>
-                    </li>
-                </ul>
-            </div>
-
-            <div style="opacity:0.6; font-size:0.8em; color:#bbb">
-                <div style="margin-bottom:8px">
-                    <span style="background:#3ba55c; color:white; padding:1px 5px; border-radius:3px">v2.3</span> 
-                    <b>Battle Engine v2:</b> Phân tách Vật lý/Phép, thêm Move Pool đa dạng.
-                </div>
-                <div>
-                    <span style="background:#555; color:white; padding:1px 5px; border-radius:3px">v1.0</span> 
-                    Khởi chạy phiên bản PokeStay Web.
+        <div class="box-style">
+            <h2 style="color: #faa61a;">📜 Nhật Ký Cập Nhật</h2>
+            <div class="update-list" style="text-align:left; width:100%; overflow-y:auto; max-height:60vh">
+                <div style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px">
+                    <span style="background:#8e44ad; color:white; padding:2px 5px; border-radius:3px">v2.4</span> <b>Online & Hardcore</b>
+                    <ul style="padding-left:20px; font-size:0.9em; color:#ddd">
+                        <li>Lưu trữ Cloud Firebase.</li>
+                        <li>Cân bằng kinh tế & Tỉ lệ Shiny chuẩn.</li>
+                        <li>Giao diện Menu mới.</li>
+                    </ul>
                 </div>
             </div>
-
+            <button class="btn-close" onclick="closeUpdates()">Đóng</button>
         </div>
-        
-        <button class="btn-close" style="margin-top:15px" onclick="closeUpdates()">Đóng</button>
     </div>
-</div>
 
     <div id="battle-modal">
         <div class="box-style">
@@ -308,9 +255,9 @@
                     <span id="battle-my-poke" style="color:#3ba55c; font-weight:bold">My Pokemon</span>
                     <div style="font-size:0.8em; color:#bbb">Ready for battle!</div>
                 </div>
-                <button class="difficulty-btn diff-easy btn-auth" style="background:#2ecc71" onclick="startBattle('easy')"><span>EASY: Wild (50 Coin)</span></button>
-                <button class="difficulty-btn diff-med btn-auth" style="background:#f1c40f; color:black" onclick="startBattle('medium')"><span>MEDIUM: Trainer (200 Coin)</span></button>
-                <button id="gym-btn" class="difficulty-btn gym-btn btn-auth" style="background:#ed4245" onclick="startBattle('hard')"><span>HARD: GYM (1000 Coin)</span></button>
+                <button class="difficulty-btn diff-easy btn-auth" style="background:#2ecc71" onclick="startBattle('easy')"><span>EASY (300 Xu)</span></button>
+                <button class="difficulty-btn diff-med btn-auth" style="background:#f1c40f; color:black" onclick="startBattle('medium')"><span>MEDIUM (1000 Xu)</span></button>
+                <button id="gym-btn" class="difficulty-btn gym-btn btn-auth" style="background:#ed4245" onclick="startBattle('hard')"><span>HARD: GYM (5000 Xu)</span></button>
                 <button class="btn-close" onclick="closeBattle()">Thoát</button>
             </div>
     
@@ -350,6 +297,29 @@
                 </div>
     
                 <button id="battle-end-btn" class="btn-auth" style="display:none; background:#3ba55c" onclick="endBattle()">Hoàn Tất</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="leaderboard-modal">
+        <div class="box-style">
+            <h2 style="color: #f1c40f; margin: 0 0 10px 0;">🏆 Bảng Phong Thần</h2>
+            <div style="font-size:0.8em; color:#bbb; margin-bottom:15px">Top 10 Đại Gia Server</div>
+            <div id="leaderboard-list">
+                 <div style="color:yellow; padding:20px">Đang tải...</div>
+            </div>
+            <button class="btn-close" onclick="closeLeaderboard()">Đóng</button>
+        </div>
+    </div>
+    
+    <div id="feedback-modal">
+        <div class="box-style">
+            <h2 style="color: #3498db; margin: 0 0 10px 0;">📩 Hòm Thư Góp Ý</h2>
+            <div style="font-size:0.9em; color:#bbb; margin-bottom:10px">Ý tưởng của bạn sẽ được gửi trực tiếp đến Dev!</div>
+            <textarea id="feedback-text" style="width:100%; height:120px; background:#40444b; color:white; border:1px solid #202225; border-radius:5px; padding:10px; resize:none; font-family:inherit" placeholder="Ví dụ: Cần thêm Pokemon huyền thoại, giảm giá Shop..."></textarea>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px; width:100%">
+                <button class="btn-auth" style="background:#7f8c8d; width:auto" onclick="closeFeedback()">Hủy</button>
+                <button class="btn-auth" style="background:#3498db; width:auto" onclick="submitFeedback()">GỬI NGAY</button>
             </div>
         </div>
     </div>
@@ -2173,6 +2143,7 @@ function submitFeedback() {
 </script>
 </body>
 </html>
+
 
 
 
