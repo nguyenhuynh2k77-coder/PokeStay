@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PokeStay v2.3.1 - Addings Sound Effect</title>
+    <title>PokeStay v2.4 - Menu Updates & Add New Achivements</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png">
     
     <style>
@@ -173,8 +173,8 @@
     <div id="login-screen">
         <div class="box-style">
             <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto">
-            <h2 style="color: white; margin: 10px 0;">POKESTAY v2.3.1</h2>
-            <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Addings Sound Effect</div>
+            <h2 style="color: white; margin: 10px 0;">POKESTAY v2.4</h2>
+            <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Menu Updates & Add New Achivements</div>
             <div style="width:100%">
                 <input type="text" id="username-input" class="login-input" placeholder="Tên..." onkeypress="handleEnter(event)">
                 <input type="password" id="password-input" class="login-input" placeholder="Mật khẩu..." onkeypress="handleEnter(event)">
@@ -498,18 +498,29 @@
     ];
 
     const ACHIEVEMENT_DB = [
-        { id: 'novice', name: 'Novice Catcher', desc: 'Bắt 10 Pokemon', req: (s)=>s.catches>=10, reward: {type:'item', id:'poke-ball', qty:5} },
-        { id: 'collector', name: 'Collector', desc: 'Bắt 50 Pokemon', req: (s)=>s.catches>=50, reward: {type:'item', id:'great-ball', qty:10} },
-        { id: 'master', name: 'Pokemon Master', desc: 'Bắt 100 Pokemon', req: (s)=>s.catches>=100, reward: {type:'item', id:'ultra-ball', qty:5} },
-        { id: 'lucky', name: 'Lucky Hunter', desc: 'Bắt 1 Shiny', req: (s)=>s.shinies>=1, reward: {type:'item', id:'lucky-egg', qty:2} },
-        { id: 'miner', name: 'Hard Worker', desc: 'Đào 100 lần', req: (s)=>s.mining>=100, reward: {type:'item', id:'stardust', qty:5} },
-        { id: 'spender', name: 'Big Spender', desc: 'Tiêu 5000 Coins', req: (s)=>s.spent>=5000, reward: {type:'item', id:'amulet-coin', qty:1} },
-        { id: 'rich', name: 'Rich Trainer', desc: 'Có 20,000 Coins', req: (s)=>coins>=20000, reward: {type:'item', id:'nugget', qty:1} },
-        { id: 'breaker', name: 'Gym Breaker', desc: 'Thắng Gym 5 lần', req: (s)=>s.hardWins>=5, reward: {type:'item', id:'rare-candy', qty:1} },
-        { id: 'champion', name: 'Gym Champion', desc: 'Thắng Gym 20 lần', req: (s)=>s.hardWins>=20, reward: {type:'item', id:'master-ball', qty:1} },
-        { id: 'hoarder', name: 'Hoarder', desc: 'Túi chứa 50 Pokemon', req: (s)=>myBag.length>=50, reward: {type:'item', id:'bag-upgrade', qty:1} },
-    ];
+    // --- CŨ ---
+    { id: 'novice', name: 'Tập sự', desc: 'Bắt 10 Pokemon', req: (s)=>s.catches>=10, reward: {type:'item', id:'poke-ball', qty:5} },
+    { id: 'collector', name: 'Sưu tầm', desc: 'Bắt 50 Pokemon', req: (s)=>s.catches>=50, reward: {type:'item', id:'great-ball', qty:10} },
+    { id: 'master', name: 'Bậc Thầy', desc: 'Bắt 100 Pokemon', req: (s)=>s.catches>=100, reward: {type:'item', id:'ultra-ball', qty:5} },
+    { id: 'lucky', name: 'May mắn', desc: 'Bắt 1 Shiny', req: (s)=>s.shinies>=1, reward: {type:'item', id:'lucky-egg', qty:2} },
+    { id: 'miner', name: 'Thợ mỏ', desc: 'Đào 100 lần', req: (s)=>s.mining>=100, reward: {type:'item', id:'stardust', qty:5} },
+    { id: 'spender', name: 'Dân chơi', desc: 'Tiêu 5000 Coins', req: (s)=>s.spent>=5000, reward: {type:'item', id:'amulet-coin', qty:1} },
+    { id: 'rich', name: 'Nhà Giàu', desc: 'Có 20,000 Coins', req: (s)=>coins>=20000, reward: {type:'item', id:'nugget', qty:1} },
+    { id: 'breaker', name: 'Kẻ Phá Gym', desc: 'Thắng Gym 5 lần', req: (s)=>s.hardWins>=5, reward: {type:'item', id:'rare-candy', qty:1} },
+    { id: 'champion', name: 'Vô Địch', desc: 'Thắng Gym 20 lần', req: (s)=>s.hardWins>=20, reward: {type:'item', id:'master-ball', qty:1} },
+    { id: 'hoarder', name: 'Túi Ba Gang', desc: 'Túi chứa 50 Pokemon', req: (s)=>myBag.length>=50, reward: {type:'item', id:'bag-upgrade', qty:1} },
 
+    // --- MỚI THÊM VÀO (NEW) ---
+    { id: 'tycoon', name: 'Tỷ Phú', desc: 'Sở hữu 100,000 Coins', req: (s)=>coins>=100000, reward: {type:'item', id:'master-ball', qty:2} },
+    
+    { id: 'expert_miner', name: 'Trùm Đào Mỏ', desc: 'Đào 500 lần', req: (s)=>s.mining>=500, reward: {type:'item', id:'nugget', qty:5} },
+    
+    { id: 'shiny_king', name: 'Vua Shiny', desc: 'Bắt được 5 Pokemon Shiny', req: (s)=>s.shinies>=5, reward: {type:'item', id:'mystery-egg', qty:1} },
+    
+    { id: 'powerhouse', name: 'Sức Mạnh', desc: 'Có 1 Pokemon đạt Level 50', req: (s)=>myBag.some(p => p.level >= 50), reward: {type:'item', id:'rare-candy', qty:5} },
+    
+    { id: 'legend', name: 'Huyền Thoại', desc: 'Sở hữu 1 Pokemon Huyền Thoại', req: (s)=>myBag.some(p => LEGENDARY_IDS.includes(p.id)), reward: {type:'item', id:'master-ball', qty:1} }
+];
     const SHOP_DB = [
         { id: 'poke-ball', name: 'Poké Ball', price: 100, type: 'ball', rate: 0.30, img: 'poke-ball.png' },
         { id: 'great-ball', name: 'Great Ball', price: 300, type: 'ball', rate: 0.50, img: 'great-ball.png' },
@@ -841,6 +852,7 @@ function toggleMenu() {
     }
 }
 
+// --- MENU CHÍNH (Đã xóa nút Góp ý bị thừa) ---
 function showMenu() {
     // Trạng thái hiển thị của menu phụ thuộc vào biến isMenuOpen
     const displayStyle = isMenuOpen ? 'flex' : 'none';
@@ -876,9 +888,8 @@ function showMenu() {
             <button class="btn btn-dex" onclick="showPokedex()"><span>📖 Dex</span></button>
             <button class="btn btn-log" onclick="showUpdates()"><span>📜 Log</span></button>
         </div>
-
-        <button class="btn" style="background:#3498db; width:100%; padding:8px 0" onclick="openFeedback()">📩 Gửi Góp Ý</button>
-    </div>`;
+        
+        </div>`;
 }
    
 
@@ -1934,6 +1945,7 @@ function submitFeedback() {
 </script>
 </body>
 </html>
+
 
 
 
