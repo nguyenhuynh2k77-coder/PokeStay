@@ -1399,6 +1399,7 @@ async function login() {
         updateStats();
         playBGM('map');
         showMenu(); // Hiện lại menu
+        showUpdateLog();
 
     } catch (error) {
         console.error("Lỗi tải game:", error);
@@ -3840,9 +3841,25 @@ function showDamageText(amount, isCrit) {
         dmgEl.remove();
     }, 1000);
 }
+    function showUpdateLog() {
+    log(`<div class="embed" style="border-left-color:#e91e63">
+        <h3 style="color:#e91e63; margin:0">📢 POKESTAY UPDATE v2.4.1</h3>
+        <div style="font-size:0.9em; margin-top:5px">
+            <b>☠️ World Boss:</b> Có Stamina, Chọn Team, Hiện Damage.<br>
+            <b>💻 PC Box:</b> Thêm nút "Chọn nhiều" để bán nhanh.<br>
+            <b>🥎 Visual:</b> Hiệu ứng ném bóng biến hình & Lắc bóng.<br>
+            <b>🛠️ Fix:</b> Cân bằng tỷ lệ bắt, Giảm âm lượng.<br>
+        </div>
+        <div style="margin-top:5px; font-size:0.8em; color:#777">Chúc bạn chơi game vui vẻ!</div>
+    </div>`);
+}
+
+// Gọi hàm này 1 lần khi load game xong (trong hàm loadGame hoặc login)
+// showUpdateLog();
 </script>
 </body>
 </html>
+
 
 
 
