@@ -564,6 +564,19 @@
         { id: 'stardust', name: 'Stardust', price: 1000, type: 'sell', desc: 'Bán lấy tiền', img: 'stardust.png' }
         
     ];
+    // --- DỮ LIỆU CÂU HỎI SỬA CÚP ---
+const REPAIR_QUESTIONS = [
+    { q: "1 + 1 = ?", a: ["2", "3", "11", "0"], correct: 0 },
+    { q: "2 x 3 = ?", a: ["5", "6", "9", "12"], correct: 1 },
+    { q: "Pokemon nào màu vàng?", a: ["Bulbasaur", "Charmander", "Pikachu", "Squirtle"], correct: 2 },
+    { q: "Mặt trời mọc hướng nào?", a: ["Tây", "Bắc", "Nam", "Đông"], correct: 3 },
+    { q: "10 - 5 = ?", a: ["2", "5", "10", "15"], correct: 1 },
+    { q: "Cá sống ở đâu?", a: ["Trên cây", "Dưới đất", "Dưới nước", "Trong lửa"], correct: 2 },
+    { q: "5 x 5 = ?", a: ["10", "20", "25", "55"], correct: 2 },
+    { q: "Nước sôi ở bao nhiêu độ?", a: ["50°C", "90°C", "100°C", "1000°C"], correct: 2 },
+    { q: "Con gì gáy ò ó o?", a: ["Chó", "Mèo", "Gà trống", "Vịt"], correct: 2 },
+    { q: "Pokemon hệ Lửa sợ hệ gì?", a: ["Cỏ", "Nước", "Băng", "Tiên"], correct: 1 }
+];
 
     let coins = 000; let myBag = []; let pokedex = new Set(); let inventory = { 'poke-ball': 20, 'potion': 5, 'bag-upgrade': 0 }; let lastDailyDate = "";
     let userStats = { catches: 0, spent: 0, hardWins: 0, mining: 0, shinies: 0 };
@@ -2140,9 +2153,59 @@ function submitFeedback() {
         alert("Lỗi gửi tin! Vui lòng thử lại.");
     });
 }
+    // --- LOGIC SỬA CÚP ---
+let currentRepairQ = null;
+
+function openRepairModal() {
+    if(coins < 500) return alert("Cần 500 Coins để mua dụng cụ sửa!");
+    
+    // Chọn câu hỏi ngẫu nhiên
+    currentRepairQ = REPAIR_QUESTIONS[Math.floor(Math.random() * REPAIR_QUESTIONS.length)];
+    
+    document.getElementById('repair-modal').style.display = 'flex';
+    document.getElementById('repair-question').innerText = currentRepairQ.q;
+    
+    // Tạo 4 nút trả lời
+    const optsDiv = document.getElementById('repair-options');
+    optsDiv.innerHTML = '';
+    
+    currentRepairQ.a.forEach((ans, index) => {
+        let btn = document.createElement('button');
+        btn.className = 'btn-auth';
+        btn.style.background = '#34495e';
+        btn.innerText = ans;
+        btn.onclick = () => checkRepairAnswer(index);
+        optsDiv.appendChild(btn);
+    });
+    
+    document.getElementById('repair-limit-text').innerText = "Phí sửa: 500 Coins (Trả lời sai mất tiền!)";
+}
+    function checkRepairAnswer(index) {
+    if(index === currentRepairQ.correct) {
+        // Đúng
+        if(coins >= 500) {
+            coins -= 500;
+            pickaxe.durability = 30; // Hồi phục độ bền
+            alert("✅ Chính xác! Cúp đã được sửa đầy.");
+            
+            saveGame();
+            updateMiningUI();
+            
+            // Đóng modal sửa và mở lại modal Job
+            document.getElementById('repair-modal').style.display = 'none';
+            openJobs(); 
+        } else {
+            alert("Không đủ tiền (Cần 500 coin)!");
+        }
+    } else {
+        // Sai
+        alert("❌ Sai rồi! Bạn bị điện giật tê người. Thử lại nhé!");
+    }
+}
 </script>
 </body>
 </html>
+
 
 
 
