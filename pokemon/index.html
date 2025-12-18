@@ -1657,9 +1657,9 @@ async function spawnPokemon() {
         // D. TÍNH CATCH RATE (QUAN TRỌNG)
         let baseRate = 255; 
         if (data.base_experience > 250) baseRate = 15;      // Rất khó
-        else if (data.base_experience > 200) baseRate = 80; // Khó
-        else if (data.base_experience > 150) baseRate = 120; // Trung bình
-        else if (data.base_experience > 100) baseRate = 180; // Dễ
+        else if (data.base_experience > 200) baseRate = 60; // Khó
+        else if (data.base_experience > 150) baseRate = 110; // Trung bình
+        else if (data.base_experience > 100) baseRate = 160; // Dễ
         
         let p = { 
             id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, 
@@ -3253,6 +3253,7 @@ function sellSelectedItems() {
 </script>
 </body>
 </html>
+
 
 
 
