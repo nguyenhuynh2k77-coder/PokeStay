@@ -527,6 +527,32 @@
 .team-card.selected .team-slot-indicator {
     display: block; /* Hiện khi chọn */
 }
+        /* --- HIỆU ỨNG SÁT THƯƠNG (DAMAGE POPUP) --- */
+@keyframes floatUp {
+    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+    20% { transform: translate(-50%, -100%) scale(1.2); opacity: 1; }
+    100% { transform: translate(-50%, -250%) scale(1); opacity: 0; }
+}
+
+.damage-popup {
+    position: absolute;
+    left: 50%;
+    top: 50%; /* Xuất hiện từ giữa Boss */
+    color: white;
+    font-weight: 900;
+    font-size: 24px;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    pointer-events: none; /* Để chuột click xuyên qua được */
+    animation: floatUp 1s ease-out forwards;
+    z-index: 3500;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.damage-popup.crit {
+    color: #f1c40f; /* Màu vàng */
+    font-size: 36px; /* To hơn */
+    text-shadow: 0 0 10px red; /* Viền phát sáng đỏ */
+}
     </style>
 </head>
 <body>
@@ -3476,8 +3502,8 @@ async function createNewBoss(weekId) {
         weekId: weekId,
         name: pokeData.name.toUpperCase(),
         img: pokeData.sprites.other['official-artwork'].front_default,
-        hp: 10000, // 1 Triệu Máu (Chỉnh số này tùy lượng người chơi)
-        maxHp: 10000,
+        hp: 200000, // 1 Triệu Máu (Chỉnh số này tùy lượng người chơi)
+        maxHp: 200000,
         contributors: {}, // Danh sách người đánh
         isDead: false
     };
@@ -3569,13 +3595,15 @@ function attackWorldBoss() {
     }
     
     // Damage dao động random
-    let damage = Math.floor(totalAtk * (0.8 + Math.random() * 0.4));
+    let damage = Math.floor(totalAtk * (0.9 + Math.random() * 0.2));
     
     // Crit
     if(Math.random() < 0.1) {
         damage *= 2;
+        isCrit = true;
         log(`<span style="color:#e74c3c">Chí mạng vào Boss!</span>`);
     }
+    showDamageText(damage, isCrit);
 
     // Gửi damage lên Firebase (Dùng transaction để cộng dồn an toàn)
     const bossRef = firebase.database().ref('world_boss');
@@ -3593,7 +3621,8 @@ function attackWorldBoss() {
     
     // Hiệu ứng Visual
     playSFX('catch'); // Tạm dùng tiếng này
-    alert(`Bạn gây ${damage} sát thương lên Boss!`);
+    document.getElementById('boss-modal').classList.add('shake');
+    setTimeout(()=>document.getElementById('boss-modal').classList.remove('shake'), 500);
 }
 
 // 6. Xử lý khi Boss chết (Phát quà)
@@ -3785,9 +3814,37 @@ function attackWorldBoss() {
     document.getElementById('boss-modal').classList.add('shake');
     setTimeout(()=>document.getElementById('boss-modal').classList.remove('shake'), 500);
 }
+    // --- HÀM HIỂN THỊ SỐ SÁT THƯƠNG ---
+function showDamageText(amount, isCrit) {
+    const bossContainer = document.querySelector('.boss-container');
+    if (!bossContainer) return;
+
+    // Tạo thẻ hiển thị số
+    const dmgEl = document.createElement('div');
+    dmgEl.className = 'damage-popup';
+    if (isCrit) dmgEl.classList.add('crit');
+    
+    // Thêm nội dung: Nếu crit thì thêm icon cho ngầu
+    dmgEl.innerHTML = (isCrit ? '💥 ' : '') + amount.toLocaleString();
+
+    // Random vị trí lệch một chút để không bị chồng chéo nếu click nhanh
+    const randomX = (Math.random() - 0.5) * 40; // Lệch trái phải 20px
+    const randomY = (Math.random() - 0.5) * 20;
+    dmgEl.style.marginLeft = randomX + 'px';
+    dmgEl.style.marginTop = randomY + 'px';
+
+    // Gắn vào boss container
+    bossContainer.appendChild(dmgEl);
+
+    // Tự động xóa sau 1 giây (khi animation chạy xong) để nhẹ máy
+    setTimeout(() => {
+        dmgEl.remove();
+    }, 1000);
+}
 </script>
 </body>
 </html>
+
 
 
 
