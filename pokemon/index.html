@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PokeStay v2.4 - Menu Updates & Add New Achivements</title>
+    <title>PokeStay v2.4 - Online Updates & New Adjustment</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png">
     
     <style>
@@ -174,7 +174,7 @@
         <div class="box-style">
             <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto">
             <h2 style="color: white; margin: 10px 0;">POKESTAY v2.4</h2>
-            <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Menu Updates & Add New Achivements</div>
+            <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;">Online Updates & New Adjustment><div>
             <div style="width:100%">
                 <input type="text" id="username-input" class="login-input" placeholder="Tên..." onkeypress="handleEnter(event)">
                 <input type="password" id="password-input" class="login-input" placeholder="Mật khẩu..." onkeypress="handleEnter(event)">
@@ -189,7 +189,7 @@
     <div style="display:flex; flex-direction:column">
         <div style="display:flex; align-items:center; gap:5px">
             <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" width="24" height="24">
-            <span>PokeStay v2.3.1</span>
+            <span>PokeStay v2.3</span>
         </div>
         <span id="display-username" style="font-size:0.8em; color:#bbb">TRAINER</span>
     </div>
@@ -245,7 +245,60 @@
     <div id="achieve-modal"><div class="box-style"><div class="inner-box"><h2 style="color: #f1c40f;">🏆 Thành Tựu</h2><div style="font-size:0.7em; color:#aaa; margin-bottom:10px">Bấm vào để xem phần thưởng</div><div id="achieve-list" style="overflow-y:auto; flex:1; width:100%; max-height:60vh"></div><button class="btn-close" onclick="closeAchieve()">Đóng</button></div></div></div>
     <div id="dex-modal"><div class="box-style"><div class="inner-box"><h2 style="color: #3498db;">📖 Pokedex</h2><div style="font-size: 1.2em; margin-bottom: 20px;">Đã bắt: <span style="color: #f1c40f; font-weight: bold;" id="dex-count">0</span> / 649</div><button class="btn-close" onclick="closePokedex()">Đóng</button></div></div></div>
     <div id="donate-modal"><div class="box-style" style="background:white; color:black"><h3 style="color: #6c38c6; margin:0 0 10px 0">Ủng Hộ Dev</h3><img src="38b84fc99acb15954cda.jpg" class="donate-qr" style="width:100%; border-radius:5px; border:1px solid #ddd"><div style="font-size:0.9em; margin-top:10px; font-weight:bold">TPBank QR</div><button class="btn-close" onclick="closeDonate()">Đóng</button></div></div>
-    <div id="update-modal"><div class="box-style"><h2 style="color: #faa61a;">📜 Update Log</h2><div class="update-list" style="text-align:left; width:100%"><div style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px"><span style="background:#3ba55c; color:white; padding:2px 5px; border-radius:3px; font-size:0.8em">v2.3</span> <span style="color:#bbb; font-size:0.8em; float:right">Advanced Engine</span><ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde"><li><b>True Damage Formula:</b> Công thức sát thương chuẩn game gốc (Level, Power, A/D, Modifiers).</li><li><b>Split Stats:</b> Chiêu Vật lý dùng ATK/DEF, Chiêu Phép dùng SpA/SpD.</li><li><b>Battle Modifiers:</b> Thêm STAB (1.5x), Critical Hit (1.5x), Random (0.85-1.0).</li></ul></div></div><button class="btn-close" onclick="closeUpdates()">Đóng</button></div></div>
+    <div id="update-modal">
+    <div class="box-style">
+        <h2 style="color: #faa61a; margin-bottom: 15px;">📜 Nhật Ký Cập Nhật</h2>
+        
+        <div class="update-list" style="text-align:left; width:100%; overflow-y:auto; max-height:60vh; padding-right:5px">
+            
+            <div style="margin-bottom:15px; border-bottom:1px solid #444; padding-bottom:15px">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+                    <span style="background:#8e44ad; color:white; padding:3px 8px; border-radius:4px; font-weight:bold">v2.4</span>
+                    <span style="color:#f1c40f; font-weight:bold; font-size:0.9em; text-shadow: 0 0 5px rgba(241, 196, 15, 0.5)">ONLINE & HARDCORE</span>
+                </div>
+                
+                <ul style="padding-left:20px; margin:5px 0; font-size:0.9em; color:#dcddde; line-height:1.6">
+                    <li style="margin-bottom:5px">☁️ <b>Hệ thống Online:</b>
+                        <br><span style="color:#aaa; font-size:0.9em">- Lưu trữ dữ liệu trên mây (Cloud Save).</span>
+                        <br><span style="color:#aaa; font-size:0.9em">- Bảng Xếp Hạng Top Đại Gia.</span>
+                        <br><span style="color:#aaa; font-size:0.9em">- Hòm thư góp ý kiến.</span>
+                    </li>
+
+                    <li style="margin-bottom:5px">⚖️ <b>Cân Bằng Kinh Tế (Rebalance):</b>
+                        <br><span style="color:#aaa; font-size:0.9em">- Tăng giá Bóng & Item (Master Ball 50k).</span>
+                        <br><span style="color:#aaa; font-size:0.9em">- Tăng giá Bán Pokemon (Tính theo IV/Level).</span>
+                        <br><span style="color:#2ecc71; font-size:0.9em">- Tăng Thu Nhập: Đào mỏ (50-150 xu), Điểm danh (5k xu), Battle (Hard 5k xu).</span>
+                    </li>
+
+                    <li style="margin-bottom:5px">🔥 <b>Chế độ Hardcore:</b>
+                        <br><span style="color:#aaa; font-size:0.9em">- Tỉ lệ Shiny chuẩn: <b>1/4096</b>.</span>
+                        <br><span style="color:#aaa; font-size:0.9em">- Tỉ lệ Huyền thoại: <b>0.2%</b> (Siêu hiếm).</span>
+                    </li>
+
+                    <li>✨ <b>Nội Dung Mới:</b>
+                        <br><span style="color:#aaa; font-size:0.9em">- Item: <b>Shiny Charm</b> (x3 tỉ lệ Shiny).</span>
+                        <br><span style="color:#aaa; font-size:0.9em">- 5 Thành tựu mới (Tỷ Phú, Vua Shiny...).</span>
+                        <br><span style="color:#aaa; font-size:0.9em">- Giao diện Menu rút gọn cho Mobile.</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div style="opacity:0.6; font-size:0.8em; color:#bbb">
+                <div style="margin-bottom:8px">
+                    <span style="background:#3ba55c; color:white; padding:1px 5px; border-radius:3px">v2.3</span> 
+                    <b>Battle Engine v2:</b> Phân tách Vật lý/Phép, thêm Move Pool đa dạng.
+                </div>
+                <div>
+                    <span style="background:#555; color:white; padding:1px 5px; border-radius:3px">v1.0</span> 
+                    Khởi chạy phiên bản PokeStay Web.
+                </div>
+            </div>
+
+        </div>
+        
+        <button class="btn-close" style="margin-top:15px" onclick="closeUpdates()">Đóng</button>
+    </div>
+</div>
 
     <div id="battle-modal">
         <div class="box-style">
@@ -2120,6 +2173,7 @@ function submitFeedback() {
 </script>
 </body>
 </html>
+
 
 
 
