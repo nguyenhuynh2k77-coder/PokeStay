@@ -1387,7 +1387,29 @@ async function login() {
             if (d.dailyQuizStatus) dailyQuizStatus = d.dailyQuizStatus;
             if (d.userStats) userStats = d.userStats;
             if (d.usedCodes) usedCodes = d.usedCodes;
-            if (d.completedAchievements) completedAchievements = d.completedAchievements;
+           // --- SỬA LỖI MẤT THÀNH TỰU (QUAN TRỌNG) ---
+            if (d.completedAchievements) {
+                // Kiểm tra: Nếu Firebase trả về dạng Object, ép nó về Array
+                if (Array.isArray(d.completedAchievements)) {
+                    completedAchievements = d.completedAchievements;
+                } else {
+                    // Chuyển Object {0: "id1", 1: "id2"} thành Array ["id1", "id2"]
+                    completedAchievements = Object.values(d.completedAchievements);
+                }
+            } else {
+                completedAchievements = [];
+            }
+            
+            // Đảm bảo userStats không bị thiếu chỉ số (gây lỗi hiển thị tiến độ)
+            if (d.userStats) {
+                userStats = d.userStats;
+                if(!userStats.catches) userStats.catches = 0;
+                if(!userStats.spent) userStats.spent = 0;
+                if(!userStats.hardWins) userStats.hardWins = 0;
+                if(!userStats.mining) userStats.mining = 0;
+                if(!userStats.shinies) userStats.shinies = 0;
+            }
+            // ------------------------------------------
             if (d.gymProgress) gymProgress = d.gymProgress;
             if (d.maxBagSize) maxBagSize = d.maxBagSize;
             if (d.pickaxe) pickaxe = d.pickaxe;
@@ -4070,6 +4092,7 @@ function redeemCode(code) {
 </script>
 </body>
 </html>
+
 
 
 
