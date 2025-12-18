@@ -383,6 +383,30 @@
 .caught-anim {
     animation: catch-success 0.5s ease-out;
 }
+        /* --- CSS CHO CHẾ ĐỘ CHỌN NHIỀU (BULK SELECT) --- */
+.bag-row.selected {
+    border: 2px solid #f1c40f;
+    background: rgba(241, 196, 15, 0.1);
+}
+
+.select-checkbox {
+    width: 20px; 
+    height: 20px; 
+    cursor: pointer;
+    accent-color: #f1c40f; /* Màu checkbox vàng */
+}
+
+/* Thanh hành động dính ở dưới khi chọn nhiều */
+.bulk-action-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #202225;
+    padding: 10px;
+    border-top: 1px solid #444;
+    margin-top: 10px;
+    border-radius: 0 0 5px 5px;
+}
     </style>
 </head>
 <body>
@@ -715,7 +739,7 @@
         
         if(src) {
             let a = new Audio(src);
-            a.volume = 0.5;
+            a.volume = 0.3;
             a.play();
         }
     }
@@ -913,6 +937,9 @@ const REPAIR_QUESTIONS = [
     { q: "Con gì gáy ò ó o?", a: ["Chó", "Mèo", "Gà trống", "Vịt"], correct: 2 },
     { q: "Pokemon hệ Lửa sợ hệ gì?", a: ["Cỏ", "Nước", "Băng", "Tiên"], correct: 1 }
 ];
+    // --- BIẾN TRẠNG THÁI CHỌN NHIỀU ---
+    let isSelectMode = false;
+    let selectedIndices = new Set(); // Dùng Set để lưu index không bị trùng
     let quizStreak = 0;
     let dailyQuizStatus = { date: "", milestones: [] };
     let coins = 5000; let myBag = []; let pokedex = new Set(); let inventory = { 'poke-ball': 20, 'potion': 5, 'bag-upgrade': 0 }; let lastDailyDate = "";
@@ -1219,8 +1246,8 @@ function toggleMenu() {
 }
 
 // --- MENU CHÍNH (Đã xóa nút Góp ý bị thừa) ---
+// --- MENU CHÍNH (ĐÃ CẬP NHẬT NÚT PC) ---
 function showMenu() {
-    // Trạng thái hiển thị của menu phụ thuộc vào biến isMenuOpen
     const displayStyle = isMenuOpen ? 'flex' : 'none';
     const btnText = isMenuOpen ? '❌ Đóng' : '☰ Menu';
     const btnColor = isMenuOpen ? '#7f8c8d' : '#34495e';
@@ -1229,7 +1256,8 @@ function showMenu() {
     <button class="btn btn-hunt" onclick="hunt()"><span>🔍 SĂN POKEMON</span></button>
     
     <div style="width:100%; display:flex; gap:5px; margin-bottom:5px">
-        <button class="btn btn-bag" onclick="openBag()"><span>🎒 Túi</span></button>
+        <button class="btn btn-bag" onclick="openBag()" style="background:#3498db !important"><span>💻 PC</span></button>
+        
         <button class="btn btn-center" onclick="healAll()"><span>🏥 Heal</span></button>
         <button id="btn-menu-toggle" class="btn" style="background:${btnColor}; color:white" onclick="toggleMenu()">
             <span>${btnText}</span>
@@ -1255,7 +1283,7 @@ function showMenu() {
             <button class="btn btn-log" onclick="showUpdates()"><span>📜 Log</span></button>
         </div>
         
-        </div>`;
+    </div>`;
 }
    
 
@@ -1282,86 +1310,109 @@ function showMenu() {
     function openBag() { if(currentWild) return; renderBag(); }
     
    // --- CẬP NHẬT HÀM HIỂN THỊ TÚI (VỚI GIÁ BÁN MỚI) ---
+// --- HỆ THỐNG PC & CHỌN NHIỀU (ĐÃ NÂNG CẤP) ---
 function renderBag() {
+    // 1. Header của PC
+    let headerHtml = `
+    <div class="embed" style="border-left-color:#3498db">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px">
+            <span class="embed-title">💻 PC Box 1 (${myBag.length}/${maxBagSize})</span>
+            
+            <button class="btn-small" style="background:${isSelectMode ? '#ed4245' : '#f1c40f'}; color:black; font-weight:bold" onclick="toggleSelectMode()">
+                ${isSelectMode ? '❌ Hủy chọn' : '✅ Chọn nhiều'}
+            </button>
+        </div>
+    `;
+
     if(myBag.length === 0) { 
-        log("Túi rỗng."); 
+        log(headerHtml + "<div style='padding:10px; color:#777'>PC trống trơn.</div></div>"); 
         return; 
     }
 
+    // 2. Render danh sách
     const listHtml = myBag.slice().reverse().map((p, i) => {
-        const realIdx = myBag.length - 1 - i;
-
-        // 1. XỬ LÝ TRỨNG (Giữ nguyên)
-        if(p.isEgg) {
-            let percent = Math.min(100, Math.floor((p.steps / p.maxSteps) * 100));
-            return `<div class="bag-row egg-row">
-                <div style="display:flex;align-items:center;gap:10px">
-                    <img src="${URL_ITEMS}lucky-egg.png" width="40">
-                    <div>
-                        <b>Mystery Egg</b><br>
-                        <div class="xp-container"><div class="xp-fill" style="width:${percent}%; background:#f1c40f"></div></div>
-                        <span style="font-size:0.7em">${p.steps}/${p.maxSteps} bước</span>
-                    </div>
-                </div>
-                <div>${percent >= 100 ? `<button class="btn-small" style="background:#f1c40f;color:black" onclick="hatchEgg(${realIdx})">NỞ!</button>` : '...'}</div>
-            </div>`;
-        }
-
-        // 2. XỬ LÝ POKEMON THƯỜNG
+        const realIdx = myBag.length - 1 - i; // Index thật trong mảng gốc
+        
         ensureDataIntegrity(p);
         if(!p.types) p.types = ['normal'];
         const r = getRarity(p);
-
-        // --- CÔNG THỨC TÍNH TIỀN MỚI (ECONOMY BALANCING) ---
-        // a. Giá trị cốt lõi: Level và IV quyết định giá
+        
+        // Tính giá bán (để hiển thị hoặc tính tổng)
         let basePrice = (p.baseXp * 0.2) + (p.iv * 10) + (p.level * 5);
-
-        // b. Thưởng độ hiếm đặc biệt
         let rarityBonus = 0;
-        if (LEGENDARY_IDS.includes(p.id)) rarityBonus += 5000; // Legend: +5000 xu
-        if (p.isShiny) rarityBonus += 10000;                   // Shiny: +10000 xu (Quý nhất)
-        if (r.val >= 3 && !LEGENDARY_IDS.includes(p.id)) rarityBonus += 500; // Super Rare thường
-
-        // c. Tổng kết giá
+        if (LEGENDARY_IDS.includes(p.id)) rarityBonus += 5000; 
+        if (p.isShiny) rarityBonus += 10000;
+        if (r.val >= 3 && !LEGENDARY_IDS.includes(p.id)) rarityBonus += 500;
         let pr = Math.floor(basePrice + rarityBonus);
-        if (pr < 50) pr = 50; // Giá tối thiểu 50 xu
-        // ----------------------------------------------------
+        if (pr < 50) pr = 50;
 
+        // Xử lý hiển thị HP
         let displayHp = (typeof p.hp === 'number' && !isNaN(p.hp)) ? p.hp : 0;
         let maxHp = (typeof p.maxHp === 'number' && !isNaN(p.maxHp)) ? p.maxHp : 100;
         let hpPercent = (displayHp / maxHp) * 100; 
         let hpColor = getHpColor(hpPercent);
-        
-        let evoBtn = `<button class="btn-small btn-evo" onclick="checkEvolution(${realIdx}, this)">Evo</button>`;
-        let candyBtn = inventory['rare-candy'] > 0 ? `<button class="btn-small btn-candy" onclick="useCandy(${realIdx})">Candy</button>` : '';
-        
-        // Hiển thị Shiny Icon nếu có
         let shinyIcon = p.isShiny ? '✨' : '';
 
-        return `<div class="bag-row">
-            <div style="display:flex;align-items:center;gap:10px; flex:1">
-                <img src="${p.img}" width="40" style="${displayHp <= 0 ? 'filter:grayscale(1)' : ''}">
-                <div style="width:100%">
-                    <div style="display:flex;justify-content:space-between">
-                        <span><span class="rarity-tag ${r.class}">${r.label}</span> <b>${shinyIcon}${p.name}</b></span>
-                        <span style="font-size:0.8em;font-weight:bold;color:${hpColor}">${displayHp}/${maxHp}</span>
+        // --- GIAO DIỆN KHÁC BIỆT KHI CHỌN NHIỀU ---
+        if (isSelectMode) {
+            let isSelected = selectedIndices.has(realIdx);
+            // Nếu là chế độ chọn: Hiện checkbox, click vào dòng để chọn
+            return `
+            <div class="bag-row ${isSelected ? 'selected' : ''}" onclick="toggleSelection(${realIdx})" style="cursor:pointer">
+                <div style="display:flex;align-items:center;gap:10px; flex:1">
+                    <input type="checkbox" class="select-checkbox" ${isSelected ? 'checked' : ''} style="pointer-events:none">
+                    <img src="${p.img}" width="40" style="${displayHp <= 0 ? 'filter:grayscale(1)' : ''}">
+                    <div style="width:100%">
+                        <div style="display:flex;justify-content:space-between">
+                            <span><span class="rarity-tag ${r.class}">${r.label}</span> <b>${shinyIcon}${p.name}</b></span>
+                            <span style="color:#2ecc71; font-weight:bold; font-size:0.8em">+${pr.toLocaleString()}💰</span>
+                        </div>
+                        <span style="font-size:0.7em; color:#aaa">Lv.${p.level} | IV:${p.iv}</span>
                     </div>
-                    <span style="font-size:0.7em; color:#aaa">Lv.${p.level} | IV:${p.iv}</span>
-                    <div class="hp-container"><div class="hp-fill" style="width:${hpPercent}%; background:${hpColor}"></div></div>
                 </div>
-            </div>
-            <div class="bag-actions">
-                <button class="btn-small btn-battle" onclick="openBattleModal(${realIdx})">ĐẤU</button> 
-                ${candyBtn} ${evoBtn}
-                <button class="btn-small btn-sell" onclick="sell(${realIdx},${pr})">Bán +${pr.toLocaleString()}</button>
-            </div>
-        </div>`;
+            </div>`;
+        } else {
+            // Nếu chế độ thường: Hiện nút bấm như cũ
+            let evoBtn = `<button class="btn-small btn-evo" onclick="checkEvolution(${realIdx}, this)">Evo</button>`;
+            let candyBtn = inventory['rare-candy'] > 0 ? `<button class="btn-small btn-candy" onclick="useCandy(${realIdx})">Candy</button>` : '';
+            
+            if(p.isEgg) return `<div class="bag-row">🥚 Mystery Egg (${p.steps}/${p.maxSteps}) <button class="btn-small" onclick="hatchEgg(${realIdx})">Ấp</button></div>`;
+
+            return `<div class="bag-row">
+                <div style="display:flex;align-items:center;gap:10px; flex:1">
+                    <img src="${p.img}" width="40" style="${displayHp <= 0 ? 'filter:grayscale(1)' : ''}">
+                    <div style="width:100%">
+                        <div style="display:flex;justify-content:space-between">
+                            <span><span class="rarity-tag ${r.class}">${r.label}</span> <b>${shinyIcon}${p.name}</b></span>
+                            <span style="font-size:0.8em;font-weight:bold;color:${hpColor}">${displayHp}/${maxHp}</span>
+                        </div>
+                        <span style="font-size:0.7em; color:#aaa">Lv.${p.level} | IV:${p.iv}</span>
+                        <div class="hp-container"><div class="hp-fill" style="width:${hpPercent}%; background:${hpColor}"></div></div>
+                    </div>
+                </div>
+                <div class="bag-actions">
+                    <button class="btn-small btn-battle" onclick="openBattleModal(${realIdx})">ĐẤU</button> 
+                    ${candyBtn} ${evoBtn}
+                    <button class="btn-small btn-sell" onclick="sell(${realIdx},${pr})">Bán</button>
+                </div>
+            </div>`;
+        }
     }).join('');
 
-    log(`<div class="embed" style="border-left-color:#5865f2">
-        <span class="embed-title">🎒 Backpack (${myBag.length}/${maxBagSize})</span>
-        <div class="embed-desc" style="max-height:300px;overflow-y:auto">${listHtml}</div>
-    </div>`);
+    // 3. Render Footer (Thanh hành động khi chọn nhiều)
+    let footerHtml = '';
+    if(isSelectMode) {
+        footerHtml = `
+        <div class="bulk-action-bar">
+            <span style="color:#bbb">Đã chọn: <b style="color:white">${selectedIndices.size}</b></span>
+            <button class="btn-auth" style="width:auto; background:#ed4245; padding:5px 15px; font-size:0.9em; margin:0" onclick="sellSelectedItems()">
+                💰 BÁN NGAY
+            </button>
+        </div>`;
+    }
+
+    // 4. Kết hợp và Log ra màn hình
+    log(headerHtml + `<div class="embed-desc" style="max-height:300px;overflow-y:auto">${listHtml}</div>` + footerHtml + `</div>`);
 }
 
     function sell(idx, price) {
@@ -1847,7 +1898,7 @@ function playSFX(type) {
     
     if(src) {
         let a = new Audio(src);
-        a.volume = 0.5;
+        a.volume = 0.2;
         a.play().catch(e => { console.warn("Lỗi SFX (bỏ qua):", e); });
     }
 }
@@ -1855,7 +1906,7 @@ function playSFX(type) {
 function playCry(id) {
     if(isMuted) return;
     let audio = new Audio(`https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`);
-    audio.volume = 0.3;
+    audio.volume = 0.;
     audio.play().catch(e => { console.warn("Lỗi Cry (bỏ qua):", e); });
 }
     function useItem(id) { inventory[id]--; saveGame(); if(id==='razz-berry') activeBuffs.berry=true; if(id==='lucky-egg') activeBuffs.egg=true; if(id==='incense') { spawnPokemon(); return; } updateStats(); renderBattleControls(); }
@@ -3129,9 +3180,80 @@ function closeLearnMove() {
     document.getElementById('learn-move-modal').style.display = 'none';
     pendingLearnMove = null;
 }
+    // --- LOGIC XỬ LÝ CHỌN NHIỀU & BÁN SLL ---
+
+// 1. Bật/Tắt chế độ
+function toggleSelectMode() {
+    isSelectMode = !isSelectMode;
+    selectedIndices.clear(); // Xóa lựa chọn cũ khi chuyển chế độ
+    renderBag(); // Vẽ lại giao diện
+}
+
+// 2. Chọn/Bỏ chọn một Pokemon
+function toggleSelection(index) {
+    if(!isSelectMode) return;
+    
+    if(selectedIndices.has(index)) {
+        selectedIndices.delete(index);
+    } else {
+        selectedIndices.add(index);
+    }
+    renderBag(); // Vẽ lại để cập nhật màu nền/checkbox
+}
+
+// 3. Thực hiện bán các Pokemon đã chọn
+function sellSelectedItems() {
+    if(selectedIndices.size === 0) return alert("Chưa chọn Pokemon nào!");
+
+    // Tính tổng tiền
+    let totalPrice = 0;
+    let count = 0;
+    
+    // Duyệt qua danh sách chọn để tính tiền
+    selectedIndices.forEach(idx => {
+        let p = myBag[idx];
+        if(p && !p.isEgg) {
+             let basePrice = (p.baseXp * 0.2) + (p.iv * 10) + (p.level * 5);
+             let rarityBonus = 0;
+             if (LEGENDARY_IDS.includes(p.id)) rarityBonus += 5000; 
+             if (p.isShiny) rarityBonus += 10000;
+             if (getRarity(p).val >= 3 && !LEGENDARY_IDS.includes(p.id)) rarityBonus += 500;
+             let pr = Math.floor(basePrice + rarityBonus);
+             if (pr < 50) pr = 50;
+             
+             totalPrice += pr;
+             count++;
+        }
+    });
+
+    // Xác nhận bán
+    if(confirm(`Bán ${count} Pokemon để nhận ${totalPrice.toLocaleString()} Coins?`)) {
+        // QUAN TRỌNG: Xóa từ mảng (Phải xóa từ index lớn về nhỏ để không bị lệch index)
+        // Chuyển Set thành Array -> Sắp xếp giảm dần
+        let sortedIndices = Array.from(selectedIndices).sort((a, b) => b - a);
+        
+        sortedIndices.forEach(idx => {
+            myBag.splice(idx, 1);
+        });
+
+        coins += totalPrice;
+        updateQuestProgress('spend', 0); // (Optional) Nếu có quest bán
+        
+        // Reset trạng thái
+        isSelectMode = false;
+        selectedIndices.clear();
+        
+        saveGame();
+        updateStats();
+        renderBag();
+        
+        log(`<span style="color:#f1c40f; font-weight:bold">💰 Đã bán ${count} Pokemon thu được ${totalPrice.toLocaleString()} Coins!</span>`);
+    }
+}
 </script>
 </body>
 </html>
+
 
 
 
