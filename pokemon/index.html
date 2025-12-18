@@ -163,6 +163,10 @@
     align-items: center;
     flex-direction: column;
 }
+        @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
     </style>
 </head>
 <body>
@@ -818,32 +822,64 @@ async function login() {
         }
     }
     
-    function showMenu() {
+    // Biến lưu trạng thái Menu (để biết đang đóng hay mở)
+let isMenuOpen = false;
+
+function toggleMenu() {
+    isMenuOpen = !isMenuOpen;
+    const extraDiv = document.getElementById('extra-controls');
+    const menuBtn = document.getElementById('btn-menu-toggle');
+    
+    if(isMenuOpen) {
+        extraDiv.style.display = 'flex';
+        menuBtn.innerHTML = '❌ Đóng';
+        menuBtn.style.background = '#7f8c8d';
+    } else {
+        extraDiv.style.display = 'none';
+        menuBtn.innerHTML = '☰ Menu';
+        menuBtn.style.background = '#34495e';
+    }
+}
+
+function showMenu() {
+    // Trạng thái hiển thị của menu phụ thuộc vào biến isMenuOpen
+    const displayStyle = isMenuOpen ? 'flex' : 'none';
+    const btnText = isMenuOpen ? '❌ Đóng' : '☰ Menu';
+    const btnColor = isMenuOpen ? '#7f8c8d' : '#34495e';
+
     controls.innerHTML = `
-    <button class="btn btn-hunt" onclick="hunt()"><span>🔍 Săn tìm</span></button>
-    <button class="btn btn-shop" onclick="shop()"><span>🛒 Shop</span></button>
-    <button class="btn btn-bag" onclick="openBag()"><span>🎒 Túi</span></button>
+    <button class="btn btn-hunt" onclick="hunt()"><span>🔍 SĂN POKEMON</span></button>
     
-    <div style="width:100%; display:flex; justify-content:space-between; gap:5px; margin-top:5px">
-         <button class="btn btn-job" onclick="openJobs()"><span>💼 Jobs</span></button>
-         <button class="btn btn-center" onclick="healAll()"><span>🏥 Center</span></button>
-         
-         <button class="btn" style="background:#8e44ad; color:white; border:2px solid #9b59b6" onclick="openLeaderboard()">
-            <span>🏆 BXH</span>
-         </button>
+    <div style="width:100%; display:flex; gap:5px; margin-bottom:5px">
+        <button class="btn btn-bag" onclick="openBag()"><span>🎒 Túi</span></button>
+        <button class="btn btn-center" onclick="healAll()"><span>🏥 Heal</span></button>
+        <button id="btn-menu-toggle" class="btn" style="background:${btnColor}; color:white" onclick="toggleMenu()">
+            <span>${btnText}</span>
+        </button>
     </div>
-    
-    <div style="width:100%; display:flex; justify-content:space-between; gap:5px; margin-top:5px">
-        <button class="btn btn-achieve" onclick="openAchieve()"><span>🌟 Cup</span></button>
-        <button class="btn btn-daycare" onclick="openDaycare()"><span>🏡 Care</span></button>
-        <button class="btn btn-daily" onclick="openDaily()"><span>🎁 Daily</span></button>
-    </div>
-    
-    <div style="width:100%; display:flex; justify-content:space-between; gap:5px; margin-top:5px">
-        <button class="btn btn-dex" onclick="showPokedex()"><span>📖 Dex</span></button>
-        <button class="btn btn-log" onclick="showUpdates()"><span>📜 Updates</span></button>
+
+    <div id="extra-controls" style="display:${displayStyle}; flex-direction:column; gap:5px; width:100%; animation: fadeIn 0.3s;">
+        
+        <div style="width:100%; display:flex; gap:5px">
+            <button class="btn btn-shop" onclick="shop()"><span>🛒 Shop</span></button>
+            <button class="btn" style="background:#8e44ad; color:white; border:2px solid #9b59b6" onclick="openLeaderboard()"><span>🏆 BXH</span></button>
+        </div>
+
+        <div style="width:100%; display:flex; gap:5px">
+             <button class="btn btn-job" onclick="openJobs()"><span>💼 Job</span></button>
+             <button class="btn btn-daycare" onclick="openDaycare()"><span>🏡 Care</span></button>
+             <button class="btn btn-daily" onclick="openDaily()"><span>🎁 Quà</span></button>
+        </div>
+        
+        <div style="width:100%; display:flex; gap:5px">
+            <button class="btn btn-achieve" onclick="openAchieve()"><span>🌟 Cup</span></button>
+            <button class="btn btn-dex" onclick="showPokedex()"><span>📖 Dex</span></button>
+            <button class="btn btn-log" onclick="showUpdates()"><span>📜 Log</span></button>
+        </div>
+
+        <button class="btn" style="background:#3498db; width:100%; padding:8px 0" onclick="openFeedback()">📩 Gửi Góp Ý</button>
     </div>`;
-};
+}
    
 
     function healAll() {
@@ -1898,6 +1934,7 @@ function submitFeedback() {
 </script>
 </body>
 </html>
+
 
 
 
