@@ -827,6 +827,17 @@
             </div>
         </div>
     </div>
+    <div id="gift-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:4000; justify-content:center; align-items:center;">
+    <div class="box-style" style="border-color:#e91e63; width:300px">
+        <h3 style="color:#e91e63">🎁 NHẬP GIFTCODE</h3>
+        <input type="text" id="input-giftcode" placeholder="Nhập mã tại đây..." style="width:100%; padding:10px; margin:10px 0; background:#222; color:white; border:1px solid #555; text-align:center; text-transform:uppercase">
+        
+        <div style="display:flex; gap:10px; justify-content:center">
+            <button class="btn-auth" onclick="submitGiftCodeUI()">XÁC NHẬN</button>
+            <button class="btn-auth" style="background:#555" onclick="document.getElementById('gift-modal').style.display='none'">ĐÓNG</button>
+        </div>
+    </div>
+    </div>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -1128,6 +1139,7 @@ const REPAIR_QUESTIONS = [
 ];
     // --- BIẾN TRẠNG THÁI CHỌN NHIỀU ---
     let stamina = 100;
+    let usedCodes = [];
     let lastStaminaTime = Date.now();
     const MAX_STAMINA = 100;
     let bossTeamIndices = [];
@@ -1295,6 +1307,7 @@ async function login() {
     const dataToSave = {
         coins: coins,
         myBag: myBag,
+        usedCodes: usedCodes,
         pokedex: Array.from(pokedex),
         inventory: inventory,
         lastDailyDate: lastDailyDate,
@@ -1355,6 +1368,7 @@ async function login() {
             calculateOfflineStamina();
             if (d.dailyQuizStatus) dailyQuizStatus = d.dailyQuizStatus;
             if (d.userStats) userStats = d.userStats;
+            if (d.usedCodes) usedCodes = d.usedCodes;
             if (d.completedAchievements) completedAchievements = d.completedAchievements;
             if (d.gymProgress) gymProgress = d.gymProgress;
             if (d.maxBagSize) maxBagSize = d.maxBagSize;
@@ -1484,6 +1498,7 @@ function showMenu() {
         <div style="width:100%; display:flex; gap:5px">
             <button class="btn btn-achieve" onclick="openAchieve()"><span>🌟 Cup</span></button>
             <button class="btn btn-dex" onclick="showPokedex()"><span>📖 Dex</span></button>
+            <button class="btn" style="background:#e91e63; color:white" onclick="openGiftCodeModal()"><span>🎁 Giftcode</span></button>
             <button class="btn btn-log" onclick="showUpdates()"><span>📜 Log</span></button>
         </div>
         
@@ -3853,12 +3868,98 @@ function showDamageText(amount, isCrit) {
         <div style="margin-top:5px; font-size:0.8em; color:#777">Chúc bạn chơi game vui vẻ!</div>
     </div>`);
 }
+    // --- HỆ THỐNG GIFTCODE ---
 
-// Gọi hàm này 1 lần khi load game xong (trong hàm loadGame hoặc login)
-// showUpdateLog();
+// 1. Cấu hình danh sách Code và Quà
+const GIFT_CODES = {
+    "UPDATE241": { 
+        coins: 10000, 
+        items: { 'master-ball': 1, 'rare-candy': 5 },
+        msg: "Mừng bản cập nhật 2.4.1! Tặng bạn 1 Master Ball & 5 Kẹo."
+    },
+    "POKESTAY": {
+        coins: 5000,
+        items: { 'great-ball': 10 },
+        msg: "Code tân thủ: 5000 Xu + 10 Great Ball."
+    },
+    // Thêm code mới vào đây (Viết HOA hết cho dễ quản lý)
+};
+function openGiftCodeModal() {
+    document.getElementById('gift-modal').style.display = 'flex';
+    document.getElementById('input-giftcode').value = ''; // Reset ô nhập
+    document.getElementById('input-giftcode').focus();
+}
+
+function submitGiftCodeUI() {
+    let val = document.getElementById('input-giftcode').value;
+    if(!val) return alert("Vui lòng nhập mã!");
+    
+    document.getElementById('gift-modal').style.display = 'none';
+    redeemCode(val.trim());
+}
+
+// 3. Hàm xử lý nhận quà
+function redeemCode(code) {
+    code = code.toUpperCase(); // Chuyển về chữ hoa hết
+
+    // Kiểm tra code có tồn tại không
+    if (!GIFT_CODES[code]) {
+        return alert("❌ Mã code không tồn tại hoặc đã hết hạn!");
+    }
+
+    // Kiểm tra đã dùng chưa
+    if (usedCodes.includes(code)) {
+        return alert("⚠️ Bạn đã sử dụng mã code này rồi!");
+    }
+
+    // --- PHÁT QUÀ ---
+    const gift = GIFT_CODES[code];
+    let rewardText = [];
+
+    // 1. Cộng tiền
+    if (gift.coins) {
+        coins += gift.coins;
+        rewardText.push(`+${gift.coins.toLocaleString()} Coins`);
+    }
+
+    // 2. Cộng vật phẩm
+    if (gift.items) {
+        for (let itemId in gift.items) {
+            let qty = gift.items[itemId];
+            if (!inventory[itemId]) inventory[itemId] = 0;
+            inventory[itemId] += qty;
+            
+            // Lấy tên vật phẩm cho đẹp
+            let itemName = itemId;
+            let itemData = SHOP_DB.find(i => i.id === itemId);
+            if(itemData) itemName = itemData.name;
+            
+            rewardText.push(`+${qty} ${itemName}`);
+        }
+    }
+
+    // 3. Lưu lại là đã dùng
+    usedCodes.push(code);
+    saveGame();
+    updateStats();
+
+    // 4. Thông báo & Hiệu ứng
+    playSFX('levelup'); // Dùng tiếng lên cấp nghe cho sướng
+    
+    // Log ra màn hình chat cho đẹp
+    log(`<div class="embed" style="border-left-color:#e91e63">
+        <h3 style="color:#e91e63; margin:0">🎁 NHẬP CODE THÀNH CÔNG!</h3>
+        <div style="margin:5px 0">Code: <b>${code}</b></div>
+        <div style="color:#f1c40f">${rewardText.join(', ')}</div>
+        <div style="font-size:0.8em; color:#bbb">"${gift.msg}"</div>
+    </div>`);
+
+    alert(`🎉 Chúc mừng! Bạn nhận được:\n${rewardText.join('\n')}`);
+}
 </script>
 </body>
 </html>
+
 
 
 
