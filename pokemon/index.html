@@ -1961,7 +1961,7 @@ async function spawnPokemon() {
         }
     }
     function checkDailyQuestUI() { const container = document.getElementById('daily-quests-container'); container.innerHTML = dailyQuests.map((q, i) => { let pct = Math.min(100, Math.floor((q.progress / q.target) * 100)); let diffClass = q.difficulty === 0 ? 'diff-0' : (q.difficulty === 1 ? 'diff-1' : 'diff-2'); let diffName = q.difficulty === 0 ? 'EASY' : (q.difficulty === 1 ? 'MEDIUM' : 'HARD'); let btn = ''; if(q.claimed) btn = `<button class="btn-auth" style="background:#555; font-size:0.7em; padding:5px" disabled>Đã nhận</button>`; else if(q.progress >= q.target) btn = `<button class="btn-auth" style="background:#3ba55c; font-size:0.7em; padding:5px" onclick="claimQuest(${i})">NHẬN</button>`; else btn = `<button class="btn-auth" style="background:#555; font-size:0.7em; padding:5px" disabled>${q.progress}/${q.target}</button>`; return `<div class="quest-item"><div class="quest-header"><span class="difficulty-tag ${diffClass}">${diffName}</span><span style="font-size:0.9em; font-weight:bold">${q.text}</span></div><div class="quest-progress-bar"><div class="quest-progress-fill" style="width:${pct}%"></div></div><div style="display:flex; justify-content:flex-end; margin-top:5px">${btn}</div></div>`; }).join(''); }
-    function claimDailyReward() { const today = new Date().toDateString(); if(lastDailyDate===today) return; coins+=500; lastDailyDate=today; saveGame(); updateStats(); openDaily(); alert("Đã nhận 500 Coins điểm danh!"); }
+    function claimDailyReward() { const today = new Date().toDateString(); if(lastDailyDate===today) return; coins+=5000; lastDailyDate=today; saveGame(); updateStats(); openDaily(); alert("Đã nhận 500 Coins điểm danh!"); }
     function claimQuest(index) { let q = dailyQuests[index]; if(q.claimed || q.progress < q.target) return; q.claimed = true; let r = q.reward; if(r.type === 'item') { if(!inventory[r.id]) inventory[r.id]=0; inventory[r.id]+=r.qty; alert(`Hoàn thành nhiệm vụ! Nhận ${r.qty}x ${r.id.toUpperCase()}`); } saveGame(); updateStats(); openDaily(); }
     function updateQuestProgress(type, amount) { let changed = false; dailyQuests.forEach(q => { if(!q.claimed && q.type === type) { q.progress += amount; changed = true; } }); if(changed) saveGame(); }
     function openDaycare() { if(currentWild) return; updateDaycareUI(); document.getElementById('daycare-modal').style.display = 'flex'; }
@@ -2205,6 +2205,7 @@ function openRepairModal() {
 </script>
 </body>
 </html>
+
 
 
 
