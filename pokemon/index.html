@@ -1583,11 +1583,11 @@ async function spawnPokemon() {
         data.stats.forEach(s => { stats[s.stat.name] = s.base_stat; });
         let iv = Math.floor(Math.random() * 32); 
         let baseRate = 255; // Mặc định dễ bắt
-if (data.base_experience > 250) baseRate = 3;    // Legend/Mythical (Mewtwo, Arceus...)
-else if (data.base_experience > 200) baseRate = 45;  // Semi-Legend/Rất hiếm (Dragonite...)
-else if (data.base_experience > 150) baseRate = 90;  // Cấp trung bình khá
-else if (data.base_experience > 100) baseRate = 120; // Cấp trung bình
-else baseRate = 190; // Pokemon cơ bản
+if (data.base_experience > 250) baseRate = ;    // Legend/Mythical (Mewtwo, Arceus...)
+else if (data.base_experience > 200) baseRate = ;  // Semi-Legend/Rất hiếm (Dragonite...)
+else if (data.base_experience > 150) baseRate = 120;  // Cấp trung bình khá
+else if (data.base_experience > 100) baseRate = 180; // Cấp trung bình
+else baseRate = 200; // Pokemon cơ bản
         let p = { 
             id: data.id, name: data.name.toUpperCase(), catchRate: baseRate, types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, 
             baseHp: stats['hp'], baseAtk: stats['attack'], baseDef: stats['defense'], baseSpA: stats['special-attack'], baseSpD: stats['special-defense'], baseSpd: stats['speed'],
@@ -1653,95 +1653,94 @@ else baseRate = 190; // Pokemon cơ bản
 }
     // --- HỆ THỐNG BẮT POKEMON ĐƠN GIẢN (SAFARI STYLE) ---
 
+// --- LOGIC NÉM BÓNG MỚI (FIX TỶ LỆ) ---
 function catchAttempt(ballType) {
-    // 1. Kiểm tra bóng
     if ((inventory[ballType] || 0) <= 0) return alert("Hết bóng loại này!");
     
     inventory[ballType]--; 
     saveGame();
-    renderBattleControls(); // Cập nhật lại số bóng
+    renderBattleControls();
 
-    // 2. Lấy thông số
     let p = currentWild;
-    let rate = p.catchRate || 45; 
-    
-    // 3. Tính Bonus Bóng
-    let ballBonus = 1;
-    if (ballType === 'great-ball') ballBonus = 1.5;
-    if (ballType === 'ultra-ball') ballBonus = 2.0;
-    if (ballType === 'master-ball') ballBonus = 999; // Luôn trúng
+    let rate = p.catchRate || 255; 
 
-    // 4. Tính Bonus Berry (Nếu có dùng Razz Berry)
-    let berryBonus = activeBuffs.berry ? 1.5 : 1.0;
+    // 1. Hệ số Bóng
+    let ballMult = 1;
+    if (ballType === 'great-ball') ballMult = 1.5;
+    if (ballType === 'ultra-ball') ballMult = 2.0;
+    if (ballType === 'master-ball') ballMult = 255; // Tuyệt đối
 
-    // 5. CÔNG THỨC TÍNH TỶ LỆ (%)
-    // Công thức này đã được tinh chỉnh cho game web:
-    // - Legend (3) + Ultra Ball (2) = 6 điểm -> Rất khó
-    // - Common (190) + Poke Ball (1) = 190 điểm -> Dễ
+    // 2. Hệ số Berry & Buff
+    let buffMult = activeBuffs.berry ? 1.5 : 1.0;
     
-    // Streak Bonus: Mỗi chuỗi bắt trúng tăng thêm chút may mắn (tối đa +20%)
-    let streakFactor = 1 + (streakBonus || 0);
+    // 3. TÍNH TỶ LỆ THÀNH CÔNG (0.0 -> 1.0)
+    // Công thức: (Rate * Ball * Buff) / 255
+    let chance = (rate * ballMult * buffMult) / 255;
 
-    let finalScore = (rate * ballBonus * berryBonus * streakFactor);
-    
-    // Ngưỡng chiến thắng: Random từ 0 đến 600
-    // (Tại sao là 600? Vì Legend 3*2 = 6, tỷ lệ 1%. Common 255*1 = 255, tỷ lệ 42% -> 100%)
-    // Ta giảm ngưỡng xuống 450 để Legend dễ thở hơn chút (khoảng 1.5%)
-    let difficultyThreshold = 450; 
+    // Cộng thêm chút may mắn từ chuỗi bắt (tối đa +10%)
+    if(streakBonus) chance += (streakBonus * 0.05);
 
     log(`<i>Ném ${ballType}...</i>`);
 
-    // Master Ball bắt dính luôn
-    if (ballBonus >= 999) {
-        captureSuccess();
-        return;
+    // 4. XÁC ĐỊNH KẾT QUẢ NGAY LẬP TỨC
+    let isCaught = false;
+    if (chance >= 1 || Math.random() < chance) {
+        isCaught = true;
     }
 
-    // Bắt đầu hiệu ứng lắc bóng
-    processSimpleShake(finalScore, difficultyThreshold, 1);
+    // 5. GỌI HIỆU ỨNG (Truyền kết quả vào để nó diễn)
+    processFixedShake(isCaught, 1);
 }
-
 // Hàm lắc bóng đơn giản
-function processSimpleShake(score, threshold, shakeCount) {
+// Hàm diễn hoạt lắc bóng (Kết quả đã định đoạt trước)
+function processFixedShake(success, shakeCount) {
     setTimeout(() => {
-        // Tạo một số ngẫu nhiên từ 0 đến Threshold
-        let rand = Math.random() * threshold;
-
-        // Nếu điểm của mình lớn hơn số Random -> Lắc thành công lần đó
-        if (score > rand) {
+        if (success) {
+            // --- TRƯỜNG HỢP BẮT DÍNH ---
             if (shakeCount < 3) {
-                // Tiếp tục lắc
-                log(`<span style="color:#bbb">... Lắc ... (${shakeCount})</span>`);
-                processSimpleShake(score, threshold, shakeCount + 1);
+                log(`<span style="color:#bbb">... Lắc (${shakeCount})...</span>`);
+                processFixedShake(true, shakeCount + 1); // Tiếp tục lắc
             } else {
-                // Đã lắc đủ 3 lần -> BẮT DÍNH
+                // Đã lắc đủ 3 cái -> CHỐT
                 captureSuccess();
             }
         } else {
-            // Thất bại
-            let escapeMsg = "Bóng bật ra!";
-            if(shakeCount === 3) escapeMsg = "Suýt thì bắt được!";
-            log(`<span style="color:#ed4245">${escapeMsg}</span>`);
+            // --- TRƯỜNG HỢP TRƯỢT ---
+            // Tạo kịch tính: 
+            // - Nếu mới lắc 1-2 cái, có thể cho lắc tiếp để người chơi tưởng bở
+            // - Nhưng cuối cùng vẫn phải bung ra (vì success = false)
             
-            // Xử lý sau khi trượt (Bỏ chạy hoặc cho ném tiếp)
-            activeBuffs.berry = false; // Mất tác dụng Berry
-            updateStats();
-            
-            // 20% cơ hội Pokemon bỏ chạy sau mỗi lần ném trượt
-            if (Math.random() < 0.20) {
-                setTimeout(() => {
-                    log(`💨 <b>${currentWild.name}</b> đã chạy mất!`);
-                    currentWild = null;
-                    streakBonus = 0; // Mất chuỗi bắt
-                    showMenu();
-                }, 500);
+            // Logic diễn: 50% cơ hội lắc thêm cái nữa (tối đa 3 lần là bung)
+            if (shakeCount < 3 && Math.random() < 0.5) {
+                log(`<span style="color:#bbb">... Lắc (${shakeCount})...</span>`);
+                processFixedShake(false, shakeCount + 1);
             } else {
-                // Tăng nhẹ tỷ lệ cho lần ném sau (Cơ chế "Cố gắng")
-                streakBonus = (streakBonus || 0) + 0.1;
-                renderBattleControls();
+                // Bung bóng
+                let msg = "Bóng bật ra!";
+                if(shakeCount === 2) msg = "Aaa! Suýt nữa thì được!";
+                if(shakeCount === 3) msg = "Trời ơi! Chỉ một chút nữa thôi!";
+                
+                log(`<span style="color:#ed4245; font-weight:bold">${msg}</span>`);
+                
+                activeBuffs.berry = false; // Mất Berry
+                updateStats();
+                
+                // 25% Bỏ chạy sau khi trượt
+                if (Math.random() < 0.25) {
+                    setTimeout(() => {
+                        log(`💨 <b>${currentWild.name}</b> đã bỏ chạy!`);
+                        currentWild = null;
+                        streakBonus = 0;
+                        showMenu();
+                    }, 600);
+                } else {
+                    // Cho ném tiếp, tăng nhẹ tỷ lệ an ủi
+                    streakBonus = (streakBonus || 0) + 0.5; // +2.5% tỷ lệ
+                    renderBattleControls();
+                }
             }
         }
-    }, 800); // Tốc độ lắc nhanh hơn chút (0.8s)
+    }, 800); // Mỗi nhịp lắc 0.8 giây
 }
     function useItem(id) { inventory[id]--; saveGame(); if(id==='razz-berry') activeBuffs.berry=true; if(id==='lucky-egg') activeBuffs.egg=true; if(id==='incense') { spawnPokemon(); return; } updateStats(); renderBattleControls(); }
 
@@ -3017,6 +3016,7 @@ function closeLearnMove() {
 </script>
 </body>
 </html>
+
 
 
 
