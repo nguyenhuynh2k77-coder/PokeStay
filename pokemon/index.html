@@ -357,6 +357,32 @@
     color: black;
     box-shadow: 0 0 10px rgba(250, 166, 26, 0.4);
 }
+        /* --- HIỆU ỨNG LẮC BÓNG CHUYÊN NGHIỆP --- */
+@keyframes shake-ball {
+    0% { transform: translate(0, 0) rotate(0); }
+    20% { transform: translate(-10px, 0) rotate(-20deg); }
+    30% { transform: translate(-10px, 0) rotate(-20deg); } /* Khựng lại 1 nhịp */
+    50% { transform: translate(0, 0) rotate(0); }
+    70% { transform: translate(10px, 0) rotate(20deg); }
+    80% { transform: translate(10px, 0) rotate(20deg); } /* Khựng lại 1 nhịp */
+    100% { transform: translate(0, 0) rotate(0); }
+}
+
+/* Class này sẽ được JS gán vào quả bóng khi lắc */
+.shaking {
+    animation: shake-ball 0.5s ease-in-out;
+}
+
+/* Hiệu ứng khi bắt trúng (Sáng lên) */
+@keyframes catch-success {
+    0% { filter: brightness(1); transform: scale(1); }
+    50% { filter: brightness(2) drop-shadow(0 0 10px gold); transform: scale(1.2); }
+    100% { filter: brightness(1); transform: scale(1); }
+}
+
+.caught-anim {
+    animation: catch-success 0.5s ease-out;
+}
     </style>
 </head>
 <body>
@@ -1654,6 +1680,9 @@ else baseRate = 200; // Pokemon cơ bản
     // --- HỆ THỐNG BẮT POKEMON ĐƠN GIẢN (SAFARI STYLE) ---
 
 // --- LOGIC NÉM BÓNG MỚI (FIX TỶ LỆ) ---
+// Biến lưu ảnh gốc của Pokemon để nếu bắt hụt thì hiện lại
+let originalEnemyImg = ""; 
+
 function catchAttempt(ballType) {
     if ((inventory[ballType] || 0) <= 0) return alert("Hết bóng loại này!");
     
@@ -1664,32 +1693,41 @@ function catchAttempt(ballType) {
     let p = currentWild;
     let rate = p.catchRate || 255; 
 
-    // 1. Hệ số Bóng
+    // --- HIỆU ỨNG VISUAL: BIẾN POKEMON THÀNH BÓNG ---
+    const enemyImg = document.getElementById('enemy-sprite');
+    if(!originalEnemyImg) originalEnemyImg = enemyImg.src; // Lưu ảnh gốc
+    
+    // Tìm hình ảnh quả bóng tương ứng từ Shop DB
+    let ballItem = SHOP_DB.find(i => i.id === ballType);
+    let ballImgSrc = URL_ITEMS + (ballItem ? ballItem.img : 'poke-ball.png');
+    
+    // Đổi ảnh Pokemon thành ảnh Bóng
+    enemyImg.src = ballImgSrc;
+    enemyImg.style.width = "60px"; // Thu nhỏ lại chút cho giống quả bóng
+    enemyImg.style.marginTop = "40px"; // Căn chỉnh lại vị trí
+
+    // ------------------------------------------------
+
+    // Tính toán tỷ lệ (giữ nguyên logic cũ)
     let ballMult = 1;
     if (ballType === 'great-ball') ballMult = 1.5;
     if (ballType === 'ultra-ball') ballMult = 2.0;
-    if (ballType === 'master-ball') ballMult = 255; // Tuyệt đối
+    if (ballType === 'master-ball') ballMult = 255;
 
-    // 2. Hệ số Berry & Buff
     let buffMult = activeBuffs.berry ? 1.5 : 1.0;
-    
-    // 3. TÍNH TỶ LỆ THÀNH CÔNG (0.0 -> 1.0)
-    // Công thức: (Rate * Ball * Buff) / 255
     let chance = (rate * ballMult * buffMult) / 255;
-
-    // Cộng thêm chút may mắn từ chuỗi bắt (tối đa +10%)
     if(streakBonus) chance += (streakBonus * 0.05);
 
-    log(`<i>Ném ${ballType}...</i>`);
+    log(`<i>Bạn ném ${ballType} về phía ${p.name}!</i>`);
 
-    // 4. XÁC ĐỊNH KẾT QUẢ NGAY LẬP TỨC
+    // Xác định kết quả
     let isCaught = false;
-    if (chance >= 1 || Math.random() < chance) {
-        isCaught = true;
-    }
+    if (chance >= 1 || Math.random() < chance) isCaught = true;
 
-    // 5. GỌI HIỆU ỨNG (Truyền kết quả vào để nó diễn)
-    processFixedShake(isCaught, 1);
+    // Gọi hàm lắc bóng Visual mới
+    setTimeout(() => {
+        processVisualShake(isCaught, 1);
+    }, 500); // Chờ 0.5s để bóng bay tới
 }
 // Hàm lắc bóng đơn giản
 // Hàm diễn hoạt lắc bóng (Kết quả đã định đoạt trước)
@@ -1740,54 +1778,84 @@ function captureSuccess() {
     currentWild = null;
     showMenu();
 }
-function processFixedShake(success, shakeCount) {
-    setTimeout(() => {
-        if (success) {
-            // --- TRƯỜNG HỢP BẮT DÍNH ---
-            if (shakeCount < 3) {
-                log(`<span style="color:#bbb">... Lắc (${shakeCount})...</span>`);
-                processFixedShake(true, shakeCount + 1); // Tiếp tục lắc
-            } else {
-                // Đã lắc đủ 3 cái -> CHỐT
-                captureSuccess();
-            }
+function processVisualShake(success, shakeCount) {
+    const ballElement = document.getElementById('enemy-sprite');
+    
+    // Thêm class lắc
+    ballElement.classList.remove('shaking'); // Reset trước
+    void ballElement.offsetWidth; // Hack để trigger lại animation
+    ballElement.classList.add('shaking'); // Thêm lại
+    
+    // Âm thanh (nếu muốn)
+    // playSFX('shake'); 
+
+    if (success) {
+        // --- TRƯỜNG HỢP BẮT DÍNH ---
+        if (shakeCount < 3) {
+            log(`<span style="color:#bbb">... Lắc (${shakeCount})...</span>`);
+            // Đợi animation chạy xong (0.5s) + nghỉ (0.5s) rồi lắc tiếp
+            setTimeout(() => {
+                processVisualShake(true, shakeCount + 1);
+            }, 1000); 
         } else {
-            // --- TRƯỜNG HỢP TRƯỢT ---
-            // Tạo kịch tính: 
-            // - Nếu mới lắc 1-2 cái, có thể cho lắc tiếp để người chơi tưởng bở
-            // - Nhưng cuối cùng vẫn phải bung ra (vì success = false)
-            
-            // Logic diễn: 50% cơ hội lắc thêm cái nữa (tối đa 3 lần là bung)
-            if (shakeCount < 3 && Math.random() < 0.5) {
-                log(`<span style="color:#bbb">... Lắc (${shakeCount})...</span>`);
-                processFixedShake(false, shakeCount + 1);
-            } else {
-                // Bung bóng
-                let msg = "Bóng bật ra!";
-                if(shakeCount === 2) msg = "Aaa! Suýt nữa thì được!";
-                if(shakeCount === 3) msg = "Trời ơi! Chỉ một chút nữa thôi!";
+            // Đã lắc đủ 3 cái -> CHỐT
+            setTimeout(() => {
+                ballElement.classList.remove('shaking');
+                ballElement.classList.add('caught-anim'); // Hiệu ứng sáng lên
+                captureSuccess();
+                // Reset lại style ảnh cho trận sau
+                setTimeout(resetEnemySprite, 2000);
+            }, 600);
+        }
+    } else {
+        // --- TRƯỜNG HỢP TRƯỢT ---
+        // Vẫn lắc 1-2 cái cho hồi hộp rồi mới bung
+        if (shakeCount < 3 && Math.random() < 0.5) {
+            log(`<span style="color:#bbb">... Lắc (${shakeCount})...</span>`);
+            setTimeout(() => {
+                processVisualShake(false, shakeCount + 1);
+            }, 1000);
+        } else {
+            // BUNG BÓNG RA!
+            setTimeout(() => {
+                ballElement.classList.remove('shaking');
                 
+                // Hiệu ứng bung: Trả lại hình con Pokemon
+                resetEnemySprite();
+                
+                let msg = "Bóng bật ra!";
+                if(shakeCount === 3) msg = "Aaa! Suýt nữa thì được!";
                 log(`<span style="color:#ed4245; font-weight:bold">${msg}</span>`);
                 
-                activeBuffs.berry = false; // Mất Berry
+                activeBuffs.berry = false;
                 updateStats();
                 
-                // 25% Bỏ chạy sau khi trượt
+                // Logic bỏ chạy
                 if (Math.random() < 0.25) {
                     setTimeout(() => {
                         log(`💨 <b>${currentWild.name}</b> đã bỏ chạy!`);
                         currentWild = null;
                         streakBonus = 0;
                         showMenu();
-                    }, 600);
+                    }, 1000);
                 } else {
-                    // Cho ném tiếp, tăng nhẹ tỷ lệ an ủi
-                    streakBonus = (streakBonus || 0) + 0.5; // +2.5% tỷ lệ
+                    streakBonus = (streakBonus || 0) + 0.5;
                     renderBattleControls();
                 }
-            }
+            }, 600);
         }
-    }, 800); // Mỗi nhịp lắc 0.8 giây
+    }
+}
+
+// Hàm phụ: Trả lại hình dáng Pokemon ban đầu
+function resetEnemySprite() {
+    const enemyImg = document.getElementById('enemy-sprite');
+    if(originalEnemyImg) {
+        enemyImg.src = originalEnemyImg;
+        enemyImg.style.width = "96px"; // Kích thước gốc
+        enemyImg.style.marginTop = "0"; // Vị trí gốc
+        originalEnemyImg = ""; // Reset
+    }
 }
     function useItem(id) { inventory[id]--; saveGame(); if(id==='razz-berry') activeBuffs.berry=true; if(id==='lucky-egg') activeBuffs.egg=true; if(id==='incense') { spawnPokemon(); return; } updateStats(); renderBattleControls(); }
 
@@ -3063,6 +3131,7 @@ function closeLearnMove() {
 </script>
 </body>
 </html>
+
 
 
 
