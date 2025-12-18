@@ -407,6 +407,56 @@
     margin-top: 10px;
     border-radius: 0 0 5px 5px;
 }
+        /* --- WORLD BOSS CSS --- */
+.boss-container {
+    text-align: center;
+    background: radial-gradient(circle, #4a1414 0%, #000 100%); /* Nền đỏ đen nguy hiểm */
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #ed4245;
+    margin-bottom: 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+.boss-sprite {
+    width: 150px;
+    height: 150px;
+    filter: drop-shadow(0 0 10px red);
+    animation: boss-float 3s ease-in-out infinite;
+}
+
+@keyframes boss-float {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-10px) scale(1.05); }
+}
+
+.boss-hp-bar {
+    width: 100%;
+    height: 20px;
+    background: #333;
+    border: 2px solid #fff;
+    border-radius: 10px;
+    margin-top: 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+.boss-hp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #e74c3c, #c0392b);
+    width: 100%;
+    transition: width 0.5s;
+}
+
+.dps-rank-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 10px;
+    background: rgba(255,255,255,0.05);
+    margin-bottom: 2px;
+    font-size: 0.9em;
+}
     </style>
 </head>
 <body>
@@ -526,6 +576,28 @@
     <div id="dex-modal"><div class="box-style"><div class="inner-box"><h2 style="color: #3498db;">📖 Pokedex</h2><div style="font-size: 1.2em; margin-bottom: 20px;">Đã bắt: <span style="color: #f1c40f; font-weight: bold;" id="dex-count">0</span> / 649</div><button class="btn-close" onclick="closePokedex()">Đóng</button></div></div></div>
     
     <div id="donate-modal"><div class="box-style" style="background:white; color:black"><h3 style="color: #6c38c6; margin:0 0 10px 0">Ủng Hộ Dev</h3><img src="38b84fc99acb15954cda.jpg" class="donate-qr" style="width:100%; border-radius:5px; border:1px solid #ddd"><div style="font-size:0.9em; margin-top:10px; font-weight:bold">TPBank QR</div><button class="btn-close" onclick="closeDonate()">Đóng</button></div></div>
+
+    <div id="boss-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:3000; justify-content:center; align-items:center;">
+    <div class="box-style" style="width:95%; max-width:500px; border-color:#ed4245">
+        <h2 style="color: #ed4245; margin: 0 0 10px 0;">☠️ WORLD BOSS</h2>
+        
+        <div id="boss-display-area">
+            <div style="color:yellow">Đang triệu hồi Boss...</div>
+        </div>
+
+        <div style="margin-top:15px; text-align:left; width:100%">
+            <h4 style="color:#f1c40f; margin:0 0 5px 0">🏆 Top Sát Thương</h4>
+            <div id="boss-dps-list" style="height:150px; overflow-y:auto; background:rgba(0,0,0,0.5); padding:5px; border-radius:5px">
+                </div>
+        </div>
+
+        <div style="margin-top:15px; display:flex; gap:10px; justify-content:center">
+            <button id="btn-attack-boss" class="btn-auth" style="background:#ed4245" onclick="attackWorldBoss()">⚔️ TẤN CÔNG (10 Stamina)</button>
+            <button class="btn-auth" style="background:#7f8c8d; width:auto" onclick="closeWorldBoss()">Đóng</button>
+        </div>
+        <div id="boss-cooldown" style="font-size:0.8em; color:#bbb; margin-top:5px"></div>
+    </div>
+</div>
     
     <div id="update-modal">
         <div class="box-style">
@@ -1269,6 +1341,7 @@ function showMenu() {
         <div style="width:100%; display:flex; gap:5px">
             <button class="btn btn-shop" onclick="shop()"><span>🛒 Shop</span></button>
             <button class="btn" style="background:#8e44ad; color:white; border:2px solid #9b59b6" onclick="openLeaderboard()"><span>🏆 BXH</span></button>
+            <button class="btn" style="background:#c0392b; color:white; border:2px solid #e74c3c" onclick="openWorldBoss()"><span>☠️ BOSS</span></button>
         </div>
 
         <div style="width:100%; display:flex; gap:5px">
@@ -3250,9 +3323,222 @@ function sellSelectedItems() {
         log(`<span style="color:#f1c40f; font-weight:bold">💰 Đã bán ${count} Pokemon thu được ${totalPrice.toLocaleString()} Coins!</span>`);
     }
 }
+    // --- HỆ THỐNG WORLD BOSS (REALTIME FIREBASE) ---
+
+let currentBossData = null;
+let myBossDamage = 0;
+let lastBossAttackTime = 0;
+
+// 1. Mở giao diện và tải dữ liệu Boss
+function openWorldBoss() {
+    if(!currentUser) return alert("Cần đăng nhập!");
+    document.getElementById('boss-modal').style.display = 'flex';
+    loadBossData();
+}
+
+function closeWorldBoss() {
+    document.getElementById('boss-modal').style.display = 'none';
+    // Hủy lắng nghe realtime để đỡ lag máy khi đóng
+    firebase.database().ref('world_boss').off();
+}
+
+// 2. Tải dữ liệu từ Firebase (Realtime)
+function loadBossData() {
+    const bossRef = firebase.database().ref('world_boss');
+    
+    bossRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        
+        // Nếu chưa có Boss hoặc Boss tuần cũ -> Tạo Boss mới
+        const currentWeek = getWeekNumber(new Date());
+        if (!data || data.weekId !== currentWeek) {
+            createNewBoss(currentWeek);
+        } else {
+            currentBossData = data;
+            renderBossUI(data);
+        }
+    });
+}
+
+// 3. Tạo Boss mới (Admin hoặc người đầu tiên mở vào đầu tuần sẽ kích hoạt)
+async function createNewBoss(weekId) {
+    // Random 1 con Huyền thoại
+    const legendId = LEGENDARY_IDS[Math.floor(Math.random() * LEGENDARY_IDS.length)];
+    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${legendId}`);
+    const pokeData = await res.json();
+    
+    const newBoss = {
+        weekId: weekId,
+        name: pokeData.name.toUpperCase(),
+        img: pokeData.sprites.other['official-artwork'].front_default,
+        hp: 10000, // 1 Triệu Máu (Chỉnh số này tùy lượng người chơi)
+        maxHp: 1000000,
+        contributors: {}, // Danh sách người đánh
+        isDead: false
+    };
+
+    firebase.database().ref('world_boss').set(newBoss);
+}
+
+// 4. Hiển thị UI Boss
+function renderBossUI(data) {
+    const area = document.getElementById('boss-display-area');
+    const hpPercent = Math.max(0, (data.hp / data.maxHp) * 100);
+    
+    let statusText = "";
+    if(data.hp <= 0) statusText = "<div style='color:#f1c40f; font-weight:bold; font-size:1.5em; margin-top:10px'>BOSS ĐÃ BỊ TIÊU DIỆT!</div>";
+    
+    area.innerHTML = `
+        <div class="boss-container">
+            <h3 style="color:white; margin:0">${data.name}</h3>
+            <div style="font-size:0.8em; color:#ed4245">WORLD BOSS (Reset thứ 2 hàng tuần)</div>
+            <img class="boss-sprite ${data.hp<=0 ? 'grayscale' : ''}" src="${data.img}">
+            ${statusText}
+            <div class="boss-hp-bar">
+                <div class="boss-hp-fill" style="width:${hpPercent}%"></div>
+            </div>
+            <div style="font-weight:bold; color:white; margin-top:5px">
+                ${Math.floor(data.hp).toLocaleString()} / ${Math.floor(data.maxHp).toLocaleString()} HP
+            </div>
+        </div>
+    `;
+
+    // Render Bảng Xếp Hạng DPS
+    const listDiv = document.getElementById('boss-dps-list');
+    let contributors = [];
+    if(data.contributors) {
+        // Chuyển object thành array để sort
+        Object.keys(data.contributors).forEach(key => {
+            contributors.push({name: key, dmg: data.contributors[key].damage});
+        });
+    }
+    
+    // Sắp xếp giảm dần theo Damage
+    contributors.sort((a,b) => b.dmg - a.dmg);
+    
+    listDiv.innerHTML = contributors.map((c, i) => {
+        let icon = i===0 ? '👑' : (i===1 ? '🥈' : (i===2 ? '🥉' : `#${i+1}`));
+        let color = c.name === currentUser ? '#2ecc71' : '#ddd';
+        let percent = ((c.dmg / data.maxHp) * 100).toFixed(2);
+        
+        return `<div class="dps-rank-row" style="color:${color}">
+            <span>${icon} ${c.name}</span>
+            <span>${c.dmg.toLocaleString()} (${percent}%)</span>
+        </div>`;
+    }).join('');
+    
+    // Khóa nút nếu Boss chết
+    document.getElementById('btn-attack-boss').disabled = (data.hp <= 0);
+    if(data.hp <= 0 && !data.isDead) {
+        // Xử lý sự kiện Boss chết (chỉ chạy 1 lần)
+        handleBossDeath(contributors);
+    }
+}
+
+// 5. Tấn công Boss
+function attackWorldBoss() {
+    if(!currentBossData || currentBossData.hp <= 0) return;
+    
+    // Cooldown 10 giây để chống spam click quá đà
+    const now = Date.now();
+    if(now - lastBossAttackTime < 10000) {
+        let wait = Math.ceil((10000 - (now - lastBossAttackTime))/1000);
+        return alert(`Chờ ${wait}s để hồi sức!`);
+    }
+    lastBossAttackTime = now;
+
+    // Tính Damage: Dựa trên Pokemon mạnh nhất trong túi của bạn
+    // Công thức: Tổng Attack của 6 con đầu tiên / 2
+    let totalAtk = 0;
+    let count = 0;
+    
+    if(myBag.length === 0) return alert("Bạn cần có Pokemon để đánh Boss!");
+    
+    // Lấy 6 con đầu
+    for(let i=0; i<Math.min(6, myBag.length); i++) {
+        let p = myBag[i];
+        // Đảm bảo chỉ số tồn tại
+        if(!p.atk) recalcStats(p); 
+        totalAtk += (p.atk + p.spA);
+        count++;
+    }
+    
+    // Damage dao động random
+    let damage = Math.floor(totalAtk * (0.8 + Math.random() * 0.4));
+    
+    // Crit
+    if(Math.random() < 0.1) {
+        damage *= 2;
+        log(`<span style="color:#e74c3c">Chí mạng vào Boss!</span>`);
+    }
+
+    // Gửi damage lên Firebase (Dùng transaction để cộng dồn an toàn)
+    const bossRef = firebase.database().ref('world_boss');
+    
+    // 1. Trừ máu Boss
+    bossRef.child('hp').transaction((currentHp) => {
+        return (currentHp || 0) - damage;
+    });
+
+    // 2. Cộng damage cho bản thân
+    firebase.database().ref(`world_boss/contributors/${currentUser}`).transaction((userData) => {
+        if(!userData) return { damage: damage };
+        return { damage: userData.damage + damage };
+    });
+    
+    // Hiệu ứng Visual
+    playSFX('catch'); // Tạm dùng tiếng này
+    alert(`Bạn gây ${damage} sát thương lên Boss!`);
+}
+
+// 6. Xử lý khi Boss chết (Phát quà)
+function handleBossDeath(contributors) {
+    // Đánh dấu boss chết để không phát quà 2 lần
+    firebase.database().ref('world_boss/isDead').set(true);
+
+    // Kiểm tra xem MÌNH có trong danh sách không để nhận quà
+    let myEntry = contributors.find(c => c.name === currentUser);
+    
+    if(myEntry) {
+        let rank = contributors.indexOf(myEntry) + 1;
+        let rewardMsg = "";
+        
+        // --- CƠ CẤU GIẢI THƯỞNG ---
+        if(rank === 1) {
+            coins += 50000;
+            inventory['master-ball'] = (inventory['master-ball'] || 0) + 1;
+            rewardMsg = "TOP 1 MVP: 50,000 Xu + 1 Master Ball!";
+        } else if (rank <= 3) {
+            coins += 20000;
+            inventory['ultra-ball'] = (inventory['ultra-ball'] || 0) + 5;
+            rewardMsg = "TOP 3: 20,000 Xu + 5 Ultra Ball!";
+        } else if (rank <= 10) {
+            coins += 10000;
+            inventory['rare-candy'] = (inventory['rare-candy'] || 0) + 3;
+            rewardMsg = "TOP 10: 10,000 Xu + 3 Rare Candy!";
+        } else {
+            coins += 5000;
+            rewardMsg = "Tham gia: 5,000 Xu";
+        }
+        
+        saveGame();
+        updateStats();
+        alert(`🎉 BOSS ĐÃ BỊ HẠ GỤC!\nThành tích của bạn: Hạng ${rank}\nQuà: ${rewardMsg}`);
+    }
+}
+
+// Helper: Lấy số thứ tự tuần trong năm (để reset boss)
+function getWeekNumber(d) {
+    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+    var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+    var weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
+    return weekNo;
+}
 </script>
 </body>
 </html>
+
 
 
 
