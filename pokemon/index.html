@@ -327,6 +327,56 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <script>
+    // --- 1. BẢNG KHẮC HỆ (TYPE CHART) ---
+const TYPE_CHART = {
+    normal: { rock: 0.5, ghost: 0, steel: 0.5 },
+    fire: { fire: 0.5, water: 0.5, grass: 2, ice: 2, bug: 2, rock: 0.5, dragon: 0.5, steel: 2 },
+    water: { fire: 2, water: 0.5, grass: 0.5, ground: 2, rock: 2, dragon: 0.5 },
+    grass: { fire: 0.5, water: 2, grass: 0.5, poison: 0.5, ground: 2, flying: 0.5, bug: 0.5, rock: 2, dragon: 0.5, steel: 0.5 },
+    electric: { water: 2, electric: 0.5, grass: 0.5, ground: 0, flying: 2, dragon: 0.5 },
+    ice: { fire: 0.5, grass: 2, ice: 0.5, ground: 2, flying: 2, dragon: 2, steel: 0.5 },
+    fighting: { normal: 2, ice: 2, rock: 2, dark: 2, steel: 2, poison: 0.5, flying: 0.5, psychic: 0.5, bug: 0.5, ghost: 0, fairy: 0.5 },
+    poison: { grass: 2, fairy: 2, poison: 0.5, ground: 0.5, rock: 0.5, ghost: 0.5, steel: 0 },
+    ground: { fire: 2, electric: 2, poison: 2, rock: 2, steel: 2, grass: 0.5, bug: 0.5, flying: 0 },
+    flying: { grass: 2, fighting: 2, bug: 2, electric: 0.5, rock: 0.5, steel: 0.5 },
+    psychic: { fighting: 2, poison: 2, psychic: 0.5, steel: 0.5, dark: 0 },
+    bug: { grass: 2, psychic: 2, dark: 2, fire: 0.5, fighting: 0.5, poison: 0.5, flying: 0.5, ghost: 0.5, steel: 0.5, fairy: 0.5 },
+    rock: { fire: 2, ice: 2, flying: 2, bug: 2, fighting: 0.5, ground: 0.5, steel: 0.5 },
+    ghost: { psychic: 2, ghost: 2, normal: 0, dark: 0.5 },
+    dragon: { dragon: 2, steel: 0.5, fairy: 0 },
+    dark: { psychic: 2, ghost: 2, fighting: 0.5, dark: 0.5, fairy: 0.5 },
+    steel: { ice: 2, rock: 2, fairy: 2, fire: 0.5, water: 0.5, electric: 0.5, steel: 0.5 },
+    fairy: { fighting: 2, dragon: 2, dark: 2, fire: 0.5, poison: 0.5, steel: 0.5 }
+};
+
+// --- 2. KHO KỸ NĂNG (MOVE DATABASE) ---
+// cat: 'phy' (Vật lý), 'spe' (Phép), 'sta' (Trạng thái)
+const MOVE_DB = {
+    // Chiêu thường
+    'tackle': { name: 'Tackle', type: 'normal', cat: 'phy', pwr: 40, acc: 100 },
+    'quick-attack': { name: 'Quick Attack', type: 'normal', cat: 'phy', pwr: 40, acc: 100, prio: 1 },
+    'scratch': { name: 'Scratch', type: 'normal', cat: 'phy', pwr: 40, acc: 100 },
+    'bite': { name: 'Bite', type: 'dark', cat: 'phy', pwr: 60, acc: 100 },
+    
+    // Chiêu Hệ (Phổ biến)
+    'ember': { name: 'Ember', type: 'fire', cat: 'spe', pwr: 40, acc: 100 },
+    'flamethrower': { name: 'Flamethrower', type: 'fire', cat: 'spe', pwr: 90, acc: 100 },
+    'water-gun': { name: 'Water Gun', type: 'water', cat: 'spe', pwr: 40, acc: 100 },
+    'hydro-pump': { name: 'Hydro Pump', type: 'water', cat: 'spe', pwr: 110, acc: 80 }, // Mạnh nhưng hay trượt
+    'vine-whip': { name: 'Vine Whip', type: 'grass', cat: 'phy', pwr: 45, acc: 100 },
+    'razor-leaf': { name: 'Razor Leaf', type: 'grass', cat: 'phy', pwr: 55, acc: 95 },
+    'thunder-shock': { name: 'Thunder Shock', type: 'electric', cat: 'spe', pwr: 40, acc: 100 },
+    'thunderbolt': { name: 'Thunderbolt', type: 'electric', cat: 'spe', pwr: 90, acc: 100 },
+    'rock-throw': { name: 'Rock Throw', type: 'rock', cat: 'phy', pwr: 50, acc: 90 },
+    'earthquake': { name: 'Earthquake', type: 'ground', cat: 'phy', pwr: 100, acc: 100 },
+    'psychic': { name: 'Psychic', type: 'psychic', cat: 'spe', pwr: 90, acc: 100 },
+    'shadow-ball': { name: 'Shadow Ball', type: 'ghost', cat: 'spe', pwr: 80, acc: 100 },
+    'dragon-claw': { name: 'Dragon Claw', type: 'dragon', cat: 'phy', pwr: 80, acc: 100 },
+    
+    // Chiêu Huyền Thoại
+    'psystrike': { name: 'Psystrike', type: 'psychic', cat: 'spe', pwr: 100, acc: 100 }, // Mewtwo
+    'hyper-beam': { name: 'Hyper Beam', type: 'normal', cat: 'spe', pwr: 150, acc: 90 },
+};
     // --- FIREBASE CONFIG & INIT (DÁN VÀO ĐÂY) ---
     const firebaseConfig = {
       apiKey: "AIzaSyBfS5Mtj27J9CLd92m4m3X5rBwQOpv52v8",
@@ -629,34 +679,37 @@ const REPAIR_QUESTIONS = [
 
     // Cập nhật hàm phân phát chiêu để Pokemon có chiêu Status/Stat
     function assignMoves(p) {
-        let mainType = p.types[0];
-        let pool = MOVES_DB[mainType] || [];
-        let normalPool = MOVES_DB['normal'];
-        let moves = [];
-        
-        // Cố gắng lấy 1 chiêu Status/Stat nếu có
-        let tacticalMoves = pool.filter(m => m.cat === 'status' || m.cat === 'stat');
-        if(tacticalMoves.length > 0 && Math.random() < 0.5) {
-            moves.push({...tacticalMoves[Math.floor(Math.random()*tacticalMoves.length)], type: mainType});
+    // 1. Lấy hệ chính của Pokemon (ví dụ: 'fire')
+    let type = p.types[0]; 
+    
+    // 2. Tạo danh sách chiêu có thể học
+    let pool = [];
+    
+    // Luôn có chiêu thường cơ bản
+    pool.push('tackle', 'quick-attack', 'bite');
+    
+    // Lọc chiêu trong MOVE_DB trùng với hệ của Pokemon
+    for (let key in MOVE_DB) {
+        if (MOVE_DB[key].type === type) {
+            pool.push(key);
         }
-
-        // Lấy chiêu tấn công hệ chính
-        let attackMoves = pool.filter(m => m.cat !== 'status' && m.cat !== 'stat');
-        if(attackMoves.length > 0) moves.push({...attackMoves[Math.floor(Math.random()*attackMoves.length)], type: mainType});
-        
-        // Fill đầy bằng chiêu Normal
-        while(moves.length < 4) {
-            let m = normalPool[Math.floor(Math.random() * normalPool.length)];
-            // Tránh trùng chiêu
-            if(!moves.find(mv => mv.name === m.name)) {
-                moves.push({ ...m, type: 'normal' });
-            } else if (moves.length < 4 && normalPool.length < 5) {
-                 moves.push({ ...m, type: 'normal' }); // Fallback nếu ít chiêu quá
-                 break;
-            }
-        }
-        p.moves = moves;
     }
+    
+    // 3. Chọn random 4 chiêu
+    p.moves = [];
+    for(let i=0; i<4; i++) {
+        let randomMove = pool[Math.floor(Math.random() * pool.length)];
+        // Nếu không trùng thì thêm vào
+        if(!p.moves.includes(randomMove)) {
+            p.moves.push(randomMove);
+        }
+    }
+    
+    // Nếu vẫn thiếu (do pool ít quá), nhét thêm Tackle cho đủ 4
+    while(p.moves.length < 4) {
+        p.moves.push('tackle');
+    }
+}
     function ensureDataIntegrity(p) {
         if(!p.spA || !p.spD) { p.baseSpA = p.baseAtk || 50; p.baseSpD = p.baseDef || 50; recalcStats(p); }
         if(!p.moves || p.moves.length === 0) { assignMoves(p); }
@@ -1501,23 +1554,73 @@ async function spawnPokemon() {
         document.getElementById('battle-main-menu').style.display = 'grid';
     }
 
-    function useMove(moveIdx) {
+    async function useMove(moveIndex) {
+    if(!battleState.active || battleState.turn !== 0) return;
+    
+    const p = battleState.player;
+    const e = battleState.enemy;
+    const moveKey = p.moves[moveIndex];
+    const moveData = MOVE_DB[moveKey];
+
+    log(`<b>${p.name}</b> dùng <b style="color:#e67e22">${moveData.name}</b>!`);
+
+    // --- LƯỢT NGƯỜI CHƠI ---
+    const result = calculateDamage(moveKey, p, e);
+    
+    // Hiệu ứng chữ bay (Floating Text)
+    if(result.damage > 0) {
+        let colorType = result.isCrit ? 'crit' : 'normal';
+        showFloatingText('enemy-sprite', `-${result.damage}`, colorType);
+    } else {
+        showFloatingText('enemy-sprite', `MISS`, 'miss');
+    }
+
+    // Trừ máu
+    e.hp -= result.damage;
+    if(e.hp < 0) e.hp = 0;
+    updateBattleUI();
+    
+    if(result.msg) log(`<span style="font-size:0.8em; color:#f1c40f">${result.msg}</span>`);
+
+    if(e.hp <= 0) {
+        endBattle(true);
+        return;
+    }
+
+    // --- LƯỢT KẺ ĐỊCH (AI Đơn giản) ---
+    battleState.turn = 1; // Khóa nút
+    setTimeout(() => {
         if(!battleState.active) return;
         
-        // 1. Ẩn menu ngay lập tức để tránh bấm đúp
-        hideMoveMenu();
+        // AI chọn chiêu ngẫu nhiên
+        let enemyMoveKey = e.moves[Math.floor(Math.random() * e.moves.length)];
+        let enemyMoveData = MOVE_DB[enemyMoveKey];
         
-        // 2. Gọi engine mới với tham số là INDEX (số thứ tự 0,1,2,3)
-        // Lưu ý: Hàm executeTurn giờ là async, nhưng ở đây ta gọi không cần await
-        executeTurn('attack', moveIdx).catch(err => {
-            console.error("Lỗi Battle:", err);
-            alert("Đã xảy ra lỗi trong trận đấu! Xem console (F12) để biết chi tiết.");
-            // Hiện lại menu nếu lỗi để không bị kẹt
-            document.getElementById('battle-main-menu').style.display = 'grid';
-            document.getElementById('battle-main-menu').style.opacity = '1';
-            document.getElementById('battle-main-menu').style.pointerEvents = 'auto';
-        });
-    }
+        log(`Địch <b>${e.name}</b> dùng <b style="color:#e74c3c">${enemyMoveData.name}</b>!`);
+        
+        const eResult = calculateDamage(enemyMoveKey, e, p);
+        
+        // Floating Text cho Player
+        if(eResult.damage > 0) {
+            let colorType = eResult.isCrit ? 'crit' : 'normal';
+            showFloatingText('player-sprite', `-${eResult.damage}`, colorType);
+        } else {
+            showFloatingText('player-sprite', `MISS`, 'miss');
+        }
+
+        p.hp -= eResult.damage;
+        if(p.hp < 0) p.hp = 0;
+        updateBattleUI();
+        
+        if(eResult.msg) log(`<span style="font-size:0.8em; color:#ed4245">${eResult.msg}</span>`);
+
+        if(p.hp <= 0) {
+            endBattle(false);
+        } else {
+            battleState.turn = 0; // Trả lượt cho người chơi
+        }
+    }, 1000);
+}
 
     function updateBattleUI() {
         let p = battleState.player; 
@@ -2202,9 +2305,69 @@ function openRepairModal() {
         alert("❌ Sai rồi! Bạn bị điện giật tê người. Thử lại nhé!");
     }
 }
+    // --- TÍNH TOÁN SÁT THƯƠNG CHUẨN ---
+function calculateDamage(moveKey, attacker, defender) {
+    const move = MOVE_DB[moveKey] || MOVE_DB['tackle'];
+    
+    // 1. Kiểm tra chính xác (Accuracy Check)
+    let hitChance = Math.random() * 100;
+    if (hitChance > move.acc) {
+        return { damage: 0, msg: "Trượt!", typeMod: 1 };
+    }
+
+    // 2. Chỉ số Tấn công/Phòng thủ (Phân tách Vật lý/Phép)
+    let A, D;
+    if (move.cat === 'phy') {
+        A = attacker.baseAtk || 10;
+        D = defender.baseDef || 10;
+    } else { // Special
+        A = attacker.baseSpA || 10;
+        D = defender.baseSpD || 10;
+    }
+
+    // 3. Công thức gốc (Level scaling)
+    // Damage = ((((2 * Level / 5 + 2) * Power * A / D) / 50) + 2) * Modifiers
+    let level = attacker.level || 5;
+    let baseDmg = ((((2 * level / 5 + 2) * move.pwr * A / D) / 50) + 2);
+
+    // 4. Modifiers (Các hệ số nhân)
+    
+    // a. STAB (Same Type Attack Bonus): Hệ chiêu trùng hệ Pokemon -> x1.5
+    let stab = 1;
+    if (attacker.types && attacker.types.includes(move.type)) stab = 1.5;
+
+    // b. Khắc hệ (Type Effectiveness)
+    let typeMod = 1;
+    let defTypes = defender.types || ['normal']; // Kẻ địch có thể có 2 hệ
+    
+    defTypes.forEach(t => {
+        if (TYPE_CHART[move.type] && TYPE_CHART[move.type][t] !== undefined) {
+            typeMod *= TYPE_CHART[move.type][t];
+        }
+    });
+
+    // c. Critical Hit (Tỉ lệ 1/16 ~ 6.25%)
+    let critical = (Math.random() < 0.0625) ? 1.5 : 1;
+
+    // d. Random (Biến thiên từ 0.85 đến 1.0)
+    let random = (Math.floor(Math.random() * 16) + 85) / 100;
+
+    // TỔNG KẾT DAMAGE
+    let finalDmg = Math.floor(baseDmg * stab * typeMod * critical * random);
+    
+    // Tạo thông điệp combat
+    let msg = "";
+    if (critical > 1) msg += "Chí mạng! (Crit) ";
+    if (typeMod > 1) msg += "Siêu hiệu quả! (Super Effective) ";
+    if (typeMod < 1 && typeMod > 0) msg += "Không hiệu quả lắm... ";
+    if (typeMod === 0) msg += "Vô hiệu! (No Effect) ";
+
+    return { damage: finalDmg, msg: msg, typeMod: typeMod, isCrit: critical > 1 };
+}
 </script>
 </body>
 </html>
+
 
 
 
