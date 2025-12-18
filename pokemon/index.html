@@ -416,7 +416,7 @@
     border: 2px solid #ed4245;
     margin-bottom: 10px;
     position: relative;
-    overflow: hidden;
+    
 }
 
 .boss-sprite {
@@ -537,14 +537,14 @@
 .damage-popup {
     position: absolute;
     left: 50%;
-    top: 50%; /* Xuất hiện từ giữa Boss */
+    top: 40%; /* Xuất hiện từ giữa Boss */
     color: white;
     font-weight: 900;
     font-size: 24px;
     text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
     pointer-events: none; /* Để chuột click xuyên qua được */
     animation: floatUp 1s ease-out forwards;
-    z-index: 3500;
+    z-index: 9999;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
@@ -3598,10 +3598,9 @@ function attackWorldBoss() {
     let damage = Math.floor(totalAtk * (0.9 + Math.random() * 0.2));
     
     // Crit
-    if(Math.random() < 0.1) {
-        damage *= 2;
+    let isCrit = false;
+    if(Math.random() < 0.15) {
         isCrit = true;
-        log(`<span style="color:#e74c3c">Chí mạng vào Boss!</span>`);
     }
     showDamageText(damage, isCrit);
 
@@ -3844,6 +3843,7 @@ function showDamageText(amount, isCrit) {
 </script>
 </body>
 </html>
+
 
 
 
