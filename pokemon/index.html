@@ -222,6 +222,52 @@
     top: 2px;
     left: 4px;
 }
+        /* --- CSS SỬA LỖI MENU VÙNG (REGION BAR) --- */
+.region-bar {
+    display: flex; 
+    gap: 8px; 
+    overflow-x: auto; 
+    width: 100%; 
+    padding: 10px 5px; 
+    margin-bottom: 10px;
+    background: rgba(0,0,0,0.2); /* Nền tối nhẹ để phân biệt */
+    border-radius: 5px;
+    border-bottom: 1px solid #444;
+    flex-shrink: 0; /* KHÔNG ĐƯỢC CO LẠI */
+    min-height: 50px; /* Đảm bảo chiều cao tối thiểu */
+    align-items: center;
+}
+
+/* Kiểu dáng cho nút bấm vùng */
+.btn-region {
+    flex: 0 0 auto; /* Quan trọng: Giữ nguyên kích thước, không bị bóp méo */
+    padding: 6px 12px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background: #2f3136;
+    color: #bbb;
+    font-size: 0.8em;
+    cursor: pointer;
+    transition: 0.2s;
+    white-space: nowrap; /* Không xuống dòng chữ */
+}
+
+.btn-region.active {
+    background: #f1c40f;
+    color: black;
+    border-color: #f1c40f;
+    font-weight: bold;
+    box-shadow: 0 0 5px rgba(241, 196, 15, 0.5);
+}
+
+/* Tùy chỉnh thanh cuộn cho đẹp */
+.region-bar::-webkit-scrollbar {
+    height: 4px;
+}
+.region-bar::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 2px;
+}
     </style>
 </head>
 <body>
@@ -2126,41 +2172,38 @@ function startMining() {
     // --- CẢI TIẾN: VISUAL POKEDEX ---
 
 
-// --- 1. KHAI BÁO DỮ LIỆU REGION (TOÀN CỤC) ---
+// --- 1. DỮ LIỆU VÙNG ---
 const REGIONS = [
-    { name: 'Kanto (1-151)', start: 1, end: 151 },
-    { name: 'Johto (152-251)', start: 152, end: 251 },
-    { name: 'Hoenn (252-386)', start: 252, end: 386 },
-    { name: 'Sinnoh (387-493)', start: 387, end: 493 },
-    { name: 'Unova (494-649)', start: 494, end: 649 }
+    { name: 'Kanto', start: 1, end: 151 },
+    { name: 'Johto', start: 152, end: 251 },
+    { name: 'Hoenn', start: 252, end: 386 },
+    { name: 'Sinnoh', start: 387, end: 493 },
+    { name: 'Unova', start: 494, end: 649 }
 ];
 
-let currentDexGen = 0; // Biến lưu vùng đang xem hiện tại
+let currentDexGen = 0; 
 
-// --- 2. HÀM MỞ MODAL & VẼ KHUNG ---
+// --- 2. HÀM HIỂN THỊ KHUNG MODAL ---
 function showPokedex() {
     const modal = document.getElementById('dex-modal');
     const innerBox = modal.querySelector('.inner-box');
     
-    // Chỉ vẽ khung, tiêu đề và nút bấm 1 lần duy nhất tại đây
+    // Reset lại nội dung HTML
     innerBox.innerHTML = `
-        <h2 style="color: #3498db; margin:0 0 5px 0;">📖 Pokedex Quốc Gia</h2>
-        
-        <div style="font-size: 0.9em; margin-bottom: 10px; display:flex; justify-content:space-between; width:100%">
-            <span>Tổng đã bắt: <b style="color:#f1c40f">${pokedex.size}</b> / ${MAX_ID}</span>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+            <h2 style="color: #3498db; margin:0;">📖 Pokedex</h2>
+            <span style="font-size:0.9em; color:#ddd">Đã bắt: <b style="color:#f1c40f">${pokedex.size}</b>/649</span>
         </div>
 
-        <div style="display:flex; gap:5px; overflow-x:auto; width:100%; padding-bottom:5px; margin-bottom:5px">
+        <div class="region-bar">
             ${REGIONS.map((r, idx) => `
-                <button id="dex-btn-${idx}" class="btn-small" 
-                    style="flex: 0 0 auto; padding:8px 10px; border:1px solid #555; transition:0.2s" 
-                    onclick="switchDexRegion(${idx})">
+                <button id="dex-btn-${idx}" class="btn-region" onclick="switchDexRegion(${idx})">
                     ${r.name}
                 </button>
             `).join('')}
         </div>
 
-        <div id="dex-grid-container" class="dex-grid">
+        <div id="dex-grid-container" class="dex-grid" style="flex:1; min-height:0">
             </div>
 
         <button class="btn-close" onclick="closePokedex()" style="margin-top:10px">Đóng</button>
@@ -2168,45 +2211,35 @@ function showPokedex() {
 
     modal.style.display = 'flex';
     
-    // Sau khi vẽ khung xong, gọi hàm render nội dung vùng hiện tại
+    // Vẽ dữ liệu lần đầu
     renderDexRegion(currentDexGen);
 }
 
-// --- 3. HÀM CHUYỂN VÙNG (Chỉ xử lý logic chuyển) ---
+// --- 3. HÀM CHUYỂN ĐỔI VÙNG ---
 function switchDexRegion(genIdx) {
-    currentDexGen = genIdx; // Cập nhật biến toàn cục
-    renderDexRegion(genIdx); // Gọi hàm vẽ lại lưới
+    currentDexGen = genIdx;
+    renderDexRegion(genIdx);
 }
 
-// --- 4. HÀM VẼ LƯỚI ẢNH & CẬP NHẬT MÀU NÚT ---
+// --- 4. HÀM VẼ LƯỚI VÀ CẬP NHẬT NÚT ---
 function renderDexRegion(genIdx) {
-    // A. Cập nhật màu sắc các nút bấm (Active / Inactive)
+    // A. Cập nhật màu nút (Active)
     REGIONS.forEach((r, idx) => {
         const btn = document.getElementById(`dex-btn-${idx}`);
         if(btn) {
-            if(idx === genIdx) {
-                // Nút đang chọn: Màu vàng, chữ đen
-                btn.style.background = '#f1c40f';
-                btn.style.color = 'black';
-                btn.style.fontWeight = 'bold';
-            } else {
-                // Nút khác: Màu tối, chữ trắng
-                btn.style.background = '#2f3136';
-                btn.style.color = '#bbb';
-                btn.style.fontWeight = 'normal';
-            }
+            if(idx === genIdx) btn.classList.add('active');
+            else btn.classList.remove('active');
         }
     });
 
-    // B. Vẽ lưới Pokemon tương ứng
+    // B. Vẽ lưới ảnh
     const container = document.getElementById('dex-grid-container');
     const region = REGIONS[genIdx];
     let html = '';
 
-    // Loop từ start -> end của vùng đó
     for (let i = region.start; i <= region.end; i++) {
         const isCaught = pokedex.has(i);
-        // Dùng icon nhỏ (pixel) để load nhanh hơn
+        // Dùng ảnh nhỏ (icon) để tải nhanh
         const imgSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${i}.png`;
         
         html += `
@@ -2219,10 +2252,8 @@ function renderDexRegion(genIdx) {
             </div>
         `;
     }
-    
     container.innerHTML = html;
-    // Reset thanh cuộn về đầu khi chuyển trang
-    container.scrollTop = 0;
+    container.scrollTop = 0; // Cuộn lên đầu
 }
 
 // Hàm nghe tiếng kêu (giữ nguyên)
@@ -2392,6 +2423,7 @@ function openRepairModal() {
 </script>
 </body>
 </html>
+
 
 
 
