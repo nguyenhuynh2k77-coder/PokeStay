@@ -43,6 +43,37 @@
                 display: flex !important; /* Bắt buộc hiện */
             }
         }
+        /* --- CSS HÌNH NỀN MỜ CHO ĐIỆN THOẠI --- */
+@media (max-width: 768px) {
+    #app {
+        /* Màu nền đen xám nhưng có độ trong suốt (0.85) để lộ ảnh bên dưới */
+        background-color: rgba(32, 34, 37, 0.85) !important; 
+        position: relative; /* Để canh chỉnh lớp ảnh mờ */
+        overflow: hidden;   /* Cắt bỏ phần ảnh bị nhòe ra ngoài khung */
+        z-index: 1;         /* Đảm bảo nội dung nổi lên trên */
+    }
+
+    /* Tạo lớp ảnh nền giả lập */
+    #app::before {
+        content: "";
+        position: absolute;
+        top: 0; 
+        left: 0; 
+        width: 100%; 
+        height: 100%;
+        
+        /* Đổi tên ảnh 'wp2595124.jpg' thành ảnh bạn muốn nếu cần */
+        background: url('wp2595124.jpg') no-repeat center center;
+        background-size: cover;
+        
+        /* --- CHỈNH ĐỘ MỜ TẠI ĐÂY --- */
+        opacity: 0.15;       /* Độ trong suốt: 0.1 (rất mờ) -> 0.5 (rõ hơn) */
+        filter: blur(4px);   /* Độ nhòe: số càng to càng nhòe */
+        
+        z-index: -1;         /* Bắt buộc: Đẩy ảnh ra sau lưng chữ viết */
+        pointer-events: none; /* Không cho phép bấm vào ảnh nền */
+    }
+}
         #login-screen, #donate-modal, #update-modal, #shop-modal, #buy-modal, #battle-modal, #job-modal, #achieve-modal, #daycare-modal, #repair-modal, #dex-modal, #daily-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         #donate-modal, #update-modal, #shop-modal, #buy-modal, #battle-modal, #job-modal, #achieve-modal, #daycare-modal, #repair-modal, #dex-modal, #daily-modal { display: none; z-index: 1000; }
         .box-style { background: #2f3136; padding: 20px; border-radius: 10px; border: 2px solid #faa61a; text-align: center; width: 90%; max-width: 350px; box-shadow: 0 0 20px rgba(0,0,0,0.5); max-height: 80vh; display: flex; flex-direction: column; overflow-y: auto;}
@@ -2589,6 +2620,7 @@ function closeLearnMove() {
 </script>
 </body>
 </html>
+
 
 
 
