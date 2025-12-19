@@ -841,26 +841,10 @@
             <div style="text-align:right">
                 <div style="font-weight:bold; color:#f1c40f"><span id="coin-display">0</span> 💰</div>
                 <div style="font-size:0.8em; color:#3ba55c">Lv.<span id="trainer-level">1</span></div>
+                <div id="online-box" style="font-size:0.7em; color:#00b0f4; margin-top:2px; font-weight:bold">
+                🟢 Online: <span id="online-count">1</span>
             </div>
         </div>
-
-        <div style="width:100%; height:4px; background:#444; margin-top:5px; border-radius:2px; position:relative">
-            <div id="trainer-xp-bar" style="width:0%; height:100%; background:#0984e3; transition:width 0.5s"></div>
-        </div>
-    </div>
-</header>
-                <div>
-                    <div style="font-weight:bold; font-size:0.9em" id="display-username">TRAINER</div>
-                    <div style="font-size:0.7em; color:#f1c40f" id="rank-title">Tập sự</div>
-                </div>
-            </div>
-            
-            <div style="text-align:right">
-                <div style="font-weight:bold; color:#f1c40f"><span id="coin-display">0</span> 💰</div>
-                <div style="font-size:0.8em; color:#3ba55c">Lv.<span id="trainer-level">1</span></div>
-            </div>
-        </div>
-
         <div style="width:100%; height:4px; background:#444; margin-top:5px; border-radius:2px; position:relative">
             <div id="trainer-xp-bar" style="width:0%; height:100%; background:#0984e3; transition:width 0.5s"></div>
         </div>
@@ -1915,6 +1899,7 @@ async function login() {
         checkDailyQuestGen();
         updateStats();
         updateZoneNameUI();
+        initOnlineSystem();
         playBGM('map');
         showMenu(); // Hiện lại menu
         showUpdateLog();
@@ -5894,9 +5879,52 @@ function updateZoneNameUI() {
     else if(currentZone === 'forest') el.style.color = '#2ecc71'; // Xanh lá
     else el.style.color = '#0984e3'; // Mặc định
 }
+    // --- HỆ THỐNG ĐẾM NGƯỜI ONLINE (REALTIME) ---
+function initOnlineSystem() {
+    if (!currentUser) return;
+
+    // 1. Tham chiếu đến vị trí lưu trạng thái của mình
+    const myStatusRef = firebase.database().ref('status/' + currentUser);
+    
+    // 2. Tham chiếu đến biến hệ thống đặc biệt của Firebase (.info/connected)
+    // Biến này tự động = true khi có mạng, false khi mất mạng
+    const connectedRef = firebase.database().ref('.info/connected');
+
+    connectedRef.on('value', (snap) => {
+        if (snap.val() === true) {
+            // A. Khi kết nối thành công:
+            
+            // Đăng ký lệnh: "Nếu tôi bị ngắt kết nối, hãy XÓA tôi khỏi database"
+            myStatusRef.onDisconnect().remove();
+
+            // Ghi tên mình vào danh sách Online
+            myStatusRef.set({
+                state: 'online',
+                last_changed: firebase.database.ServerValue.TIMESTAMP
+            });
+        }
+    });
+
+    // 3. Lắng nghe tổng số người đang Online để hiển thị
+    firebase.database().ref('status').on('value', (snap) => {
+        // Đếm số lượng con trong thư mục status
+        const count = snap.numChildren();
+        
+        // Cập nhật lên màn hình
+        const countEl = document.getElementById('online-count');
+        if(countEl) {
+            countEl.innerText = count;
+            
+            // Hiệu ứng nhấp nháy nhẹ cho vui mắt
+            countEl.style.textShadow = "0 0 5px #00b0f4";
+            setTimeout(() => countEl.style.textShadow = "none", 500);
+        }
+    });
+}
 </script>
 </body>
 </html>
+
 
 
 
