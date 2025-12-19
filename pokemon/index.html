@@ -553,6 +553,49 @@
     font-size: 36px; /* To hơn */
     text-shadow: 0 0 10px red; /* Viền phát sáng đỏ */
 }
+        /* --- CHAT CSS --- */
+.chat-msg {
+    padding: 3px 5px;
+    margin-bottom: 3px;
+    border-radius: 4px;
+    background: rgba(0,0,0,0.3);
+    word-wrap: break-word;
+}
+.chat-name { font-weight: bold; margin-right: 5px; cursor:pointer; }
+.role-admin { color: #e74c3c; }
+.role-vip { color: #f1c40f; }
+.role-user { color: #3ba55c; }
+
+/* --- MARKET CSS --- */
+.market-item {
+    background: #2f3136;
+    border: 1px solid #444;
+    border-radius: 5px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+.market-price {
+    background: rgba(0,0,0,0.5);
+    padding: 2px 5px;
+    border-radius: 3px;
+    color: #f1c40f;
+    font-weight: bold;
+    margin-top: 5px;
+    font-size: 0.9em;
+}
+.seller-name {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    font-size: 0.6em;
+    color: #bbb;
+    background: rgba(0,0,0,0.5);
+    padding: 1px 3px;
+    border-radius: 3px;
+}
     </style>
 </head>
 <body>
@@ -672,7 +715,57 @@
     <div id="dex-modal"><div class="box-style"><div class="inner-box"><h2 style="color: #3498db;">📖 Pokedex</h2><div style="font-size: 1.2em; margin-bottom: 20px;">Đã bắt: <span style="color: #f1c40f; font-weight: bold;" id="dex-count">0</span> / 649</div><button class="btn-close" onclick="closePokedex()">Đóng</button></div></div></div>
     
     <div id="donate-modal"><div class="box-style" style="background:white; color:black"><h3 style="color: #6c38c6; margin:0 0 10px 0">Ủng Hộ Dev</h3><img src="38b84fc99acb15954cda.jpg" class="donate-qr" style="width:100%; border-radius:5px; border:1px solid #ddd"><div style="font-size:0.9em; margin-top:10px; font-weight:bold">TPBank QR</div><button class="btn-close" onclick="closeDonate()">Đóng</button></div></div>
+<div id="chat-modal" style="display:none; position:fixed; bottom:80px; right:10px; width:300px; height:400px; z-index:3500; flex-direction:column; align-items:end;">
+    <div class="box-style" style="width:100%; height:100%; padding:10px; display:flex; flex-direction:column; background:rgba(32, 34, 37, 0.95); border:1px solid #7289da">
+        <div style="display:flex; justify-content:space-between; width:100%; border-bottom:1px solid #444; padding-bottom:5px; margin-bottom:5px">
+            <span style="color:#7289da; font-weight:bold">💬 Kênh Thế Giới</span>
+            <span style="cursor:pointer; color:#ed4245" onclick="toggleChat()">[Thu nhỏ]</span>
+        </div>
+        <div id="global-chat-content" style="flex:1; overflow-y:auto; text-align:left; font-size:0.85em; margin-bottom:5px; display:flex; flex-direction:column; gap:5px">
+            <div style="color:#777; font-style:italic">Đang kết nối kênh chat...</div>
+        </div>
+        <div style="display:flex; gap:5px; width:100%">
+            <input type="text" id="chat-input" class="login-input" placeholder="Nói gì đó..." style="margin:0; padding:5px; font-size:0.9em; text-align:left" onkeypress="handleChatEnter(event)">
+            <button class="btn-small" style="background:#7289da; width:auto" onclick="sendChat()">Gửi</button>
+        </div>
+    </div>
+</div>
 
+<button id="btn-chat-float" onclick="toggleChat()" style="position:fixed; bottom:20px; right:20px; width:50px; height:50px; border-radius:50%; background:#7289da; border:2px solid white; z-index:3400; font-size:24px; cursor:pointer; box-shadow:0 0 10px rgba(0,0,0,0.5)">💬</button>
+
+<div id="market-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3000; justify-content:center; align-items:center;">
+    <div class="box-style" style="width:95%; max-width:600px; border-color:#9b59b6">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+            <h2 style="color: #9b59b6; margin:0">⚖️ CHỢ ĐEN</h2>
+            <div style="font-size:0.9em">Ví: <span style="color:#f1c40f" id="market-coin">0</span>💰</div>
+        </div>
+
+        <div class="shop-tabs">
+            <button class="shop-tab-btn active" onclick="switchMarketTab('buy')">MUA POKEMON</button>
+            <button class="shop-tab-btn" onclick="switchMarketTab('sell')">TREO BÁN</button>
+            <button class="shop-tab-btn" onclick="switchMarketTab('inbox')">HÒM THƯ (<span id="inbox-count" style="color:#ed4245">0</span>)</button>
+        </div>
+
+        <div id="market-buy-tab" style="display:block; height:300px; overflow-y:auto; margin-top:10px" class="shop-grid">
+            <div style="color:#bbb; padding:20px">Đang tải dữ liệu chợ...</div>
+        </div>
+
+        <div id="market-sell-tab" style="display:none; height:300px; overflow-y:auto; margin-top:10px">
+            <div style="color:#bbb; margin-bottom:10px">Chọn Pokemon trong túi để bán:</div>
+            <div id="market-sell-list" class="shop-grid"></div>
+        </div>
+
+        <div id="market-inbox-tab" style="display:none; height:300px; overflow-y:auto; margin-top:10px">
+            <div style="text-align:center; padding:20px">
+                <div style="margin-bottom:10px">Tiền bán được sẽ gửi về đây.</div>
+                <button id="btn-claim-money" class="btn-auth" style="background:#2ecc71; display:none" onclick="claimMarketMoney()">💰 RÚT TIỀN: 0</button>
+                <div id="inbox-logs" style="margin-top:15px; text-align:left; font-size:0.8em; color:#bbb"></div>
+            </div>
+        </div>
+
+        <button class="btn-close" style="margin-top:10px" onclick="closeMarket()">Đóng</button>
+    </div>
+</div>
     <div id="boss-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:3000; justify-content:center; align-items:center;">
     <div class="box-style" style="width:95%; max-width:500px; border-color:#ed4245">
         <h2 style="color: #ed4245; margin: 0 0 5px 0;">☠️ WORLD BOSS</h2>
@@ -1553,6 +1646,7 @@ function showMenu() {
         
         <div style="width:100%; display:flex; gap:5px">
             <button class="btn btn-shop" onclick="shop()"><span>🛒 Shop</span></button>
+            <button class="btn" style="background:#9b59b6; color:white; border:2px solid #8e44ad" onclick="openMarket()"><span>⚖️ Chợ</span></button>
             <button class="btn" style="background:#8e44ad; color:white; border:2px solid #9b59b6" onclick="openLeaderboard()"><span>🏆 BXH</span></button>
             <button class="btn" style="background:#c0392b; color:white; border:2px solid #e74c3c" onclick="openWorldBoss()"><span>☠️ BOSS</span></button>
         </div>
@@ -4117,9 +4211,291 @@ function redeemCode(code) {
 
     alert(`🎉 Chúc mừng! Bạn nhận được:\n${rewardText.join('\n')}`);
 }
+    // ======================================================
+// HỆ THỐNG GLOBAL CHAT (REALTIME)
+// ======================================================
+let isChatOpen = false;
+let chatListenerAdded = false;
+
+function toggleChat() {
+    isChatOpen = !isChatOpen;
+    const modal = document.getElementById('chat-modal');
+    modal.style.display = isChatOpen ? 'flex' : 'none';
+    
+    if(isChatOpen) {
+        initChat();
+        document.getElementById('btn-chat-float').style.display = 'none';
+    } else {
+        document.getElementById('btn-chat-float').style.display = 'block';
+    }
+}
+
+function initChat() {
+    if(chatListenerAdded) return;
+    chatListenerAdded = true;
+    
+    const chatBox = document.getElementById('global-chat-content');
+    chatBox.innerHTML = ''; // Clear loading text
+
+    // Lắng nghe 50 tin nhắn cuối cùng
+    firebase.database().ref('global_chat').limitToLast(50).on('child_added', (snapshot) => {
+        const msg = snapshot.val();
+        const div = document.createElement('div');
+        div.className = 'chat-msg';
+        
+        // Phân màu theo tên (Admin tự set cứng hoặc làm hệ thống role sau)
+        let roleColor = 'role-user';
+        if(msg.user === 'ADMIN' || msg.user === 'Dev') roleColor = 'role-admin';
+        
+        div.innerHTML = `<span class="chat-name ${roleColor}" onclick="alert('User: ${msg.user}')">${msg.user}:</span> <span style="color:#dcddde">${msg.text}</span>`;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    });
+}
+
+function handleChatEnter(e) {
+    if(e.key === 'Enter') sendChat();
+}
+
+function sendChat() {
+    if(!currentUser) return alert("Cần đăng nhập để chat!");
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if(!text) return;
+    if(text.length > 100) return alert("Tin nhắn quá dài!");
+
+    // Chống spam (Cooldown 2s)
+    const now = Date.now();
+    if(window.lastChatTime && now - window.lastChatTime < 2000) return log("⏳ Chat chậm thôi!");
+    window.lastChatTime = now;
+
+    firebase.database().ref('global_chat').push({
+        user: currentUser,
+        text: text,
+        time: firebase.database.ServerValue.TIMESTAMP
+    });
+    
+    input.value = '';
+}
+
+// ======================================================
+// HỆ THỐNG CHỢ ĐEN (MARKET)
+// ======================================================
+let pendingMoney = 0;
+
+function openMarket() {
+    if(!currentUser) return alert("Cần đăng nhập!");
+    document.getElementById('market-modal').style.display = 'flex';
+    document.getElementById('market-coin').innerText = coins.toLocaleString();
+    switchMarketTab('buy'); // Mặc định vào tab mua
+    checkInbox(); // Kiểm tra tiền bán được
+}
+
+function closeMarket() {
+    document.getElementById('market-modal').style.display = 'none';
+}
+
+function switchMarketTab(tab) {
+    document.getElementById('market-buy-tab').style.display = 'none';
+    document.getElementById('market-sell-tab').style.display = 'none';
+    document.getElementById('market-inbox-tab').style.display = 'none';
+    
+    if(tab === 'buy') {
+        document.getElementById('market-buy-tab').style.display = 'grid';
+        loadMarketListings();
+    } else if(tab === 'sell') {
+        document.getElementById('market-sell-tab').style.display = 'block';
+        renderSellList();
+    } else {
+        document.getElementById('market-inbox-tab').style.display = 'block';
+    }
+}
+
+// --- LOGIC MUA: Tải danh sách ---
+function loadMarketListings() {
+    const container = document.getElementById('market-buy-tab');
+    container.innerHTML = '<div style="grid-column:span 2; text-align:center; color:yellow">Đang tải hàng...</div>';
+
+    firebase.database().ref('market').once('value').then(snap => {
+        const data = snap.val();
+        if(!data) {
+            container.innerHTML = '<div style="grid-column:span 2; text-align:center; color:#777">Chợ vắng tanh...</div>';
+            return;
+        }
+
+        let html = '';
+        Object.keys(data).forEach(key => {
+            const item = data[key];
+            // Không hiện đồ mình tự bán
+            if(item.seller === currentUser) return; 
+
+            // Visual
+            let shinyIcon = item.data.isShiny ? '✨' : '';
+            let rarityInfo = getRarity(item.data); // Hàm có sẵn trong code cũ của bạn
+            
+            html += `
+            <div class="market-item">
+                <span class="seller-name">${item.seller}</span>
+                <img src="${item.data.img}" width="60" style="image-rendering:pixelated">
+                <div style="font-weight:bold; font-size:0.9em; margin-top:5px">
+                    <span class="${rarityInfo.class}">${shinyIcon}${item.data.name}</span>
+                </div>
+                <div style="font-size:0.7em; color:#aaa">Lv.${item.data.level} | IV:${item.data.iv}</div>
+                <div class="market-price">${parseInt(item.price).toLocaleString()}💰</div>
+                <button class="btn-small" style="width:100%; margin-top:5px; background:#2ecc71" onclick="buyMarketItem('${key}')">MUA</button>
+            </div>
+            `;
+        });
+        
+        if(html === '') html = '<div style="grid-column:span 2; text-align:center; color:#777">Không có hàng của người khác bán.</div>';
+        container.innerHTML = html;
+    });
+}
+
+// --- LOGIC BÁN: Chọn Pokemon để treo ---
+function renderSellList() {
+    const container = document.getElementById('market-sell-list');
+    if(myBag.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:#777">Túi rỗng!</div>';
+        return;
+    }
+
+    container.innerHTML = myBag.map((p, idx) => {
+        let shinyIcon = p.isShiny ? '✨' : '';
+        return `
+        <div class="market-item" style="border-color:#555">
+            <img src="${p.img}" width="50">
+            <div style="font-weight:bold; font-size:0.8em">${shinyIcon}${p.name}</div>
+            <div style="font-size:0.7em; color:#aaa">CP: ${(p.atk+p.spA)*p.level}</div>
+            <button class="btn-small" style="width:100%; margin-top:5px; background:#e67e22" onclick="promptSell(${idx})">BÁN</button>
+        </div>
+        `;
+    }).join('');
+}
+
+function promptSell(idx) {
+    let p = myBag[idx];
+    let price = prompt(`Nhập giá bán cho ${p.name} (Tối thiểu 100):`);
+    if(!price) return;
+    price = parseInt(price);
+    
+    if(isNaN(price) || price < 100) return alert("Giá không hợp lệ (Min 100)!");
+    if(price > 1000000000) return alert("Giá quá cao!");
+
+    if(confirm(`Bạn muốn treo bán ${p.name} với giá ${price.toLocaleString()} coins?`)) {
+        // 1. Đẩy lên chợ
+        const newItemRef = firebase.database().ref('market').push();
+        newItemRef.set({
+            seller: currentUser,
+            price: price,
+            data: p, // Lưu toàn bộ thông tin Pokemon
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+
+        // 2. Xóa khỏi túi
+        myBag.splice(idx, 1);
+        saveGame();
+        
+        alert("Đã treo bán thành công! Vào tab 'Hòm Thư' để nhận tiền khi có người mua.");
+        switchMarketTab('buy'); // Quay về chợ
+    }
+}
+
+// --- LOGIC GIAO DỊCH (Transaction) ---
+function buyMarketItem(key) {
+    // 1. Lấy thông tin mới nhất (để tránh mua đồ đã bị người khác mua)
+    firebase.database().ref('market/' + key).once('value').then(snap => {
+        const item = snap.val();
+        if(!item) return alert("Vật phẩm này không còn tồn tại (Đã bị mua hoặc gỡ)!");
+        
+        // 2. Kiểm tra tiền
+        if(coins < item.price) return alert("Bạn không đủ tiền!");
+
+        if(myBag.length >= maxBagSize) return alert("Túi Pokemon đã đầy!");
+
+        // 3. Thực hiện giao dịch
+        // A. Trừ tiền người mua
+        coins -= item.price;
+        // B. Thêm Pokemon cho người mua
+        myBag.push(item.data);
+        saveGame();
+        updateStats();
+
+        // C. Gửi tiền cho người bán (vào inbox)
+        firebase.database().ref('users/' + item.seller + '/inbox').push({
+            type: 'sold',
+            msg: `Đã bán ${item.data.name} (+${item.price} coins)`,
+            amount: item.price,
+            time: Date.now()
+        });
+
+        // D. Xóa khỏi chợ
+        firebase.database().ref('market/' + key).remove()
+        .then(() => {
+            alert(`Mua thành công ${item.data.name}!`);
+            loadMarketListings(); // Tải lại chợ
+            document.getElementById('market-coin').innerText = coins.toLocaleString();
+        })
+        .catch(err => alert("Lỗi giao dịch: " + err));
+    });
+}
+
+// --- HÒM THƯ & NHẬN TIỀN ---
+function checkInbox() {
+    if(!currentUser) return;
+    firebase.database().ref('users/' + currentUser + '/inbox').once('value').then(snap => {
+        const data = snap.val();
+        const logsDiv = document.getElementById('inbox-logs');
+        const btnClaim = document.getElementById('btn-claim-money');
+        const countBadge = document.getElementById('inbox-count');
+        
+        pendingMoney = 0;
+        logsDiv.innerHTML = '';
+
+        if(data) {
+            let count = 0;
+            Object.keys(data).forEach(k => {
+                let mail = data[k];
+                if(mail.amount) pendingMoney += mail.amount;
+                logsDiv.innerHTML += `<div style="border-bottom:1px dashed #444; padding:5px">📅 ${new Date(mail.time).toLocaleDateString()}: ${mail.msg}</div>`;
+                count++;
+            });
+            countBadge.innerText = count;
+        } else {
+            countBadge.innerText = '0';
+            logsDiv.innerHTML = 'Hòm thư trống.';
+        }
+
+        if(pendingMoney > 0) {
+            btnClaim.style.display = 'block';
+            btnClaim.innerText = `💰 RÚT TIỀN: ${pendingMoney.toLocaleString()}`;
+        } else {
+            btnClaim.style.display = 'none';
+        }
+    });
+}
+
+function claimMarketMoney() {
+    if(pendingMoney <= 0) return;
+    
+    // Cộng tiền
+    coins += pendingMoney;
+    pendingMoney = 0;
+    
+    // Xóa hòm thư
+    firebase.database().ref('users/' + currentUser + '/inbox').remove();
+    
+    saveGame();
+    updateStats();
+    
+    alert("Đã rút toàn bộ tiền bán hàng về túi!");
+    checkInbox();
+    document.getElementById('market-coin').innerText = coins.toLocaleString();
+}
 </script>
 </body>
 </html>
+
 
 
 
