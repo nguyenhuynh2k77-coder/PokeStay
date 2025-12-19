@@ -23,6 +23,21 @@
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png">
     
     <style>
+        /* Style cho các thẻ độ hiếm */
+.rarity-tag {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7em;
+    font-weight: bold;
+    color: white;
+    text-transform: uppercase;
+    display: inline-block;
+}
+.rarity-common { background: #7f8c8d; }
+.rarity-uncommon { background: #27ae60; }
+.rarity-rare { background: #2980b9; }
+.rarity-epic { background: #8e44ad; }
+.rarity-legendary { background: #f39c12; box-shadow: 0 0 5px gold; }
         /* --- ADMIN PANEL STYLES --- */
 #admin-panel {
     display: none; /* Mặc định ẩn */
@@ -2591,13 +2606,9 @@ function submitBuy() {
     // --- HỆ THỐNG SPAWN POKEMON (HARDCORE MODE) ---
 let originalEnemyImgSrc = ""; 
 
-// --- 1. HÀM SPAWN POKEMON (Đã thêm ID active-wild-sprite) ---
-// --- HÀM SPAWN POKEMON (ĐÃ SỬA LỖI TRÙNG LẶP) ---
-// --- HÀM SPAWN POKEMON (ĐÃ NÂNG CẤP ZONE) ---
-// --- HÀM SPAWN POKEMON (FULL - ĐÃ SỬA LỖI & CÓ DỰ PHÒNG) ---
-// --- HÀM SPAWN POKEMON (TỶ LỆ CHUẨN POKEMEW/OFFICIAL) ---
+// --- HÀM SPAWN POKEMON (UPDATE: HIỂN THỊ ICON ĐỘC LẬP) ---
 async function spawnPokemon() {
-    // 1. Reset UI & Trạng thái cũ
+    // 1. Reset UI
     const controlsDiv = document.getElementById('controls');
     if(controlsDiv) controlsDiv.innerHTML = `<div style="color:#faa61a; padding:10px">Đang tìm kiếm... <span class="loading-spinner">🌀</span></div>`;
     
@@ -2605,164 +2616,118 @@ async function spawnPokemon() {
     battleState.active = false;
     streakBonus = 0;
     
-    // Ẩn menu chiến đấu cũ nếu có
     const battleMenu = document.getElementById('battle-main-menu');
     if(battleMenu) battleMenu.style.display = 'none';
 
     try {
         let id = 1;
 
-        // --- CẤU HÌNH TỶ LỆ (CONFIG RATE) ---
-        // Pokemew Style: Rất hiếm!
-        // 1/3000 cơ hội gặp Huyền thoại (~0.033%)
+        // --- CẤU HÌNH TỶ LỆ (GIỮ NGUYÊN) ---
         const RATE_LEGENDARY = 1 / 3000; 
-        
-        // Tỷ lệ Shiny chuẩn: 1/4096
-        const RATE_SHINY_BASE = 1 / 4096;
-        const RATE_SHINY_CHARM = 3 / 4096; // Có bùa thì x3 cơ hội (khoảng 1/1365)
-
-        // Tỷ lệ Rainbow/Shadow (Vẫn giữ cực hiếm)
-        const RATE_RAINBOW = 1 / 20000; // 0.005%
-        const RATE_SHADOW = 1 / 5000;   // 0.02%
-
-        // Danh sách ID Huyền thoại
         const LEGEND_LIST = [144,145,146,150,151,243,244,245,249,250,251,377,378,379,380,381,382,383,384,385,386,480,481,482,483,484,485,486,487,488,489,490,491,492,493,494,638,639,640,641,642,643,644,645,646];
 
         // 2. LOGIC TÌM ID
-        // A. Nếu ở Zone đặc biệt -> Tìm theo hệ (Legendary vẫn có thể xuất hiện nếu đúng hệ)
         if (typeof currentZone !== 'undefined' && currentZone !== 'all' && typeof ZONES !== 'undefined') {
             let zoneInfo = ZONES.find(z => z.id === currentZone);
             if (zoneInfo) {
                 let randomType = zoneInfo.types[Math.floor(Math.random() * zoneInfo.types.length)];
                 let typeRes = await fetch(`https://pokeapi.co/api/v2/type/${randomType}`);
                 let typeData = await typeRes.json();
-                
-                let pokeList = typeData.pokemon.filter(p => {
-                    let parts = p.pokemon.url.split('/');
-                    return parseInt(parts[parts.length - 2]) <= 649; 
-                });
-
-                if(pokeList.length > 0) {
-                    let randomEntry = pokeList[Math.floor(Math.random() * pokeList.length)];
-                    let parts = randomEntry.pokemon.url.split('/');
-                    id = parts[parts.length - 2]; 
-                }
+                let pokeList = typeData.pokemon.filter(p => parseInt(p.pokemon.url.split('/')[6]) <= 649);
+                if(pokeList.length > 0) id = pokeList[Math.floor(Math.random() * pokeList.length)].pokemon.url.split('/')[6];
             }
-        } 
-        // B. Nếu ở Zone thường ('all') -> Dùng Trọng số chuẩn
-        else {
+        } else {
             let roll = Math.random(); 
-
-            if (roll < RATE_LEGENDARY) {
-                // --- TRÚNG HUYỀN THOẠI (1/3000) ---
-                id = LEGEND_LIST[Math.floor(Math.random() * LEGEND_LIST.length)];
-                console.log("JACKPOT! Legendary Spawned.");
-            } else {
-                // --- POKEMON THƯỜNG ---
-                // Random và Né Huyền thoại ra (để đảm bảo độ hiếm)
-                do {
-                    id = Math.floor(Math.random() * 649) + 1;
-                } while (LEGEND_LIST.includes(id)); 
+            if (roll < RATE_LEGENDARY) id = LEGEND_LIST[Math.floor(Math.random() * LEGEND_LIST.length)];
+            else {
+                do { id = Math.floor(Math.random() * 649) + 1; } while (LEGEND_LIST.includes(id)); 
             }
         }
 
-        // 3. LOGIC BIẾN THỂ (SHINY / SHADOW / RAINBOW)
+        // 3. LOGIC BIẾN THỂ
         let hasCharm = (inventory['shiny-charm'] || 0) > 0;
         let rand = Math.random();
-        
-        let isShiny = false; 
-        let isShadow = false; 
-        let isRainbow = false;
+        let isShiny = false, isShadow = false, isRainbow = false;
 
-        // Ưu tiên check từ hiếm nhất xuống
-        if (rand < RATE_RAINBOW) {
-            isRainbow = true; 
-        } else if (rand < RATE_RAINBOW + RATE_SHADOW) {
-            isShadow = true; 
-        } else {
-            // Check Shiny
-            let currentShinyRate = hasCharm ? RATE_SHINY_CHARM : RATE_SHINY_BASE;
-            // Roll thêm phát nữa riêng cho Shiny để độc lập với Rainbow/Shadow
-            if (Math.random() < currentShinyRate) isShiny = true;
-        }
+        // Logic cũ: Shadow/Rainbow loại trừ nhau. 
+        // Admin Tool có thể force cả 3 là true, nên ta cứ xử lý hiển thị cho trường hợp đó.
+        if (rand < 1/20000) isRainbow = true; 
+        else if (rand < 1/5000) isShadow = true; 
+        
+        let shinyRate = hasCharm ? (3/4096) : (1/4096);
+        if (Math.random() < shinyRate) isShiny = true;
 
         // 4. FETCH API
         const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); 
         const data = await res.json();
 
-        // Xử lý ảnh
         let img = data.sprites.other['official-artwork'].front_default || data.sprites.front_default;
-        // Nếu là Shiny thường thì lấy ảnh Shiny gốc
-        if(isShiny && !isShadow && !isRainbow && data.sprites.front_shiny) {
-            img = data.sprites.front_shiny;
-        }
+        if(isShiny && !isShadow && !isRainbow && data.sprites.front_shiny) img = data.sprites.front_shiny;
 
         let stats = {};
         data.stats.forEach(s => { stats[s.stat.name] = s.base_stat; });
         let iv = Math.floor(Math.random() * 32); 
 
-        // Tính tỷ lệ bắt (Khó hơn nếu là hàng hiếm)
-        // --- TÍNH TỶ LỆ BẮT (CHUẨN HARDCORE) ---
-        let baseRate = 255; // Mặc định dễ bắt (Rattata, Pidgey...)
-
-        // 1. Phân loại theo sức mạnh (Dựa vào EXP cơ bản)
-        if (data.base_experience > 100) baseRate = 120; // Trung bình (Pokemon cấp 2)
-        if (data.base_experience > 200) baseRate = 45;  // Khó (Pokemon cấp 3, Rồng...)
-
-        // 2. HUYỀN THOẠI = SIÊU KHÓ (Catch Rate = 3)
-        // Đây là tỉ lệ chuẩn của Nintendo. Với Poke Ball thường, tỉ lệ dính chỉ ~1%.
-        if (LEGEND_LIST.includes(parseInt(id))) {
-            baseRate = 3; 
-        }
-
-        // 3. Biến thể (Khó hơn nữa)
-        if (isShadow) baseRate = Math.floor(baseRate * 0.6); // Shadow khó bắt hơn 40%
-        if (isRainbow) baseRate = Math.floor(baseRate * 0.4); // Rainbow cực khó bắt
-
-        // Đảm bảo không bao giờ bằng 0 (vẫn cho 1 tia hy vọng nhỏ nhoi)
-        if (baseRate < 1) baseRate = 1;
-        // Huyền thoại hoặc Cấp 3 thì khó bắt
+        // Tính Rate
+        let baseRate = 255; 
         if (LEGEND_LIST.includes(parseInt(id)) || data.base_experience > 200) baseRate = 45; 
         if (isShadow) baseRate = Math.floor(baseRate * 0.7);
         if (isRainbow) baseRate = Math.floor(baseRate * 0.5);
+        if (baseRate < 1) baseRate = 1;
 
-        // Tạo Object Pokemon
         let p = { 
             id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, 
             isShiny: isShiny, isShadow: isShadow, isRainbow: isRainbow,
             img: img, baseXp: data.base_experience, 
             baseHp: stats['hp'], baseAtk: stats['attack'], baseDef: stats['defense'], 
             baseSpA: stats['special-attack'], baseSpD: stats['special-defense'], baseSpd: stats['speed'],
-            level: 5, xp: 0, maxXp: 100, catchRate: baseRate 
+            level: 5, xp: 0, maxXp: 100, catchRate: baseRate, maxHp: stats['hp'] // temp
         };
-        
         recalcStats(p); 
         assignMoves(p);
 
-        // 5. RENDER
+        // 5. HIỂN THỊ (RENDER) - LOGIC MỚI TẠI ĐÂY
         currentWild = p;
         playCry(p.id);
 
-        let visualClass = "";
-        let namePrefix = "";
-        let titleColor = "#00b0f4"; 
-        
-        // Logic hiển thị Tag
-        let r = getRarity(p);
-        let tagLabel = r.label;
-        let tagClass = r.class;
+        // A. Xác định Tag Rarity Gốc (Common/Rare/Legendary...)
+        let r = getRarity(p); 
+        // getRarity trả về: { label: "LEGENDARY", class: "rarity-legendary", color: "#..." }
 
-        if (isRainbow) { tagLabel="RAINBOW"; visualClass="variant-rainbow"; namePrefix="🌈 "; titleColor="gold"; }
-        else if (isShadow) { tagLabel="SHADOW"; visualClass="variant-shadow"; namePrefix="👿 "; titleColor="#9b59b6"; }
-        else if (isShiny) { titleColor="#e74c3c"; namePrefix="✨ "; } // Giữ tag rarity gốc nhưng đổi màu viền
+        // B. Xây dựng chuỗi Icons (Icons string)
+        let variantIcons = "";
+        let visualClass = ""; // Class CSS để đổi màu ảnh
+        let borderSideColor = r.color; // Mặc định viền theo độ hiếm
 
-        log(`<div class="embed" style="border-left-color:${titleColor}">
+        // Logic cộng dồn icon: Có cái nào hiện cái đó
+        if (isShiny) {
+            variantIcons += `<span title="Shiny">✨</span> `;
+        }
+        if (isShadow) {
+            variantIcons += `<span title="Shadow">👿</span> `;
+            visualClass = "variant-shadow"; // Ưu tiên hiệu ứng Shadow
+            borderSideColor = "#9b59b6";
+        }
+        if (isRainbow) {
+            variantIcons += `<span title="Rainbow">🌈</span> `;
+            visualClass = "variant-rainbow"; // Rainbow đè hiệu ứng Shadow nếu có
+            borderSideColor = "gold";
+        }
+
+        // C. Render HTML
+        log(`<div class="embed" style="border-left-color:${borderSideColor}">
             <div class="embed-header">
                 <div>
-                    <span class="rarity-tag ${tagClass}" style="margin-right:5px">${tagLabel}</span> 
-                    <span class="embed-title">${namePrefix}${currentWild.name}</span>
-                    <div class="embed-desc">Hệ: ${p.types.join('/')} | HP: ${p.maxHp}</div>
+                    <div style="display:flex; align-items:center; margin-bottom:2px">
+                        <span class="rarity-tag ${r.class}" style="margin-right:5px">${r.label}</span>
+                        <span style="font-size:1.2em">${variantIcons}</span>
+                    </div>
+
+                    <div class="embed-title" style="line-height:1.2">${currentWild.name}</div>
+                    
+                    <div class="embed-desc">Hệ: ${p.types.join('/')} | CP: ${Math.floor((p.atk+p.spA)*p.level/10)}</div>
                 </div>
+                
                 <img id="active-wild-sprite" class="poke-sprite ${visualClass}" src="${currentWild.img}">
             </div>
         </div>`);
@@ -2772,7 +2737,6 @@ async function spawnPokemon() {
 
     } catch (e) {
         console.error("Lỗi spawn:", e);
-        log(`<div style="color:red">⚠️ Lỗi tín hiệu... Đang thử lại.</div>`);
         setTimeout(() => spawnPokemon(), 1000);
     }
 }
@@ -6405,9 +6369,27 @@ function adminBroadcast() {
     alert("✅ Đã phát thông báo toàn server!");
     document.getElementById('adm-broadcast-msg').value = ""; // Xóa ô nhập sau khi gửi
 }
+    // --- HÀM XÁC ĐỊNH ĐỘ HIẾM (COMMON/RARE/LEGENDARY) ---
+function getRarity(pokemon) {
+    // 1. Check Huyền Thoại trước
+    const LEGEND_LIST = [144,145,146,150,151,243,244,245,249,250,251,377,378,379,380,381,382,383,384,385,386,480,481,482,483,484,485,486,487,488,489,490,491,492,493,494,638,639,640,641,642,643,644,645,646];
+    if (LEGEND_LIST.includes(pokemon.id)) {
+        return { label: "LEGENDARY", class: "rarity-legendary", color: "#f1c40f" }; // Vàng
+    }
+
+    // 2. Check theo Base XP (Sức mạnh)
+    let xp = pokemon.baseXp;
+    if (xp < 70) return { label: "COMMON", class: "rarity-common", color: "#95a5a6" }; // Xám
+    if (xp < 140) return { label: "UNCOMMON", class: "rarity-uncommon", color: "#2ecc71" }; // Xanh lá
+    if (xp < 200) return { label: "RARE", class: "rarity-rare", color: "#3498db" }; // Xanh dương
+    
+    // 3. Còn lại là Epic/Mythic
+    return { label: "EPIC", class: "rarity-epic", color: "#9b59b6" }; // Tím
+}
 </script>
 </body>
 </html>
+
 
 
 
