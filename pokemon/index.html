@@ -111,8 +111,31 @@
         .p-player { position: absolute; bottom: 20px; left: 20px; text-align: center; }
         .battle-sprite { width: 96px; height: 96px; image-rendering: pixelated; transition: transform 0.2s; }
         .shake { animation: shake 0.5s; }
-        @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
-        .hp-box { background: rgba(0,0,0,0.7); padding: 5px 10px; border-radius: 5px; border: 1px solid #444; width: 140px; margin-bottom: 5px; text-align: left; }
+        /* 2. Hiệu ứng lắc chuẩn (Xoay nghiêng chứ không kéo dãn) */
+@keyframes shake {
+    0%, 100% { 
+        transform: rotate(0deg) translateX(0); 
+    }
+    20% { 
+        transform: rotate(-12deg) translateX(-2px); /* Nghiêng trái */
+    }
+    40% { 
+        transform: rotate(12deg) translateX(2px);  /* Nghiêng phải */
+    }
+    60% { 
+        transform: rotate(-6deg) translateX(-1px); /* Nghiêng trái nhẹ */
+    }
+    80% { 
+        transform: rotate(6deg) translateX(1px);   /* Nghiêng phải nhẹ */
+    }
+}
+
+/* Class áp dụng hiệu ứng (Đảm bảo class này đang được JS sử dụng) */
+.shake {
+    /* Thời gian lắc và số lần lắc */
+    animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) 3; 
+    /* cubic-bezier giúp chuyển động giật cục giống game thật hơn */
+}
         .battle-log-box { height: 80px; overflow-y: auto; background: rgba(0,0,0,0.5); border: 1px solid #555; padding: 5px; font-size: 0.8em; margin-bottom: 10px; text-align: left; color: #ddd; border-radius: 5px; }
         .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
         .action-btn { padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; color: white; font-size: 0.9em; position:relative; overflow:hidden;}
@@ -666,6 +689,56 @@
 }
 .menu-btn:active { transform: scale(0.95); }
 .menu-btn i { font-size: 1.2em; margin-bottom: 2px; } /* Icon */
+        /* --- CSS CHO NÚT BẮT POKEMON NẰM NGANG --- */
+.hunt-controls-bar {
+    display: flex;
+    flex-direction: row; /* Xếp ngang */
+    justify-content: center;
+    align-items: stretch;
+    gap: 5px;
+    width: 100%;
+    padding: 5px 0;
+    overflow-x: auto; /* Cho phép trượt ngang nếu màn hình quá bé */
+}
+
+/* Chỉnh lại nút ball cho gọn */
+.ball-btn-horizontal {
+    flex: 1; /* Chia đều chiều rộng */
+    min-width: 50px; /* Chiều rộng tối thiểu */
+    background: #2f3136;
+    border: 1px solid #444;
+    border-radius: 5px;
+    padding: 5px 2px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: 0.1s;
+}
+
+.ball-btn-horizontal:active { transform: scale(0.95); }
+.ball-btn-horizontal.disabled { opacity: 0.4; pointer-events: none; filter: grayscale(1); }
+.ball-btn-horizontal img { width: 28px; height: 28px; object-fit: contain; margin-bottom: 2px; }
+.ball-btn-horizontal span { font-size: 0.75em; font-weight: bold; color: white; }
+        /* --- SỬA LỖI BÓNG BỊ MÉO --- */
+
+/* 1. Định dạng lại hình ảnh quả bóng */
+#battle-middle-area img[src*="ball"] {
+    /* Ép buộc hình vuông */
+    width: 80px !important;  /* Bạn có thể chỉnh số này to nhỏ tùy ý */
+    height: 80px !important; /* BẮT BUỘC PHẢI BẰNG width */
+    
+    /* Quan trọng: Giữ nguyên tỷ lệ ảnh gốc, không cho phép bị kéo dãn */
+    object-fit: contain; 
+    
+    /* Căn giữa */
+    display: block;
+    margin: 10px auto;
+    
+    /* Đặt điểm neo xoay xuống đáy quả bóng để lắc thật hơn */
+    transform-origin: bottom center;
+}
     </style>
 </head>
 <body>
@@ -1795,7 +1868,6 @@ function showMenu() {
             { name: "BXH", icon: "🥇", color: "#fab1a0", action: "openLeaderboard()" },
             { name: "CHAT", icon: "💬", color: "#81ecec", action: "toggleChat()" },
             { name: "CODE", icon: "🎟️", color: "#55efc4", action: "openGiftCodeModal()" },
-            { name: "GÓP Ý", icon: "📩", color: "#dfe6e9", action: "openFeedback()" },
             { name: "THOÁT", icon: "🚪", color: "#636e72", action: "logout()" }
         ]
     };
@@ -2329,29 +2401,54 @@ if (Math.random() < 0.005) {
         showMenu(); 
     }
 }
-    function renderBattleControls() {
+    // --- GIAO DIỆN SĂN BẮT MỚI (NẰM NGANG) ---
+function renderBattleControls() {
     const balls = SHOP_DB.filter(i => i.type === 'ball');
     
-    let html = balls.map(b => {
+    // 1. Tạo HTML cho các nút Bóng
+    let ballsHtml = balls.map(b => {
         const count = inventory[b.id] || 0;
         const cls = count > 0 ? '' : 'disabled';
         
-        // QUAN TRỌNG: Truyền 'poke-ball', 'great-ball' (có dấu nháy đơn)
+        // Màu viền tùy loại bóng cho đẹp
+        let color = '#ccc';
+        if(b.id === 'poke-ball') color = '#e74c3c'; // Đỏ
+        if(b.id === 'great-ball') color = '#3498db'; // Xanh
+        if(b.id === 'ultra-ball') color = '#f1c40f'; // Vàng
+        if(b.id === 'master-ball') color = '#9b59b6'; // Tím
+
         return `
-        <div class="ball-btn ${cls}" onclick="catchAttempt('${b.id}')">
+        <div class="ball-btn-horizontal ${cls}" onclick="catchAttempt('${b.id}')" style="border-bottom: 2px solid ${color}">
             <img src="${URL_ITEMS}${b.img}">
             <span>x${count}</span>
         </div>`;
     }).join('');
 
-    // Nút Berry (Tăng tỷ lệ)
-    if(!activeBuffs.berry && inventory['razz-berry']>0) 
-        html+=`<div class="ball-btn" onclick="useItem('razz-berry')" style="border-color:#e91e63"><img src="${URL_ITEMS}razz-berry.png"><span>Berry</span></div>`;
-    
-    // Nút Bỏ chạy
-    html+=`<div class="ball-btn" onclick="run()" style="border-color:#ed4245"><span style="font-size:1.5em">🏃</span></div>`;
-    
-    controls.innerHTML = html;
+    // 2. Nút Berry (Nếu có)
+    let berryHtml = '';
+    if(!activeBuffs.berry && (inventory['razz-berry'] || 0) > 0) {
+        berryHtml = `
+        <div class="ball-btn-horizontal" onclick="useItem('razz-berry')" style="border-bottom: 2px solid #e91e63">
+            <img src="${URL_ITEMS}razz-berry.png">
+            <span style="color:#e91e63">Buff</span>
+        </div>`;
+    }
+
+    // 3. Nút Chạy (Luôn hiện)
+    let runHtml = `
+    <div class="ball-btn-horizontal" onclick="run()" style="border-bottom: 2px solid #7f8c8d; background: rgba(255,255,255,0.05)">
+        <span style="font-size:1.6em; line-height:1">🏃</span>
+        <span style="color:#bbb">Run</span>
+    </div>`;
+
+    // 4. Gom tất cả vào thanh ngang (Flex container)
+    controls.innerHTML = `
+        <div class="hunt-controls-bar">
+            ${ballsHtml}
+            ${berryHtml}
+            ${runHtml}
+        </div>
+    `;
 }
     // --- HỆ THỐNG BẮT POKEMON ĐƠN GIẢN (SAFARI STYLE) ---
 
@@ -5199,6 +5296,7 @@ function surrenderTower() {
 </script>
 </body>
 </html>
+
 
 
 
