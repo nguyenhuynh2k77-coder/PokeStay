@@ -3132,29 +3132,82 @@ function checkWinCondition() {
     }
 }
 
-    function processWin() {
-        let r = battleState.rewards;
-        let p = battleState.player;
-        p.xp += r.xp; coins += r.coin;
-        
-        if(battleState.difficulty === 'hard') {
-            userStats.hardWins++;
-            gymProgress++;
-            logBattle(`Nhận Badge! +${r.coin} xu.`);
-        } else {
-            logBattle(`+${r.xp} XP | +${r.coin} xu.`);
-        }
-        
-        if(p.xp >= p.maxXp) {
-            playSFX('levelup');
-            p.level++; p.xp -= p.maxXp; p.maxXp = Math.floor(p.maxXp * 1.2);
-            recalcStats(p);
-            logBattle(`🆙 Lên cấp ${p.level}! Stats tăng!`);
-            checkNewMoves(p);
-        }
-        updateQuestProgress('win', 1);
-        saveGame();
+    // --- SỬA LỖI LOGIC CHIẾN THẮNG (FIX LỖI THÁP) ---
+function processWin() {
+    let r = battleState.rewards;
+    let p = battleState.player;
+    
+    // 1. Cộng thưởng cơ bản
+    p.xp += r.xp; 
+    coins += r.coin;
+    
+    // 2. Logic riêng cho từng chế độ
+    if(battleState.difficulty === 'hard') {
+        userStats.hardWins++;
+        gymProgress++;
+        logBattle(`Nhận Badge! +${r.coin} xu.`);
+    } 
+    else if (battleState.difficulty === 'tower') {
+        // --- QUAN TRỌNG: GỌI HÀM LÊN TẦNG ---
+        handleTowerWin(); 
+        return; // Dừng hàm tại đây, không chạy logic bên dưới để tránh lỗi giao diện
     }
+    else {
+        logBattle(`+${r.xp} XP | +${r.coin} xu.`);
+    }
+    
+    // 3. Xử lý lên cấp (Chỉ chạy cho chế độ thường/gym)
+    if(p.xp >= p.maxXp) {
+        playSFX('levelup');
+        p.level++; p.xp -= p.maxXp; p.maxXp = Math.floor(p.maxXp * 1.2);
+        recalcStats(p);
+        logBattle(`🆙 Lên cấp ${p.level}! Stats tăng!`);
+        checkNewMoves(p);
+    }
+    
+    updateQuestProgress('win', 1);
+    saveGame();
+}
+
+// Hàm bổ trợ: Xử lý thắng Tháp (Bạn kiểm tra xem đã có hàm này trong code chưa, nếu chưa thì dán vào)
+function handleTowerWin() {
+    // 1. Cộng Level ảo cho Pokemon (để nó mạnh lên theo tháp mà không cần XP)
+    // Hoặc giữ nguyên logic cũ là hồi máu
+    
+    towerData.floor++;
+    if(towerData.floor > towerData.bestRecord) towerData.bestRecord = towerData.floor;
+
+    // 2. Hồi máu 20% cho cả team
+    let healMsg = "Hồi 20% HP team.";
+    if (towerData.teamIndices) {
+        towerData.teamIndices.forEach(idx => {
+            let p = myBag[idx];
+            if(p && p.hp > 0) {
+                let heal = Math.floor(p.maxHp * 0.2);
+                p.hp = Math.min(p.maxHp, p.hp + heal);
+            }
+        });
+    }
+
+    // 3. Thưởng Token
+    let rewardMsg = "";
+    if((towerData.floor - 1) % 10 === 0) {
+        towerData.tokens += 1;
+        rewardMsg = " +1 Token!";
+        playSFX('levelup');
+    }
+
+    saveGame();
+
+    // 4. CHUYỂN CẢNH (Fix lỗi bị kẹt)
+    // Đợi 1 giây để người chơi nhìn thấy chữ Chiến Thắng rồi mới chuyển
+    setTimeout(() => {
+        document.getElementById('battle-modal').style.display = 'none'; // Tắt bảng đánh nhau
+        document.getElementById('tower-modal').style.display = 'flex';  // Mở lại bảng tháp
+        updateTowerUI(); // Cập nhật số tầng mới
+        alert(`🏆 CHIẾN THẮNG TẦNG ${towerData.floor - 1}!\n${healMsg}${rewardMsg}`);
+    }, 1000);
+}
 
     function endBattle() {
         playBGM('map');
@@ -3896,58 +3949,69 @@ async function createNewBoss(weekId) {
 }
 
 // 4. Hiển thị UI Boss
+// --- GIAO DIỆN BOSS MỚI (2 CỘT) ---
 function renderBossUI(data) {
     const area = document.getElementById('boss-display-area');
     const hpPercent = Math.max(0, (data.hp / data.maxHp) * 100);
     
     let statusText = "";
-    if(data.hp <= 0) statusText = "<div style='color:#f1c40f; font-weight:bold; font-size:1.5em; margin-top:10px'>BOSS ĐÃ BỊ TIÊU DIỆT!</div>";
+    if(data.hp <= 0) statusText = "<div style='color:#f1c40f; font-weight:bold; font-size:1.2em; margin-top:5px'>BOSS ĐÃ CHẾT!</div>";
     
-    area.innerHTML = `
-        <div class="boss-container">
-            <h3 style="color:white; margin:0">${data.name}</h3>
-            <div style="font-size:0.8em; color:#ed4245">WORLD BOSS (Reset thứ 2 hàng tuần)</div>
-            <img class="boss-sprite ${data.hp<=0 ? 'grayscale' : ''}" src="${data.img}">
-            ${statusText}
-            <div class="boss-hp-bar">
-                <div class="boss-hp-fill" style="width:${hpPercent}%"></div>
-            </div>
-            <div style="font-weight:bold; color:white; margin-top:5px">
-                ${Math.floor(data.hp).toLocaleString()} / ${Math.floor(data.maxHp).toLocaleString()} HP
-            </div>
-        </div>
-    `;
-
-    // Render Bảng Xếp Hạng DPS
-    const listDiv = document.getElementById('boss-dps-list');
+    // Xử lý danh sách DPS
     let contributors = [];
     if(data.contributors) {
-        // Chuyển object thành array để sort
         Object.keys(data.contributors).forEach(key => {
             contributors.push({name: key, dmg: data.contributors[key].damage});
         });
     }
-    
-    // Sắp xếp giảm dần theo Damage
-    contributors.sort((a,b) => b.dmg - a.dmg);
-    
-    listDiv.innerHTML = contributors.map((c, i) => {
+    contributors.sort((a,b) => b.dmg - a.dmg); // Xếp hạng cao xuống thấp
+
+    let rankHtml = contributors.map((c, i) => {
         let icon = i===0 ? '👑' : (i===1 ? '🥈' : (i===2 ? '🥉' : `#${i+1}`));
         let color = c.name === currentUser ? '#2ecc71' : '#ddd';
         let percent = ((c.dmg / data.maxHp) * 100).toFixed(2);
-        
-        return `<div class="dps-rank-row" style="color:${color}">
+        return `<div style="display:flex; justify-content:space-between; font-size:0.85em; padding:3px 0; border-bottom:1px dashed #444; color:${color}">
             <span>${icon} ${c.name}</span>
-            <span>${c.dmg.toLocaleString()} (${percent}%)</span>
+            <span>${parseInt(c.dmg).toLocaleString()}</span>
         </div>`;
     }).join('');
-    
-    // Khóa nút nếu Boss chết
+
+    // --- HTML MỚI: CHIA CỘT BẰNG FLEX ---
+    area.innerHTML = `
+        <div style="display:flex; gap:10px; height:300px;">
+            
+            <div style="width:35%; background:rgba(0,0,0,0.3); border:1px solid #555; border-radius:5px; padding:5px; display:flex; flex-direction:column;">
+                <div style="text-align:center; color:#f1c40f; font-weight:bold; border-bottom:1px solid #555; margin-bottom:5px">🏆 TOP DPS</div>
+                <div style="overflow-y:auto; flex:1;">
+                    ${rankHtml || '<div style="text-align:center; color:#777; margin-top:20px">Chưa có ai đánh</div>'}
+                </div>
+            </div>
+
+            <div class="boss-container" style="width:65%; margin:0; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                <h3 style="color:white; margin:0">${data.name}</h3>
+                <div style="font-size:0.8em; color:#ed4245">WORLD BOSS</div>
+                
+                <img class="boss-sprite ${data.hp<=0 ? 'grayscale' : ''}" src="${data.img}" style="width:120px; height:120px;">
+                
+                ${statusText}
+                
+                <div class="boss-hp-bar" style="width:100%; margin-top:10px">
+                    <div class="boss-hp-fill" style="width:${hpPercent}%"></div>
+                </div>
+                <div style="font-weight:bold; color:white; font-size:0.9em; margin-top:2px">
+                    ${Math.floor(data.hp).toLocaleString()} HP
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Ẩn bảng xếp hạng cũ đi (nếu còn code cũ tạo ra nó ở bên ngoài)
+    const oldList = document.getElementById('boss-dps-list');
+    if(oldList) oldList.style.display = 'none';
+
+    // Cập nhật nút tấn công
     document.getElementById('btn-attack-boss').disabled = (data.hp <= 0);
-    if(data.hp <= 0 && !data.isDead) {
-        // Xử lý sự kiện Boss chết (chỉ chạy 1 lần)
-        handleBossDeath(contributors);
-    }
+    if(data.hp <= 0 && !data.isDead) handleBossDeath(contributors);
 }
 
 // 5. Tấn công Boss
@@ -4887,10 +4951,12 @@ function resetTowerRun() {
 // HỆ THỐNG SHOP TOKEN
 // ======================================================
 const TOWER_SHOP = [
-    { id: 'master-ball', name: 'Master Ball', price: 1, img: 'master-ball.png' },
-    { id: 'shiny-charm', name: 'Shiny Charm', price: 5, img: 'shiny-charm.png' },
-    { id: 'mystery-egg', name: 'Mystery Egg', price: 2, img: 'lucky-egg.png' }, // Trứng hiếm
-    { id: 'rare-candy', name: '5x Rare Candy', price: 1, rewardId: 'rare-candy', qty: 5, img: 'rare-candy.png' }
+    // Giá đắt hơn để người chơi phải cày cuốc
+    { id: 'master-ball', name: 'Master Ball', price: 20, img: 'master-ball.png' }, // Tăng từ 1 -> 20
+    { id: 'shiny-charm', name: 'Shiny Charm', price: 50, img: 'shiny-charm.png' }, // Tăng từ 5 -> 50 (Vật phẩm cực mạnh)
+    { id: 'mystery-egg', name: 'Mystery Egg', price: 10, img: 'lucky-egg.png' },   // Tăng từ 2 -> 10
+    { id: 'rare-candy', name: '5x Rare Candy', price: 5, rewardId: 'rare-candy', qty: 5, img: 'rare-candy.png' }, // Tăng từ 1 -> 5
+    { id: 'ultra-ball', name: '10x Ultra Ball', price: 2, rewardId: 'ultra-ball', qty: 10, img: 'ultra-ball.png' } // Thêm bóng thường
 ];
 
 function openTowerShop() {
@@ -5019,3 +5085,4 @@ function surrenderTower() {
 </script>
 </body>
 </html>
+
