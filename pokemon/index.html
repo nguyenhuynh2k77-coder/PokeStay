@@ -26,11 +26,46 @@
         /* GIỮ NGUYÊN CSS CŨ */
         * { box-sizing: border-box; }
         body { background: url('wp2595124.jpg') no-repeat center center fixed; background-size: cover; color: #dcddde; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
-        #app { display: none; width: 100%; max-width: 500px; background-color: rgba(47, 49, 54, 0.95); backdrop-filter: blur(8px); flex-direction: column; height: 100vh; border-left: 1px solid rgba(0,0,0,0.5); border-right: 1px solid rgba(0,0,0,0.5); box-shadow: 0 0 50px rgba(0,0,0,0.8); position: relative; }
-        header { flex: 0 0 auto; background-color: rgba(32, 34, 37, 0.9); padding: 15px; border-bottom: 1px solid #202225; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-        #chat-area { flex: 1 1 auto; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
-        .footer { flex: 0 0 auto; display: flex; justify-content: space-between; padding: 5px 10px; font-size: 0.8em; background: #202225; }
-        #controls { flex: 0 0 auto; padding: 10px; background-color: rgba(64, 68, 75, 0.95);  align-items: center; justify-content: center; gap: 5px; flex-wrap: wrap; border-top: 1px solid rgba(255,255,255,0.1); min-height: 80px;padding: 0; }
+        /* --- SỬA LỖI GIAO DIỆN BỊ DỒN --- */
+
+/* 1. Khung tổng: Xếp dọc từ trên xuống dưới */
+#app {
+    display: flex !important;
+    flex-direction: column !important; /* Quan trọng: Xếp dọc */
+    height: 100vh !important;       /* Chiều cao full màn hình */
+    overflow: hidden !important;    /* Cắt phần thừa */
+    width: 100%;
+    max-width: 500px; /* Giới hạn chiều rộng trên PC */
+    margin: 0 auto;   /* Căn giữa */
+}
+
+/* 2. Header: Cố định chiều cao ở trên cùng */
+header {
+    flex: 0 0 auto !important; /* Không được co giãn */
+    width: 100%;
+    z-index: 10;
+}
+
+/* 3. Khung Chat/Game: Tự động giãn ra để đẩy Controls xuống đáy */
+#chat-area {
+    flex: 1 1 auto !important; /* Quan trọng: Chiếm hết khoảng trống thừa */
+    overflow-y: auto !important; /* Cho phép cuộn */
+    width: 100%;
+    position: relative;
+}
+
+/* 4. Controls (Nút bấm): Cố định ở đáy */
+#controls {
+    flex: 0 0 auto !important; /* Không được co giãn */
+    width: 100%;
+    z-index: 10;
+}
+
+/* 5. Footer: Nằm dưới cùng */
+.footer {
+    flex: 0 0 auto !important;
+    width: 100%;
+}
         .btn { padding: 10px 0; border: none; border-radius: 3px; font-weight: bold; cursor: pointer; color: white; width: calc(33.33% - 4px); font-size: 0.85em; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; }
         .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
         .btn-hunt { width: 32% !important; background: url('image_1.png') no-repeat center center; background-size: cover; text-shadow: 0 0 3px black, 0 0 3px black; border: 2px solid #2ecc71; }
@@ -816,22 +851,19 @@
     
     <div id="app">
         <header>
-    <div style="display:flex; flex-direction:column; width:100%">
-        <div style="display:flex; justify-content:space-between; align-items:center">
-            <div style="display:flex; align-items:center; gap:5px">
-                <header>
-    <div style="display:flex; flex-direction:column; width:100%">
+    <div style="display:flex; flex-direction:column; width:100%; padding-bottom:5px">
+        
         <div style="display:flex; justify-content:space-between; align-items:center">
             
             <div style="display:flex; align-items:center; gap:5px">
-                
                 <div style="display:flex; align-items:center; background:rgba(0,0,0,0.3); padding:2px 8px; border-radius:15px; border:1px solid #444; margin-right:5px; cursor:pointer" onclick="openMap()">
                     <span style="font-size:1.4em; margin-right:5px">🗺️</span>
                     <div style="display:flex; flex-direction:column; line-height:1">
                         <span style="font-size:0.6em; color:#bbb; text-transform:uppercase">LOCATION</span>
-                        <span id="zone-display-name" style="font-size:0.8em; font-weight:bold; color:#0984e3">Thảo Nguyên</span>
+                        <span id="zone-display-name" style="font-size:0.8em; font-weight:bold; color:#0984e3">Vùng đất</span>
                     </div>
                 </div>
+
                 <div>
                     <div style="font-weight:bold; font-size:0.9em" id="display-username">TRAINER</div>
                     <div style="font-size:0.7em; color:#f1c40f" id="rank-title">Tập sự</div>
@@ -842,9 +874,11 @@
                 <div style="font-weight:bold; color:#f1c40f"><span id="coin-display">0</span> 💰</div>
                 <div style="font-size:0.8em; color:#3ba55c">Lv.<span id="trainer-level">1</span></div>
                 <div id="online-box" style="font-size:0.7em; color:#00b0f4; margin-top:2px; font-weight:bold">
-                🟢 Online: <span id="online-count">1</span>
+                    🟢 Online: <span id="online-count">1</span>
+                </div>
             </div>
         </div>
+
         <div style="width:100%; height:4px; background:#444; margin-top:5px; border-radius:2px; position:relative">
             <div id="trainer-xp-bar" style="width:0%; height:100%; background:#0984e3; transition:width 0.5s"></div>
         </div>
