@@ -4313,43 +4313,108 @@ function switchMarketTab(tab) {
 }
 
 // --- LOGIC MUA: Tải danh sách ---
+// --- CẬP NHẬT: HIỂN THỊ HÀNG CỦA MÌNH & NGƯỜI KHÁC ---
 function loadMarketListings() {
     const container = document.getElementById('market-buy-tab');
-    container.innerHTML = '<div style="grid-column:span 2; text-align:center; color:yellow">Đang tải hàng...</div>';
+    container.innerHTML = '<div style="grid-column:span 2; text-align:center; color:yellow">Đang tải dữ liệu...</div>';
 
     firebase.database().ref('market').once('value').then(snap => {
         const data = snap.val();
+        
+        // Reset nội dung
+        container.innerHTML = '';
+
         if(!data) {
             container.innerHTML = '<div style="grid-column:span 2; text-align:center; color:#777">Chợ vắng tanh...</div>';
             return;
         }
 
-        let html = '';
+        // Tách danh sách thành 2 mảng: Của mình và Của người khác
+        let myItemsHtml = '';
+        let otherItemsHtml = '';
+        let hasMine = false;
+        let hasOthers = false;
+
         Object.keys(data).forEach(key => {
             const item = data[key];
-            // Không hiện đồ mình tự bán
-            if(item.seller === currentUser) return; 
-
-            // Visual
-            let shinyIcon = item.data.isShiny ? '✨' : '';
-            let rarityInfo = getRarity(item.data); // Hàm có sẵn trong code cũ của bạn
+            const isMine = item.seller === currentUser;
             
-            html += `
-            <div class="market-item">
-                <span class="seller-name">${item.seller}</span>
+            // Visual cơ bản
+            let shinyIcon = item.data.isShiny ? '✨' : '';
+            let rarityInfo = getRarity(item.data); 
+            
+            // Tạo HTML cho thẻ Pokemon
+            let cardHtml = `
+            <div class="market-item" style="${isMine ? 'border:1px solid #3ba55c; background:rgba(59, 165, 92, 0.1)' : ''}">
+                <span class="seller-name" style="${isMine ? 'color:#3ba55c' : ''}">${isMine ? 'Của bạn' : item.seller}</span>
                 <img src="${item.data.img}" width="60" style="image-rendering:pixelated">
                 <div style="font-weight:bold; font-size:0.9em; margin-top:5px">
                     <span class="${rarityInfo.class}">${shinyIcon}${item.data.name}</span>
                 </div>
                 <div style="font-size:0.7em; color:#aaa">Lv.${item.data.level} | IV:${item.data.iv}</div>
                 <div class="market-price">${parseInt(item.price).toLocaleString()}💰</div>
-                <button class="btn-small" style="width:100%; margin-top:5px; background:#2ecc71" onclick="buyMarketItem('${key}')">MUA</button>
+                
+                ${isMine 
+                    ? `<button class="btn-small" style="width:100%; margin-top:5px; background:#ed4245" onclick="cancelMarketListing('${key}')">RÚT VỀ</button>`
+                    : `<button class="btn-small" style="width:100%; margin-top:5px; background:#2ecc71" onclick="buyMarketItem('${key}')">MUA</button>`
+                }
             </div>
             `;
+
+            if(isMine) {
+                myItemsHtml += cardHtml;
+                hasMine = true;
+            } else {
+                otherItemsHtml += cardHtml;
+                hasOthers = true;
+            }
         });
-        
-        if(html === '') html = '<div style="grid-column:span 2; text-align:center; color:#777">Không có hàng của người khác bán.</div>';
-        container.innerHTML = html;
+
+        // Render ra màn hình (Của mình nằm trên cùng)
+        if(hasMine) {
+            container.innerHTML += `<div style="grid-column:span 2; font-weight:bold; color:#3ba55c; border-bottom:1px solid #444; margin:10px 0 5px 0">📦 Đang treo bán:</div>`;
+            container.innerHTML += myItemsHtml;
+        }
+
+        if(hasOthers) {
+            container.innerHTML += `<div style="grid-column:span 2; font-weight:bold; color:#faa61a; border-bottom:1px solid #444; margin:10px 0 5px 0">🛒 Chợ toàn cầu:</div>`;
+            container.innerHTML += otherItemsHtml;
+        } else {
+            container.innerHTML += `<div style="grid-column:span 2; text-align:center; color:#777; margin-top:20px">Không có ai khác bán hàng.</div>`;
+        }
+    });
+}
+    // --- HÀM RÚT LẠI HÀNG (CANCEL LISTING) ---
+function cancelMarketListing(key) {
+    // 1. Kiểm tra túi có đầy không
+    if(myBag.length >= maxBagSize) {
+        return alert("Túi Pokemon đã đầy! Không thể rút về. Hãy dọn túi trước.");
+    }
+
+    // 2. Lấy thông tin item để chắc chắn là của mình
+    firebase.database().ref('market/' + key).once('value').then(snap => {
+        const item = snap.val();
+        if(!item) return alert("Vật phẩm không tồn tại (Có thể đã bị ai đó mua rồi)!");
+
+        // Bảo mật: Chỉ chủ sở hữu mới được rút
+        if(item.seller !== currentUser) {
+            return alert("Không thể rút vật phẩm không phải của bạn!");
+        }
+
+        if(confirm(`Bạn muốn gỡ bán ${item.data.name} và đưa về túi?`)) {
+            // A. Đưa về túi
+            myBag.push(item.data);
+            
+            // B. Xóa trên chợ
+            firebase.database().ref('market/' + key).remove()
+            .then(() => {
+                saveGame();
+                updateStats(); // Cập nhật lại số lượng trong túi
+                alert(`Đã rút ${item.data.name} về túi thành công!`);
+                loadMarketListings(); // Tải lại giao diện chợ
+            })
+            .catch(err => alert("Lỗi khi rút: " + err));
+        }
     });
 }
 
@@ -4576,6 +4641,7 @@ function makeDraggable(elementId) {
 </script>
 </body>
 </html>
+
 
 
 
