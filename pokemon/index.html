@@ -2770,12 +2770,18 @@ function playCry(id) {
     }
 
     function playerHeal() {
-        if(!battleState.active) return;
-        if((inventory['potion'] || 0) <= 0) return logBattle("Hết Potion!");
-        
-        // Gọi executeTurn với hành động 'heal', tham số sau để null
-        executeTurn('heal', null);
+    if(!battleState.active) return;
+    
+    // Lấy số lượng thực tế từ kho
+    let qty = inventory['potion'] || 0;
+
+    if(qty <= 0) {
+        return logBattle("❌ Bạn đã hết Potion! Hãy vào Shop mua thêm.");
     }
+    
+    // Gọi lệnh hồi máu
+    executeTurn('heal', null);
+}
 
     function playerSkip() { 
         if(!battleState.active) return;
@@ -2868,14 +2874,26 @@ function playCry(id) {
         }
 
         // B. Xử lý Hành động (Item / Attack / Status / Stat)
+        // B. Xử lý Hành động (Item / Attack / Status / Stat)
         if(move.isItem) {
-            // Hồi máu
-            inventory['potion']--;
-            let heal = 50;
-            attacker.hp = Math.min(attacker.maxHp, attacker.hp + heal);
-            logBattle(`<span style="color:#2ecc71">${attacker.name} dùng Potion hồi ${heal} HP.</span>`);
-            updateBattleUI();
-            document.getElementById('potion-count').innerText = inventory['potion'];
+            // Kiểm tra lại lần nữa cho chắc
+            if((inventory['potion'] || 0) > 0) {
+                // 1. Trừ trong kho
+                inventory['potion']--;
+                saveGame(); // Lưu lại ngay để tránh F5 hack đồ
+                
+                // 2. Cập nhật số hiển thị trên nút ngay lập tức
+                document.getElementById('potion-count').innerText = inventory['potion'];
+
+                // 3. Hồi máu
+                let heal = 50;
+                attacker.hp = Math.min(attacker.maxHp, attacker.hp + heal);
+                logBattle(`<span style="color:#2ecc71">💊 ${attacker.name} dùng Potion hồi ${heal} HP.</span>`);
+                updateBattleUI();
+            } else {
+                logBattle("Không còn Potion để dùng!");
+            }
+            
             await sleep(500);
             return;
         }
@@ -5085,5 +5103,6 @@ function surrenderTower() {
 </script>
 </body>
 </html>
+
 
 
