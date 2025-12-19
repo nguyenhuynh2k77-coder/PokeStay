@@ -23,6 +23,36 @@
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png">
     
     <style>
+        /* --- SỬA GIAO DIỆN MENU (TẠO KHỐI RÕ RÀNG) --- */
+
+/* 1. Làm nổi bật thanh Tab ở dưới */
+.menu-tabs {
+    background-color: #18191c !important; /* Màu đen đậm hơn nền app */
+    border-top: 2px solid #444;           /* Kẻ vạch ngăn cách với nội dung trên */
+    border-bottom: 1px solid #000;        /* Kẻ vạch ngăn cách với footer dưới */
+    box-shadow: 0 -4px 10px rgba(0,0,0,0.3); /* Đổ bóng ngược lên trên cho đẹp */
+    margin-top: 5px;                      /* Tạo khoảng cách nhỏ */
+    padding: 5px 0;                       /* Thêm đệm trên dưới */
+}
+
+/* 2. Làm nút bấm nổi lên khỏi nền */
+.menu-btn {
+    background: #36393f !important;       /* Sáng hơn nền app một chút */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4); /* Đổ bóng nút */
+    border: 1px solid #202225 !important; /* Viền tối màu */
+}
+.menu-btn:hover {
+    background: #40444b !important;       /* Sáng hơn nữa khi di chuột vào */
+    transform: translateY(-2px);
+}
+
+/* 3. Chỉnh lại Footer cho tách biệt hẳn */
+.footer {
+    background: #111 !important;          /* Đen gần như tuyệt đối */
+    border-top: 1px solid #333;           /* Viền mờ */
+    font-size: 0.75em !important;         /* Chữ nhỏ lại xíu cho gọn */
+    padding: 8px 10px !important;
+}
         /* GIỮ NGUYÊN CSS CŨ */
         * { box-sizing: border-box; }
         body { background: url('wp2595124.jpg') no-repeat center center fixed; background-size: cover; color: #dcddde; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
@@ -5968,6 +5998,7 @@ function initOnlineSystem() {
 </script>
 </body>
 </html>
+
 
 
 
