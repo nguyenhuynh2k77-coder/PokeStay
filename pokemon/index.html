@@ -2670,10 +2670,38 @@ async function spawnPokemon() {
         let iv = Math.floor(Math.random() * 32); 
 
         // Tính Rate
+        // --- TÍNH TỶ LỆ BẮT (CATCH RATE) ---
         let baseRate = 255; 
-        if (LEGEND_LIST.includes(parseInt(id)) || data.base_experience > 200) baseRate = 45; 
-        if (isShadow) baseRate = Math.floor(baseRate * 0.7);
-        if (isRainbow) baseRate = Math.floor(baseRate * 0.5);
+        let xp = data.base_experience; // Lấy chỉ số sức mạnh để xét độ hiếm
+
+        // 1. CHỈNH TỶ LỆ THEO ĐỘ HIẾM (COMMON - UNCOMMON - RARE)
+        if (xp < 70) {
+            // COMMON (Rất phổ biến - Sâu, Chuột...)
+            baseRate = 200; // 🟢 Dễ nhất (100% dính với Poke Ball)
+        } 
+        else if (xp < 140) {
+            // UNCOMMON (Trung bình - Cấp 2)
+            baseRate = 150; // 🟡 Khá dễ bắt
+        } 
+        else if (xp < 200) {
+            // RARE (Hiếm - Cấp 3 hoặc con mạnh)
+            baseRate = 70;  // 🟠 Hơi khó (Nên dùng Great Ball)
+        } 
+        else {
+            // EPIC / MYTHIC (Siêu mạnh)
+            baseRate = 30;  // 🔴 Khó (Nên dùng Ultra Ball)
+        }
+
+        // 2. HUYỀN THOẠI (Ghi đè tất cả)
+        if (LEGEND_LIST.includes(parseInt(id))) {
+            baseRate = 6; // ⚫ Cực khó (Mức 3 là chuẩn game gốc, bạn có thể chỉnh lên 10-20 cho dễ hơn)
+        }
+
+        // 3. BIẾN THỂ (Shadow/Rainbow làm khó thêm)
+        if (isShadow) baseRate = Math.floor(baseRate * 0.6); // Khó hơn 40%
+        if (isRainbow) baseRate = Math.floor(baseRate * 0.4); // Khó hơn 60%
+
+        // Chốt chặn cuối cùng
         if (baseRate < 1) baseRate = 1;
 
         let p = { 
@@ -5275,6 +5303,18 @@ function initChat() {
         chatBox.appendChild(div);
         chatBox.scrollTop = chatBox.scrollHeight;
     });
+    firebase.database().ref('global_chat').on('value', (snapshot) => {
+        // Nếu snapshot.val() là null nghĩa là dữ liệu đã bị xóa trên server
+        if (!snapshot.exists()) {
+            chatBox.innerHTML = ''; // Xóa sạch giao diện ngay lập tức
+            
+            // (Tùy chọn) Hiện thông báo nhỏ
+            const sysDiv = document.createElement('div');
+            sysDiv.style.cssText = "text-align:center; color:#72767d; font-size:0.8em; margin-top:10px; font-style:italic";
+            sysDiv.innerText = "--- Lịch sử trò chuyện đã được dọn dẹp ---";
+            chatBox.appendChild(sysDiv);
+        }
+    });
 }
 
 function handleChatEnter(e) {
@@ -6391,6 +6431,7 @@ function getRarity(pokemon) {
 </script>
 </body>
 </html>
+
 
 
 
