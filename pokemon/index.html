@@ -6176,29 +6176,29 @@ function initOnlineSystem() {
 //              HỆ THỐNG ADMIN PANEL TOÀN DIỆN (FINAL VERSION)
 // =========================================================================
 
+// --- SỬA LỖI KHÔNG NHẬP ĐƯỢC TEXT (FIXED DRAG LOGIC) ---
 function checkAdminPrivileges() {
-    // Chỉ chạy nếu là ADMIN
     if (currentUser !== 'ADMIN') return;
 
-    // 1. XÓA PANEL CŨ (NẾU CÓ) ĐỂ TRÁNH TRÙNG LẶP
+    // 1. Dọn dẹp cái cũ
     const oldPanel = document.getElementById('admin-panel');
     if (oldPanel) oldPanel.remove();
     const oldBtn = document.getElementById('admin-toggle-btn');
     if (oldBtn) oldBtn.remove();
 
-    // 2. TẠO HTML GIAO DIỆN PANEL MỚI
+    // 2. HTML MỚI (CHÚ Ý DÒNG id="admin-panel-header")
     const panelHTML = `
     <div id="admin-toggle-btn" onclick="toggleAdminPanel()">⚡</div>
     
     <div id="admin-panel">
-        <div id="admin-header">
+        <div id="admin-panel-header">
             <span>🛡️ ADMIN CONTROL</span>
             <span style="cursor:pointer" onclick="toggleAdminPanel()">❌</span>
         </div>
+
         <div class="admin-body">
-            
             <div class="admin-group">
-                <span class="admin-label">--- BẢN THÂN (SELF) ---</span>
+                <span class="admin-label">--- BẢN THÂN ---</span>
                 <button class="admin-btn" onclick="adminAddCoins()">💰 +1 Tỷ Vàng</button>
                 <button class="admin-btn" onclick="adminAddBalls()">🔴 +100 Master Ball</button>
                 <button class="admin-btn" onclick="adminFullStamina()">⚡ Hồi Full Stamina</button>
@@ -6209,7 +6209,7 @@ function checkAdminPrivileges() {
                 <input type="text" id="adm-spawn-target" class="admin-input" placeholder="Tên người nhận (Trống = Tự sướng)">
                 <input type="number" id="adm-poke-id" class="admin-input" placeholder="Nhập ID Pokemon (1-649)">
                 
-                <div style="display:flex; gap:5px; margin-bottom:5px; margin-top:5px; justify-content: space-between;">
+                <div style="display:flex; gap:5px; margin-top:5px; justify-content: space-between;">
                     <label><input type="checkbox" id="adm-shiny"> ✨Shiny</label>
                     <label><input type="checkbox" id="adm-shadow"> 👿Shadow</label>
                     <label><input type="checkbox" id="adm-rainbow"> 🌈Rainbow</label>
@@ -6220,12 +6220,11 @@ function checkAdminPrivileges() {
 
             <div class="admin-group">
                 <span class="admin-label">--- TẶNG QUÀ (GIFT) ---</span>
-                <input type="text" id="adm-target-user" class="admin-input" placeholder="Tên người nhận (VD: PLAYER1)">
+                <input type="text" id="adm-target-user" class="admin-input" placeholder="Tên người nhận">
                 <div style="display:flex; gap:5px">
                     <select id="adm-gift-type" class="admin-input" style="width:60%">
                         <option value="coins">Vàng (Coins)</option>
                         <option value="master-ball">Master Ball</option>
-                        <option value="ultra-ball">Ultra Ball</option>
                     </select>
                     <input type="number" id="adm-gift-amount" class="admin-input" style="width:40%" placeholder="Số lượng">
                 </div>
@@ -6234,8 +6233,8 @@ function checkAdminPrivileges() {
 
             <div class="admin-group" style="border-bottom:none">
                 <span class="admin-label">--- QUẢN LÝ SERVER ---</span>
-                <input type="text" id="adm-broadcast-msg" class="admin-input" placeholder="Nội dung thông báo server...">
-                <button class="admin-btn" onclick="adminBroadcast()">📢 Phát Loa Server</button>
+                <input type="text" id="adm-broadcast-msg" class="admin-input" placeholder="Thông báo toàn server...">
+                <button class="admin-btn" onclick="adminBroadcast()">📢 Phát Loa</button>
                 <div style="display:flex; gap:5px; margin-top:5px">
                     <button class="admin-btn" style="background:#800" onclick="adminClearChat()">🗑️ Xóa Chat</button>
                     <button class="admin-btn" style="background:#800" onclick="adminResetBoss()">☠️ Reset Boss</button>
@@ -6244,13 +6243,11 @@ function checkAdminPrivileges() {
         </div>
     </div>`;
 
-    // 3. CHÈN VÀO TRANG WEB
     document.body.insertAdjacentHTML('beforeend', panelHTML);
 
-    // 4. KÍCH HOẠT KÉO THẢ (DRAG & DROP)
+    // 3. KÍCH HOẠT KÉO THẢ (Giờ nó sẽ tự tìm thấy admin-panel-header)
     dragElement(document.getElementById("admin-panel"));
 }
-
 // ---------------------------------------------------------
 //        CÁC HÀM HỖ TRỢ (HELPER FUNCTIONS)
 // ---------------------------------------------------------
@@ -6411,6 +6408,7 @@ function adminBroadcast() {
 </script>
 </body>
 </html>
+
 
 
 
