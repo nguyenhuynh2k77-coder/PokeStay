@@ -2634,7 +2634,56 @@ function playCry(id) {
     audio.volume = 0.15;
     audio.play().catch(e => { console.warn("Lỗi Cry (bỏ qua):", e); });
 }
-    function useItem(id) { inventory[id]--; saveGame(); if(id==='razz-berry') activeBuffs.berry=true; if(id==='lucky-egg') activeBuffs.egg=true; if(id==='incense') { spawnPokemon(); return; } updateStats(); renderBattleControls(); }
+    // --- SỬA LẠI HÀM DÙNG ITEM (CÓ HIỆU ỨNG) ---
+function useItem(id) {
+    // 1. Kiểm tra số lượng
+    if ((inventory[id] || 0) <= 0) return;
+
+    // 2. Trừ đồ
+    inventory[id]--;
+    saveGame();
+
+    // 3. Xử lý hiệu ứng Berry
+    if (id === 'razz-berry') {
+        activeBuffs.berry = true;
+        
+        // Log thông báo màu hồng cho dễ thấy
+        log(`<div style="color:#e91e63; background:rgba(233, 30, 99, 0.1); padding:5px; border-radius:5px; border:1px solid #e91e63">
+            🍒 <b>Đã cho ăn Razz Berry!</b><br>
+            <i>Pokemon thích nó! Tỉ lệ bắt tăng gấp 1.5 lần.</i>
+        </div>`);
+
+        // --- VISUAL: LÀM POKEMON PHÁT SÁNG MÀU HỒNG ---
+        const pokeSprite = document.getElementById('active-wild-sprite');
+        if(pokeSprite) {
+            // Thêm hiệu ứng bóng đổ màu hồng (Pink Glow)
+            pokeSprite.style.filter = "drop-shadow(0 0 15px #e91e63)";
+            
+            // Hiệu ứng nhún nhảy 1 cái thể hiện sự vui vẻ
+            pokeSprite.animate([
+                { transform: 'translateY(0)' },
+                { transform: 'translateY(-10px)' },
+                { transform: 'translateY(0)' }
+            ], { duration: 300 });
+        }
+    }
+
+    // 4. Xử lý hiệu ứng khác (Lucky Egg, Incense...)
+    if (id === 'lucky-egg') {
+        activeBuffs.egg = true;
+        alert("Đã dùng Lucky Egg! x2 Vàng nhận được.");
+    }
+    
+    if (id === 'incense') {
+        log("💨 Đốt hương trầm... Pokemon mới đang đến!");
+        spawnPokemon();
+        return; // Spawn mới nên không cần updateStats ở dưới ngay
+    }
+
+    // 5. Cập nhật giao diện
+    updateStats();
+    renderBattleControls(); // Nút Berry sẽ ẩn đi sau khi dùng
+}
 
     function openBattleModal(idx) {
         selectedBattleIdx = idx; let p = myBag[idx];
@@ -5296,6 +5345,7 @@ function surrenderTower() {
 </script>
 </body>
 </html>
+
 
 
 
