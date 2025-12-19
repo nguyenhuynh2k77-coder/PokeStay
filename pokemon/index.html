@@ -2676,7 +2676,7 @@ function playCry(id) {
         document.getElementById('battle-main-menu').style.display = 'grid';
         document.getElementById('battle-move-menu').style.display = 'none';
         document.getElementById('battle-end-btn').style.display = 'none';
-        document.getElementById('potion-count').innerText = inventory['potion'] || 0;
+        document.getElementById('potion-count').innerText = (inventory['potion'] || 0);
     }
 
     function showMoveMenu() {
@@ -5085,4 +5085,5 @@ function surrenderTower() {
 </script>
 </body>
 </html>
+
 
