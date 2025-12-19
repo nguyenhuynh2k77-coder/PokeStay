@@ -23,6 +23,61 @@
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png">
     
     <style>
+        /* --- ADMIN PANEL STYLES --- */
+#admin-panel {
+    display: none; /* Mặc định ẩn */
+    position: fixed;
+    top: 50px; left: 50px;
+    width: 320px;
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid #ff0000;
+    box-shadow: 0 0 15px #ff0000;
+    z-index: 10000;
+    color: #fff;
+    font-family: monospace;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#admin-header {
+    background: #a00000;
+    padding: 10px;
+    cursor: move; /* Con trỏ di chuyển */
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-body {
+    padding: 10px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.admin-group {
+    margin-bottom: 15px;
+    border-bottom: 1px solid #444;
+    padding-bottom: 10px;
+}
+
+.admin-label { color: #ff6b6b; font-size: 0.8em; margin-bottom: 5px; display:block; }
+.admin-input { width: 100%; background: #222; border: 1px solid #555; color: white; padding: 5px; margin-bottom: 5px; }
+.admin-btn { 
+    width: 100%; background: #444; color: white; border: 1px solid #fff; 
+    padding: 5px; cursor: pointer; margin-top: 5px; font-weight:bold;
+}
+.admin-btn:hover { background: #ff0000; color: black; }
+
+/* Nút mở Admin nhỏ xíu ở góc */
+#admin-toggle-btn {
+    position: fixed; bottom: 10px; right: 10px;
+    width: 40px; height: 40px; background: red;
+    border-radius: 50%; border: 2px solid white;
+    cursor: pointer; z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; box-shadow: 0 0 10px red;
+}
         /* --- SỬA GIAO DIỆN MENU (TẠO KHỐI RÕ RÀNG) --- */
 
 /* 1. Làm nổi bật thanh Tab ở dưới */
@@ -2718,6 +2773,80 @@ async function spawnPokemon() {
         console.error("Lỗi spawn:", e);
         log(`<div style="color:red">⚠️ Lỗi tín hiệu... Đang thử lại.</div>`);
         setTimeout(() => spawnPokemon(), 1000);
+    }
+}
+    // --- HÀM SPAWN CƯỠNG CHẾ (DÙNG CHO ADMIN) ---
+async function forceSpawnPokemon(id, forceShiny, forceShadow, forceRainbow) {
+    // 1. Reset UI
+    const controlsDiv = document.getElementById('controls');
+    if(controlsDiv) controlsDiv.innerHTML = `<div style="color:red">ADMIN SPAWN...</div>`;
+    
+    activeBuffs = { berry: false, egg: false };
+    battleState.active = false;
+    streakBonus = 0;
+
+    try {
+        // Fetch dữ liệu theo ID chỉ định
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); 
+        const data = await res.json();
+
+        // Xử lý ảnh & Biến thể
+        let isShiny = forceShiny;
+        let isShadow = forceShadow;
+        let isRainbow = forceRainbow;
+
+        let img = data.sprites.other['official-artwork'].front_default || data.sprites.front_default;
+        if(isShiny && !isShadow && !isRainbow && data.sprites.front_shiny) {
+            img = data.sprites.front_shiny;
+        }
+
+        // Stats
+        let stats = {};
+        data.stats.forEach(s => { stats[s.stat.name] = s.base_stat; });
+
+        // Tạo Object
+        let p = { 
+            id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: 31, // Admin spawn auto max IV
+            isShiny: isShiny, isShadow: isShadow, isRainbow: isRainbow,
+            img: img, baseXp: data.base_experience, 
+            baseHp: stats['hp'], baseAtk: stats['attack'], baseDef: stats['defense'], 
+            baseSpA: stats['special-attack'], baseSpD: stats['special-defense'], baseSpd: stats['speed'],
+            level: 100, // Spawn cấp 100 luôn cho máu
+            xp: 0, maxXp: 100, catchRate: 255 // Dễ bắt để test
+        };
+        
+        recalcStats(p); 
+        assignMoves(p);
+
+        // Render
+        currentWild = p;
+        playCry(p.id);
+
+        let visualClass = "";
+        let namePrefix = "";
+        let titleColor = "#00b0f4"; 
+        
+        if (isRainbow) { visualClass="variant-rainbow"; namePrefix="🌈 "; titleColor="gold"; }
+        else if (isShadow) { visualClass="variant-shadow"; namePrefix="👿 "; titleColor="#9b59b6"; }
+        else if (isShiny) { titleColor="#e74c3c"; namePrefix="✨ "; }
+
+        log(`<div class="embed" style="border-left-color:${titleColor}">
+            <div class="embed-header">
+                <div>
+                    <span class="rarity-tag" style="background:red">ADMIN SPAWN</span> 
+                    <span class="embed-title">${namePrefix}${currentWild.name}</span>
+                    <div class="embed-desc">Hệ: ${p.types.join('/')} | CP: ${Math.floor((p.atk+p.spA)*p.level/10)}</div>
+                </div>
+                <img id="active-wild-sprite" class="poke-sprite ${visualClass}" src="${currentWild.img}">
+            </div>
+        </div>`);
+        
+        renderBattleControls();
+        updateStats();
+
+    } catch (e) {
+        console.error(e);
+        alert("Lỗi ID Pokemon không tồn tại!");
     }
 }
 // Hàm phụ lấy tên Zone (tránh lỗi nếu chưa khai báo)
@@ -6023,63 +6152,204 @@ function initOnlineSystem() {
     });
 }
     // --- HỆ THỐNG ADMIN TOOLS (CHỈ HIỆN CHO ADMIN) ---
+// --- HỆ THỐNG ADMIN PANEL CAO CẤP (DRAGGABLE) ---
 function checkAdminPrivileges() {
-    // Chỉ kích hoạt nếu tên là ADMIN
     if (currentUser !== 'ADMIN') return;
 
-    // 1. Tạo nút Admin Tools trôi nổi
-    const btn = document.createElement('button');
-    btn.innerHTML = "⚡ ADMIN TOOLS";
-    btn.style.cssText = `
-        position: fixed; top: 10px; right: 10px; z-index: 9999;
-        background: #ed4245; color: white; font-weight: bold;
-        border: 2px solid white; border-radius: 5px; padding: 5px 10px;
-        box-shadow: 0 0 10px red; cursor: pointer; animation: pulse 2s infinite;
-    `;
+    // 1. CHÈN HTML CỦA PANEL VÀO TRANG
+    const panelHTML = `
+    <div id="admin-toggle-btn" onclick="toggleAdminPanel()">⚡</div>
     
-    // 2. Sự kiện khi bấm vào
-    btn.onclick = () => {
-        let action = prompt("NHẬP LỆNH ADMIN:\n1. Hack 1 Tỷ Vàng\n2. Lấy 100 Master Ball\n3. Hồi Full Stamina\n4. Triệu hồi Boss ngay lập tức\n5. Xóa toàn bộ Chat");
-        
-        if (action === '1') {
-            coins += 1000000000;
-            saveGame(); updateStats();
-            alert("Đã hack 1 tỷ vàng! (Đừng nói ai nhé)");
-        }
-        else if (action === '2') {
-            inventory['master-ball'] = (inventory['master-ball'] || 0) + 100;
-            saveGame();
-            alert("Đã lấy 100 Master Ball!");
-        }
-        else if (action === '3') {
-            stamina = 100;
-            updateStaminaUI();
-            alert("Full Stamina!");
-        }
-        else if (action === '4') {
-            // Reset thời gian tuần để tạo boss mới ngay
-            firebase.database().ref('world_boss/weekId').set(0); 
-            alert("Đã reset Boss! Hãy mở lại menu Boss.");
-        }
-        else if (action === '5') {
-            if(confirm("Xóa sạch lịch sử chat server?")) {
-                firebase.database().ref('global_chat').remove();
-                alert("Chat đã được dọn sạch!");
-            }
-        }
-    };
+    <div id="admin-panel">
+        <div id="admin-header">
+            <span>🛡️ ADMIN CONTROL</span>
+            <span style="cursor:pointer" onclick="toggleAdminPanel()">❌</span>
+        </div>
+        <div class="admin-body">
+            
+            <div class="admin-group">
+                <span class="admin-label">--- BẢN THÂN (SELF) ---</span>
+                <button class="admin-btn" onclick="adminAddCoins()">💰 +1 Tỷ Vàng</button>
+                <button class="admin-btn" onclick="adminAddBalls()">🔴 +100 Master Ball</button>
+                <button class="admin-btn" onclick="adminFullStamina()">⚡ Hồi Full Stamina</button>
+            </div>
 
-    document.body.appendChild(btn);
+            <div class="admin-group">
+                <span class="admin-label">--- TRIỆU HỒI (SPAWN) ---</span>
+                <input type="number" id="adm-poke-id" class="admin-input" placeholder="Nhập ID Pokemon (1-649)">
+                <div style="display:flex; gap:5px; margin-bottom:5px">
+                    <label><input type="checkbox" id="adm-shiny"> Shiny</label>
+                    <label><input type="checkbox" id="adm-shadow"> Shadow</label>
+                    <label><input type="checkbox" id="adm-rainbow"> Rainbow</label>
+                </div>
+                <button class="admin-btn" onclick="adminForceSpawn()">🦖 Triệu Hồi Ngay</button>
+            </div>
+
+            <div class="admin-group">
+                <span class="admin-label">--- TẶNG QUÀ (GIFT) ---</span>
+                <input type="text" id="adm-target-user" class="admin-input" placeholder="Tên người nhận (VD: PLAYER1)">
+                <select id="adm-gift-type" class="admin-input">
+                    <option value="coins">Vàng (Coins)</option>
+                    <option value="master-ball">Master Ball</option>
+                    <option value="ultra-ball">Ultra Ball</option>
+                </select>
+                <input type="number" id="adm-gift-amount" class="admin-input" placeholder="Số lượng (VD: 1000)">
+                <button class="admin-btn" onclick="adminSendGift()">🎁 Gửi Quà</button>
+            </div>
+
+            <div class="admin-group">
+                <span class="admin-label">--- SERVER ---</span>
+                <input type="text" id="adm-broadcast-msg" class="admin-input" placeholder="Nội dung thông báo server...">
+                <button class="admin-btn" onclick="adminBroadcast()">📢 Phát Loa</button>
+                <button class="admin-btn" style="background:#500" onclick="adminClearChat()">🗑️ Xóa Sạch Chat</button>
+                <button class="admin-btn" style="background:#500" onclick="adminResetBoss()">☠️ Reset Boss Tuần</button>
+            </div>
+        </div>
+    </div>`;
+
+    // Chèn vào body
+    document.body.insertAdjacentHTML('beforeend', panelHTML);
+
+    // 2. KÍCH HOẠT KÉO THẢ (DRAG & DROP)
+    dragElement(document.getElementById("admin-panel"));
+}
+
+// --- CÁC HÀM HỖ TRỢ ADMIN ---
+
+// 1. Đóng/Mở Panel
+function toggleAdminPanel() {
+    const p = document.getElementById('admin-panel');
+    p.style.display = (p.style.display === 'none' || p.style.display === '') ? 'block' : 'none';
+}
+
+// 2. Logic Kéo Thả (Draggable)
+function dragElement(elmnt) {
+    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    if (document.getElementById(elmnt.id + "-header")) {
+        // Nếu có header thì nắm đầu header để kéo
+        document.getElementById(elmnt.id + "-header").onmousedown = dragMouseDown;
+    } else {
+        elmnt.onmousedown = dragMouseDown;
+    }
+
+    function dragMouseDown(e) {
+        e = e || window.event;
+        e.preventDefault();
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        document.onmousemove = elementDrag;
+    }
+
+    function elementDrag(e) {
+        e = e || window.event;
+        e.preventDefault();
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+        elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    }
+
+    function closeDragElement() {
+        document.onmouseup = null;
+        document.onmousemove = null;
+    }
+}
+
+// --- CÁC CHỨC NĂNG HACK CỤ THỂ ---
+
+// Hack cho bản thân
+function adminAddCoins() {
+    coins += 1000000000;
+    saveGame(); updateStats();
+    alert("Đã thêm 1 tỷ vàng!");
+}
+function adminAddBalls() {
+    inventory['master-ball'] = (inventory['master-ball'] || 0) + 100;
+    saveGame();
+    alert("Đã thêm 100 Master Ball!");
+}
+function adminFullStamina() {
+    stamina = 100;
+    updateStaminaUI();
+}
+
+// Triệu hồi Pokemon chỉ định
+async function adminForceSpawn() {
+    let id = document.getElementById('adm-poke-id').value;
+    if(!id || id < 1 || id > 649) return alert("ID không hợp lệ (1-649)");
     
-    // Thông báo chào mừng Admin
-    log(`<div style="color:red; background:black; padding:5px; border:1px solid red; text-align:center">
-        ⚠️ <b>ADMIN ĐÃ ĐĂNG NHẬP</b> ⚠️<br>
-        <i>Chào mừng trở lại, thưa ngài!</i>
-    </div>`);
+    let isShiny = document.getElementById('adm-shiny').checked;
+    let isShadow = document.getElementById('adm-shadow').checked;
+    let isRainbow = document.getElementById('adm-rainbow').checked;
+
+    alert(`Đang triệu hồi Pokemon ID: ${id}...`);
+    
+    // Gọi hàm spawn đặc biệt (Bỏ qua random)
+    await forceSpawnPokemon(id, isShiny, isShadow, isRainbow);
+    
+    // Ẩn panel để nhìn thấy pokemon
+    toggleAdminPanel();
+}
+
+// Tặng quà người chơi khác
+function adminSendGift() {
+    let target = document.getElementById('adm-target-user').value.toUpperCase().trim();
+    let type = document.getElementById('adm-gift-type').value;
+    let amount = parseInt(document.getElementById('adm-gift-amount').value);
+
+    if(!target || !amount) return alert("Nhập thiếu thông tin!");
+
+    // Kết nối Firebase của người đó
+    firebase.database().ref('users/' + target).once('value', snapshot => {
+        if(!snapshot.exists()) return alert("Không tìm thấy người chơi này!");
+        
+        let data = snapshot.val();
+        
+        if(type === 'coins') {
+            let current = data.coins || 0;
+            firebase.database().ref('users/' + target + '/coins').set(current + amount);
+        } else {
+            // Tặng vật phẩm (Bóng)
+            let currentInv = data.inventory || {};
+            let currentItemQty = currentInv[type] || 0;
+            
+            // Cập nhật đường dẫn inventory
+            firebase.database().ref('users/' + target + '/inventory/' + type).set(currentItemQty + amount);
+        }
+        alert(`✅ Đã gửi ${amount} ${type} cho ${target}`);
+    });
+}
+
+// Server Tools
+function adminClearChat() {
+    if(confirm("Xóa sạch chat server?")) {
+        firebase.database().ref('global_chat').remove();
+        alert("Done!");
+    }
+}
+function adminResetBoss() {
+    firebase.database().ref('world_boss/weekId').set(0);
+    alert("Boss đã được reset.");
+}
+function adminBroadcast() {
+    let msg = document.getElementById('adm-broadcast-msg').value;
+    if(!msg) return;
+    
+    // Gửi tin nhắn chat đặc biệt
+    firebase.database().ref('global_chat').push({
+        user: "ADMIN",
+        text: "📢 THÔNG BÁO: " + msg,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+    });
+    alert("Đã phát thông báo!");
 }
 </script>
 </body>
 </html>
+
 
 
 
