@@ -796,7 +796,7 @@
     </div>
     </div>
 
-<div id="boss-team-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3100; justify-content:center; align-items:center;">
+<div id="boss-team-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3200; justify-content:center; align-items:center;">
     <div class="box-style" style="border-color:#7289da">
         <h3 style="color:#7289da">Chọn Đội Hình (Tối đa 6)</h3>
         <div style="font-size:0.8em; color:#bbb; margin-bottom:10px">Chọn Pokemon mạnh nhất để tối ưu sát thương!</div>
@@ -4778,46 +4778,36 @@ function updateTowerUI() {
 }
 
 // 1. BẮT ĐẦU TRẬN ĐẤU
+// --- HÀM BẮT ĐẦU LEO THÁP (ĐÃ SỬA LỖI HIỂN THỊ) ---
 async function startTowerBattle() {
-    // A. Kiểm tra Team
-    towerData.teamIndices = towerData.teamIndices.filter(idx => myBag[idx]); // Lọc lỗi
+    // 1. Lọc lỗi đội hình (phòng trường hợp đã bán Pokemon)
+    if (!towerData.teamIndices) towerData.teamIndices = [];
+    towerData.teamIndices = towerData.teamIndices.filter(idx => myBag[idx]);
+
     if(towerData.teamIndices.length === 0) return alert("Chưa chọn đội hình leo tháp!");
 
-    // B. Kiểm tra sức khỏe Team (Ai còn sống mới được đánh)
+    // 2. Tìm Pokemon đầu tiên còn sống trong đội hình
     let alivePokemonIdx = towerData.teamIndices.find(idx => myBag[idx].hp > 0);
     
     if (typeof alivePokemonIdx === 'undefined') {
-        // Toàn bộ team đã chết -> GAME OVER -> RESET
+        // Nếu chết hết cả team -> Hỏi Reset
         if(confirm("Toàn bộ đội hình đã gục ngã! Bạn có muốn Reset về Tầng 1 để chơi lại không?")) {
             resetTowerRun();
         }
         return;
     }
 
-    // C. Cấu hình trận đấu (Set flag isTowerBattle = true)
-    selectedBattleIdx = alivePokemonIdx; // Chọn con đầu tiên còn sống ra đánh
+    // 3. Chọn Pokemon đó để đánh
+    selectedBattleIdx = alivePokemonIdx; 
     
-    // Đóng UI Tháp, Mở UI Battle
-    document.getElementById('tower-modal').style.display = 'none';
+    // 4. Xử lý giao diện (QUAN TRỌNG: Phải mở battle-modal lên)
+    document.getElementById('tower-modal').style.display = 'none'; // Đóng bảng tháp
+    document.getElementById('battle-modal').style.display = 'flex'; // Mở bảng chiến đấu
     
-    // Gọi hàm startBattle với mode đặc biệt 'tower'
+    // 5. Bắt đầu trận đấu với chế độ 'tower'
+    // (Lưu ý: Bạn phải chắc chắn đã thêm logic 'tower' vào hàm startBattle ở bước trước)
     await startBattle('tower');
 }
-
-// 2. XỬ LÝ SAU TRẬN ĐẤU (THẮNG/THUA)
-// Bạn cần SỬA LẠI hàm processWin() và checkWinCondition() trong code cũ
-// Tuy nhiên, để an toàn, ta sẽ dùng hook vào logic kết thúc trận đấu.
-
-/* ⚠️ QUAN TRỌNG: 
-   Bạn hãy tìm hàm `processWin()` cũ trong code và THÊM ĐOẠN NÀY VÀO CUỐI HÀM ĐÓ:
-*/
-/*
-    // ... code cũ của processWin ...
-    
-    if(battleState.difficulty === 'tower') {
-        handleTowerWin();
-    }
-*/
 
 // Hàm xử lý khi thắng tầng tháp
 function handleTowerWin() {
@@ -4913,6 +4903,7 @@ function buyTowerItem(itemId) {
 </script>
 </body>
 </html>
+
 
 
 
