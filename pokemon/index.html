@@ -2689,6 +2689,7 @@ function catchAttempt(ballType) {
     }, 500);
 }
 function captureSuccess() {
+    if (!currentWild) return;
     // 1. Hiệu ứng âm thanh
     playSFX('catch');
     
@@ -5810,6 +5811,7 @@ function selectZone(zoneId) {
 </script>
 </body>
 </html>
+
 
 
 
