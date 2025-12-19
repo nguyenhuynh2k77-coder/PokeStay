@@ -819,7 +819,36 @@
     <div style="display:flex; flex-direction:column; width:100%">
         <div style="display:flex; justify-content:space-between; align-items:center">
             <div style="display:flex; align-items:center; gap:5px">
-                <button onclick="openMap()" style="background:none; border:none; cursor:pointer; font-size:1.5em" title="Mở Bản Đồ">🗺️</button>
+                <header>
+    <div style="display:flex; flex-direction:column; width:100%">
+        <div style="display:flex; justify-content:space-between; align-items:center">
+            
+            <div style="display:flex; align-items:center; gap:5px">
+                
+                <div style="display:flex; align-items:center; background:rgba(0,0,0,0.3); padding:2px 8px; border-radius:15px; border:1px solid #444; margin-right:5px; cursor:pointer" onclick="openMap()">
+                    <span style="font-size:1.4em; margin-right:5px">🗺️</span>
+                    <div style="display:flex; flex-direction:column; line-height:1">
+                        <span style="font-size:0.6em; color:#bbb; text-transform:uppercase">LOCATION</span>
+                        <span id="zone-display-name" style="font-size:0.8em; font-weight:bold; color:#0984e3">Thảo Nguyên</span>
+                    </div>
+                </div>
+                <div>
+                    <div style="font-weight:bold; font-size:0.9em" id="display-username">TRAINER</div>
+                    <div style="font-size:0.7em; color:#f1c40f" id="rank-title">Tập sự</div>
+                </div>
+            </div>
+            
+            <div style="text-align:right">
+                <div style="font-weight:bold; color:#f1c40f"><span id="coin-display">0</span> 💰</div>
+                <div style="font-size:0.8em; color:#3ba55c">Lv.<span id="trainer-level">1</span></div>
+            </div>
+        </div>
+
+        <div style="width:100%; height:4px; background:#444; margin-top:5px; border-radius:2px; position:relative">
+            <div id="trainer-xp-bar" style="width:0%; height:100%; background:#0984e3; transition:width 0.5s"></div>
+        </div>
+    </div>
+</header>
                 <div>
                     <div style="font-weight:bold; font-size:0.9em" id="display-username">TRAINER</div>
                     <div style="font-size:0.7em; color:#f1c40f" id="rank-title">Tập sự</div>
@@ -1885,6 +1914,7 @@ async function login() {
         makeDraggable('btn-chat-float');
         checkDailyQuestGen();
         updateStats();
+        updateZoneNameUI();
         playBGM('map');
         showMenu(); // Hiện lại menu
         showUpdateLog();
@@ -2558,12 +2588,42 @@ async function spawnPokemon() {
         else if (isShiny) { titleColor = "#e74c3c"; namePrefix = "✨ "; }
 
         // Render HTML
+        // --- LOGIC HIỂN THỊ TAG Rarity (Common/Rare...) ---
+        let r = getRarity(p); // Lấy độ hiếm thực tế
+        let tagLabel = r.label; // Mặc định: COMMON, RARE, LEGENDARY...
+        let tagClass = r.class; // Màu nền mặc định
+        
+        // Nếu là hàng đặc biệt thì ưu tiên hiển thị
+        if (isRainbow) { 
+            tagLabel = "RAINBOW"; 
+            titleColor = "gold"; 
+            visualClass = "variant-rainbow";
+            namePrefix = "🌈 ";
+        } 
+        else if (isShadow) { 
+            tagLabel = "SHADOW"; 
+            titleColor = "#9b59b6";
+            visualClass = "variant-shadow";
+            namePrefix = "👿 ";
+        } 
+        else if (isShiny) {
+            // Nếu là Shiny thường, vẫn giữ chữ Rarity nhưng đổi màu viền
+            titleColor = "#e74c3c";
+            namePrefix = "✨ ";
+            // Bạn có thể chọn: Hiện chữ "SHINY" hay giữ "RARE"?
+            // Ở đây mình giữ nguyên độ hiếm gốc (ví dụ: ✨ LEGENDARY) cho ngầu
+        }
+
+        // --- RENDER HTML ---
         log(`<div class="embed" style="border-left-color:${titleColor}">
             <div class="embed-header">
                 <div>
-                    <span class="rarity-tag" style="background:${titleColor}">${isRainbow?'RAINBOW':(isShadow?'SHADOW':'WILD')}</span> 
+                    <span class="rarity-tag ${tagClass}" style="margin-right:5px">${tagLabel}</span> 
+                    
                     <span class="embed-title">${namePrefix}${currentWild.name}</span>
-                    <div class="embed-desc">Hệ: ${p.types.join('/')} | HP: ${p.maxHp}</div>
+                    <div class="embed-desc" style="margin-top:2px">
+                        Hệ: ${p.types.join('/')} | CP: ${Math.floor((p.atk+p.spA)*p.level/10)}
+                    </div>
                 </div>
                 <img id="active-wild-sprite" class="poke-sprite ${visualClass}" src="${currentWild.img}">
             </div>
@@ -5798,6 +5858,7 @@ function renderMapList() {
 
 function selectZone(zoneId) {
     currentZone = zoneId;
+    updateZoneNameUI();
     saveGame();
     document.getElementById('map-modal').style.display = 'none';
     
@@ -5808,9 +5869,27 @@ function selectZone(zoneId) {
     // Đổi background game cho sinh động (Tùy chọn, nếu bạn có ảnh)
     // document.body.style.backgroundImage = `url('bg_${zoneId}.jpg')`; 
 }
+    // --- HÀM CẬP NHẬT UI TÊN VÙNG ĐẤT ---
+function updateZoneNameUI() {
+    const el = document.getElementById('zone-display-name');
+    if(!el) return;
+
+    // Tìm thông tin zone hiện tại
+    let z = ZONES.find(x => x.id === currentZone);
+    let name = z ? z.name : "Vùng Vô Danh";
+    
+    el.innerText = name;
+    
+    // Đổi màu chữ theo map cho đẹp (Tùy chọn)
+    if(currentZone === 'volcano') el.style.color = '#e74c3c'; // Đỏ
+    else if(currentZone === 'sea') el.style.color = '#3498db'; // Xanh biển
+    else if(currentZone === 'forest') el.style.color = '#2ecc71'; // Xanh lá
+    else el.style.color = '#0984e3'; // Mặc định
+}
 </script>
 </body>
 </html>
+
 
 
 
