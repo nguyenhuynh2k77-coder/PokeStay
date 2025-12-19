@@ -731,7 +731,7 @@
     </div>
 </div>
 
-<button id="btn-chat-float" onclick="toggleChat()" style="position:fixed; bottom:20px; right:20px; width:50px; height:50px; border-radius:50%; background:#7289da; border:2px solid white; z-index:3400; font-size:24px; cursor:pointer; box-shadow:0 0 10px rgba(0,0,0,0.5)">💬</button>
+<button id="btn-chat-float" style="position:fixed; bottom:80px; right:20px; width:50px; height:50px; border-radius:50%; background:#7289da; border:2px solid white; z-index:3400; font-size:24px; cursor:move; box-shadow:0 0 10px rgba(0,0,0,0.5); touch-action: none;">💬</button>
 
 <div id="market-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3000; justify-content:center; align-items:center;">
     <div class="box-style" style="width:95%; max-width:600px; border-color:#9b59b6">
@@ -1570,6 +1570,7 @@ async function login() {
         }
 
         // 5. Hoàn tất
+        makeDraggable('btn-chat-float');
         checkDailyQuestGen();
         updateStats();
         playBGM('map');
@@ -4492,9 +4493,90 @@ function claimMarketMoney() {
     checkInbox();
     document.getElementById('market-coin').innerText = coins.toLocaleString();
 }
+    // --- HÀM LÀM NÚT CHAT KÉO ĐƯỢC (DRAGGABLE) ---
+function makeDraggable(elementId) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+
+    let isDragging = false;
+    let startX, startY, initialLeft, initialTop;
+    let hasMoved = false; // Biến kiểm tra xem là Click hay Drag
+
+    // 1. Bắt đầu kéo (Chuột hoặc Ngón tay)
+    const startDrag = (e) => {
+        isDragging = true;
+        hasMoved = false; // Reset trạng thái
+
+        // Lấy vị trí con trỏ (Touch hoặc Mouse)
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        startX = clientX;
+        startY = clientY;
+
+        // Lấy vị trí hiện tại của nút
+        const rect = el.getBoundingClientRect();
+        initialLeft = rect.left;
+        initialTop = rect.top;
+
+        // Xóa thuộc tính bottom/right để chuyển sang dùng top/left hoàn toàn
+        el.style.bottom = 'auto';
+        el.style.right = 'auto';
+        el.style.left = initialLeft + 'px';
+        el.style.top = initialTop + 'px';
+        
+        // Hiệu ứng mờ nhẹ khi đang kéo
+        el.style.opacity = '0.7';
+    };
+
+    // 2. Di chuyển
+    const onDrag = (e) => {
+        if (!isDragging) return;
+        
+        // Ngăn màn hình bị cuộn khi kéo trên điện thoại
+        if(e.cancelable) e.preventDefault();
+
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        const dx = clientX - startX;
+        const dy = clientY - startY;
+
+        // Nếu di chuyển quá 5px thì tính là Đang Kéo (không phải Click nhầm)
+        if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+            hasMoved = true;
+        }
+
+        el.style.left = (initialLeft + dx) + 'px';
+        el.style.top = (initialTop + dy) + 'px';
+    };
+
+    // 3. Thả ra
+    const endDrag = () => {
+        if (!isDragging) return;
+        isDragging = false;
+        el.style.opacity = '1';
+
+        // Nếu KHÔNG di chuyển (tức là chỉ Click) -> Mở Chat
+        if (!hasMoved) {
+            toggleChat();
+        }
+    };
+
+    // --- Gắn sự kiện cho PC ---
+    el.addEventListener('mousedown', startDrag);
+    window.addEventListener('mousemove', onDrag);
+    window.addEventListener('mouseup', endDrag);
+
+    // --- Gắn sự kiện cho Mobile ---
+    el.addEventListener('touchstart', startDrag, {passive: false});
+    window.addEventListener('touchmove', onDrag, {passive: false});
+    window.addEventListener('touchend', endDrag);
+}
 </script>
 </body>
 </html>
+
 
 
 
