@@ -1708,28 +1708,40 @@ function recalcStats(p) {
     }
 
     function handleEnter(e) { if(e.key === 'Enter') login(); }
-    async function register() {
-    const u = document.getElementById('username-input').value.trim();
+    // --- HÀM ĐĂNG KÝ (ĐÃ CÓ CHECK TRÙNG TÊN) ---
+async function register() {
+    let u = document.getElementById('username-input').value.trim();
     const p = document.getElementById('password-input').value.trim();
     
-    if (!u || !p) return alert("Thiếu thông tin!");
+    // Ép về chữ hoa/thường thống nhất để tránh trùng kiểu "Admin" và "admin"
+    // (Ở đây mình ép về viết hoa hết cho đồng bộ)
+    u = u.toUpperCase(); 
 
-    // 1. Kiểm tra xem tên này đã có trên mạng chưa
-    const snapshot = await firebase.database().ref('accounts/' + u).once('value');
+    if (!u || !p) return alert("Thiếu thông tin!");
+    if (u.length < 3) return alert("Tên quá ngắn!");
+
+    // 1. Kiểm tra xem tên đã tồn tại chưa
+    const snapshot = await firebase.database().ref('users/' + u).once('value');
     
     if (snapshot.exists()) {
-        alert("Tên này đã có người dùng! Hãy chọn tên khác.");
+        // NẾU ĐÃ CÓ -> BÁO LỖI NGAY
+        alert("❌ Tên này đã có người dùng! Vui lòng chọn tên khác.");
     } else {
-        // 2. Nếu chưa có, tạo tài khoản mới trên Firebase
+        // NẾU CHƯA CÓ -> TẠO MỚI
+        // Tạo account với mật khẩu
         await firebase.database().ref('accounts/' + u).set({
             password: p,
             createdAt: Date.now()
         });
         
-        // Lưu tạm vào máy để nhớ lần sau (tùy chọn)
-        localStorage.setItem(AUTH_KEY + u, p);
+        // Tạo dữ liệu game khởi đầu
+        await firebase.database().ref('users/' + u).set({
+            coins: 1000,
+            level: 1,
+            // ... các chỉ số khởi đầu khác
+        });
         
-        alert("Đăng ký thành công! Hãy đăng nhập.");
+        alert("✅ Đăng ký thành công! Hãy đăng nhập.");
     }
 }
     // Thay thế hàm login cũ bằng hàm này
@@ -6068,6 +6080,7 @@ function checkAdminPrivileges() {
 </script>
 </body>
 </html>
+
 
 
 
