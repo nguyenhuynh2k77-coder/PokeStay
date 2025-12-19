@@ -2633,7 +2633,25 @@ async function spawnPokemon() {
         let iv = Math.floor(Math.random() * 32); 
 
         // Tính tỷ lệ bắt (Khó hơn nếu là hàng hiếm)
-        let baseRate = 255; 
+        // --- TÍNH TỶ LỆ BẮT (CHUẨN HARDCORE) ---
+        let baseRate = 255; // Mặc định dễ bắt (Rattata, Pidgey...)
+
+        // 1. Phân loại theo sức mạnh (Dựa vào EXP cơ bản)
+        if (data.base_experience > 100) baseRate = 120; // Trung bình (Pokemon cấp 2)
+        if (data.base_experience > 200) baseRate = 45;  // Khó (Pokemon cấp 3, Rồng...)
+
+        // 2. HUYỀN THOẠI = SIÊU KHÓ (Catch Rate = 3)
+        // Đây là tỉ lệ chuẩn của Nintendo. Với Poke Ball thường, tỉ lệ dính chỉ ~1%.
+        if (LEGEND_LIST.includes(parseInt(id))) {
+            baseRate = 3; 
+        }
+
+        // 3. Biến thể (Khó hơn nữa)
+        if (isShadow) baseRate = Math.floor(baseRate * 0.6); // Shadow khó bắt hơn 40%
+        if (isRainbow) baseRate = Math.floor(baseRate * 0.4); // Rainbow cực khó bắt
+
+        // Đảm bảo không bao giờ bằng 0 (vẫn cho 1 tia hy vọng nhỏ nhoi)
+        if (baseRate < 1) baseRate = 1;
         // Huyền thoại hoặc Cấp 3 thì khó bắt
         if (LEGEND_LIST.includes(parseInt(id)) || data.base_experience > 200) baseRate = 45; 
         if (isShadow) baseRate = Math.floor(baseRate * 0.7);
@@ -5988,6 +6006,7 @@ function initOnlineSystem() {
 </script>
 </body>
 </html>
+
 
 
 
