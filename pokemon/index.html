@@ -5089,20 +5089,45 @@ function cancelMarketListing(key) {
 }
 
 // --- LOGIC BÁN: Chọn Pokemon để treo ---
+// --- HÀM HIỂN THỊ DANH SÁCH TREO BÁN (ĐÃ CẬP NHẬT VISUAL) ---
 function renderSellList() {
     const container = document.getElementById('market-sell-list');
+    
+    // Kiểm tra túi rỗng
     if(myBag.length === 0) {
-        container.innerHTML = '<div style="text-align:center; color:#777">Túi rỗng!</div>';
+        container.innerHTML = '<div style="text-align:center; color:#777; padding:20px">Túi rỗng! Hãy đi bắt Pokemon trước.</div>';
         return;
     }
 
     container.innerHTML = myBag.map((p, idx) => {
-        let shinyIcon = p.isShiny ? '✨' : '';
+        // --- [SỬA LỖI TẠI ĐÂY] XỬ LÝ VISUAL SHADOW/RAINBOW ---
+        let variantClass = "";  // Class CSS hiệu ứng ảnh
+        let variantPrefix = ""; // Icon trước tên
+        
+        if (p.isRainbow) {
+            variantClass = "variant-rainbow";
+            variantPrefix = "🌈 ";
+        } else if (p.isShadow) {
+            variantClass = "variant-shadow";
+            variantPrefix = "👿 ";
+        } else if (p.isShiny) {
+            variantPrefix = "✨ ";
+        }
+        // ----------------------------------------------------
+
+        // Tính chỉ số sức mạnh (CP) hiển thị cho ngầu
+        let cp = Math.floor((p.atk + p.spA + p.def + p.spD + p.maxHp + p.spd) * p.level / 10);
+
         return `
         <div class="market-item" style="border-color:#555">
-            <img src="${p.img}" width="50">
-            <div style="font-weight:bold; font-size:0.8em">${shinyIcon}${p.name}</div>
-            <div style="font-size:0.7em; color:#aaa">CP: ${(p.atk+p.spA)*p.level}</div>
+            <img src="${p.img}" width="50" class="${variantClass}" style="image-rendering:pixelated">
+            
+            <div style="font-weight:bold; font-size:0.8em; margin-top:5px">
+                ${variantPrefix}${p.name}
+            </div>
+            
+            <div style="font-size:0.7em; color:#aaa">CP: ${cp} | Lv.${p.level}</div>
+            
             <button class="btn-small" style="width:100%; margin-top:5px; background:#e67e22" onclick="promptSell(${idx})">BÁN</button>
         </div>
         `;
@@ -5579,6 +5604,7 @@ function surrenderTower() {
 </script>
 </body>
 </html>
+
 
 
 
