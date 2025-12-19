@@ -2436,64 +2436,68 @@ let originalEnemyImgSrc = "";
 // --- 1. HÀM SPAWN POKEMON (Đã thêm ID active-wild-sprite) ---
 // --- HÀM SPAWN POKEMON (ĐÃ SỬA LỖI TRÙNG LẶP) ---
 // --- HÀM SPAWN POKEMON (ĐÃ NÂNG CẤP ZONE) ---
+// --- HÀM SPAWN POKEMON (FULL - ĐÃ SỬA LỖI & CÓ DỰ PHÒNG) ---
 async function spawnPokemon() {
+    // 1. Reset UI và Trạng thái
+    const controlsDiv = document.getElementById('controls');
+    if(controlsDiv) controlsDiv.innerHTML = `<div style="color:#faa61a; padding:10px">Dang tìm kiếm ở ${getCurrentZoneName()}... <span class="loading-spinner">🌀</span></div>`;
+    
+    activeBuffs = { berry: false, egg: false };
+    battleState.active = false;
+    streakBonus = 0;
+    
+    // Ẩn các menu cũ
+    const battleMenu = document.getElementById('battle-main-menu');
+    if(battleMenu) battleMenu.style.display = 'none';
+
     try {
-        // ... (Giữ nguyên các dòng reset trạng thái cũ) ...
-        activeBuffs = { berry: false, egg: false };
-        battleState.active = false;
-        document.getElementById('battle-main-menu').style.display = 'none';
+        let id = 1; // Mặc định
 
-        let id = 1;
+        // 2. LOGIC TÌM ID THEO ZONE (KHU VỰC)
+        // Kiểm tra xem biến ZONES có tồn tại không, nếu không thì coi như 'all'
+        if (typeof currentZone !== 'undefined' && currentZone !== 'all' && typeof ZONES !== 'undefined') {
+            try {
+                let zoneInfo = ZONES.find(z => z.id === currentZone);
+                if (zoneInfo) {
+                    // Chọn ngẫu nhiên 1 hệ trong Zone
+                    let randomType = zoneInfo.types[Math.floor(Math.random() * zoneInfo.types.length)];
+                    
+                    // Gọi API lấy list Pokemon theo hệ
+                    let typeRes = await fetch(`https://pokeapi.co/api/v2/type/${randomType}`);
+                    let typeData = await typeRes.json();
+                    
+                    // Lọc bỏ Gen 6+ (Chỉ lấy ID <= 649)
+                    let pokeList = typeData.pokemon.filter(p => {
+                        let urlParts = p.pokemon.url.split('/');
+                        let pId = parseInt(urlParts[urlParts.length - 2]);
+                        return pId <= 649; 
+                    });
 
-        // LOGIC CHỌN ID THEO ZONE
-        if (currentZone === 'all') {
-            // Zone tự do: Random tất cả (Gen 1-5)
-            id = Math.floor(Math.random() * 649) + 1;
-        } else {
-            // Zone đặc biệt: Lọc theo hệ
-            let zoneInfo = ZONES.find(z => z.id === currentZone);
-            if (zoneInfo) {
-                // Chọn ngẫu nhiên 1 hệ trong danh sách của Zone đó
-                let randomType = zoneInfo.types[Math.floor(Math.random() * zoneInfo.types.length)];
-                
-                // Gọi API lấy danh sách Pokemon của hệ đó
-                log(`<i>Đang tìm Pokemon hệ ${randomType}...</i>`);
-                let typeRes = await fetch(`https://pokeapi.co/api/v2/type/${randomType}`);
-                let typeData = await typeRes.json();
-                
-                // Lấy 1 con bất kỳ trong list (pokemon array)
-                let pokeList = typeData.pokemon;
-                // Lọc bỏ các con Gen 6+ (ID > 649) để tránh lỗi ảnh
-                let validList = pokeList.filter(p => {
-                    let urlParts = p.pokemon.url.split('/');
-                    let pId = parseInt(urlParts[urlParts.length - 2]);
-                    return pId <= 649; 
-                });
-
-                if(validList.length > 0) {
-                    let randomEntry = validList[Math.floor(Math.random() * validList.length)];
-                    // Lấy ID từ URL (vd: .../pokemon/25/)
-                    let parts = randomEntry.pokemon.url.split('/');
-                    id = parts[parts.length - 2]; 
-                } else {
-                    id = Math.floor(Math.random() * 649) + 1; // Fallback
+                    if(pokeList.length > 0) {
+                        let randomEntry = pokeList[Math.floor(Math.random() * pokeList.length)];
+                        let parts = randomEntry.pokemon.url.split('/');
+                        id = parts[parts.length - 2]; // Lấy được ID theo hệ
+                    } else {
+                        // Nếu hệ đó không có con nào hợp lệ, fallback về random
+                        id = Math.floor(Math.random() * 649) + 1;
+                    }
                 }
+            } catch (err) {
+                console.error("Lỗi Zone, chuyển về Random:", err);
+                id = Math.floor(Math.random() * 649) + 1;
             }
+        } else {
+            // Zone 'all' hoặc chưa có hệ thống Zone
+            id = Math.floor(Math.random() * 649) + 1;
         }
 
-        // ... (Phần dưới giữ nguyên như cũ) ...
-        // B. CHECK BIẾN THỂ ...
-        // C. FETCH DỮ LIỆU ...
-        // (Copy lại y chang đoạn code spawn cũ từ dòng `let hasCharm...` trở đi)
-        
-        // --- CHÚ Ý: DÁN LẠI PHẦN CÒN LẠI CỦA HÀM SPAWN CŨ VÀO ĐÂY ---
-        // (Tôi viết tắt đoạn này để bạn tự ghép, nếu cần full code thì bảo tôi)
-        
-        // ... Code cũ ...
+        // 3. LOGIC BIẾN THỂ (SHINY / SHADOW / RAINBOW)
         let hasCharm = (inventory['shiny-charm'] || 0) > 0;
         let rand = Math.random();
-        let isShiny = false; let isShadow = false; let isRainbow = false;
-        
+        let isShiny = false; 
+        let isShadow = false; 
+        let isRainbow = false;
+
         if (rand < 0.0001) isRainbow = true; 
         else if (rand < 0.0011) isShadow = true; 
         else {
@@ -2501,22 +2505,89 @@ async function spawnPokemon() {
             if (Math.random() < shinyRate) isShiny = true;
         }
 
+        // 4. FETCH DỮ LIỆU POKEMON (QUAN TRỌNG)
         const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); 
         const data = await res.json();
-        // ... (Tiếp tục y hệt code cũ cho đến hết hàm) ...
+
+        // Xử lý ảnh
+        let img = data.sprites.other['official-artwork'].front_default || data.sprites.front_default;
+        // Nếu là Shiny thường (không phải Shadow/Rainbow) thì lấy ảnh Shiny gốc
+        if(isShiny && !isShadow && !isRainbow && data.sprites.front_shiny) {
+            img = data.sprites.front_shiny;
+        }
+
+        let stats = {};
+        data.stats.forEach(s => { stats[s.stat.name] = s.base_stat; });
+        let iv = Math.floor(Math.random() * 32); 
+
+        // Tính tỷ lệ bắt (Khó hơn nếu là hàng hiếm)
+        let baseRate = 255; 
+        if (data.base_experience > 200) baseRate = 60; 
+        if (isShadow) baseRate = Math.floor(baseRate * 0.7);
+        if (isRainbow) baseRate = Math.floor(baseRate * 0.5);
+
+        // Tạo Object Pokemon
+        let p = { 
+            id: data.id, 
+            name: data.name.toUpperCase(), 
+            types: data.types.map(t=>t.type.name), 
+            iv: iv, 
+            isShiny: isShiny, isShadow: isShadow, isRainbow: isRainbow,
+            img: img, 
+            baseXp: data.base_experience, 
+            baseHp: stats['hp'], baseAtk: stats['attack'], baseDef: stats['defense'], 
+            baseSpA: stats['special-attack'], baseSpD: stats['special-defense'], baseSpd: stats['speed'],
+            level: 5, xp: 0, maxXp: 100,
+            catchRate: baseRate 
+        };
         
-        // ...
+        recalcStats(p); 
+        assignMoves(p);
+
+        // 5. HIỂN THỊ RA MÀN HÌNH (RENDER)
+        currentWild = p;
+        playCry(p.id);
+
+        // Class CSS cho hiệu ứng
+        let visualClass = "";
+        let namePrefix = "";
+        let titleColor = "#00b0f4"; 
+
+        if (isRainbow) { visualClass = "variant-rainbow"; namePrefix = "🌈 "; titleColor = "gold"; }
+        else if (isShadow) { visualClass = "variant-shadow"; namePrefix = "👿 "; titleColor = "#9b59b6"; }
+        else if (isShiny) { titleColor = "#e74c3c"; namePrefix = "✨ "; }
+
+        // Render HTML
+        log(`<div class="embed" style="border-left-color:${titleColor}">
+            <div class="embed-header">
+                <div>
+                    <span class="rarity-tag" style="background:${titleColor}">${isRainbow?'RAINBOW':(isShadow?'SHADOW':'WILD')}</span> 
+                    <span class="embed-title">${namePrefix}${currentWild.name}</span>
+                    <div class="embed-desc">Hệ: ${p.types.join('/')} | HP: ${p.maxHp}</div>
+                </div>
+                <img id="active-wild-sprite" class="poke-sprite ${visualClass}" src="${currentWild.img}">
+            </div>
+        </div>`);
         
-        // Sau khi spawn xong, cập nhật UI level
-        updateTrainerUI();
+        renderBattleControls(); // Hiện nút bắt
+        updateStats(); // Update giao diện (tiền/buff)
 
     } catch (e) {
-        console.error(e);
-        log("Lỗi tìm kiếm, thử lại...");
-        spawnPokemon(); // Thử lại nếu lỗi mạng
+        console.error("Lỗi spawn:", e);
+        // Nếu lỗi mạng hoặc API, thử lại sau 1s (Fallback)
+        log(`<div style="color:red">⚠️ Lỗi tín hiệu... Đang thử lại.</div>`);
+        setTimeout(() => spawnPokemon(), 1000);
     }
 }
-    // --- GIAO DIỆN SĂN BẮT MỚI (NẰM NGANG) ---
+
+// Hàm phụ lấy tên Zone (tránh lỗi nếu chưa khai báo)
+function getCurrentZoneName() {
+    if(typeof ZONES !== 'undefined' && typeof currentZone !== 'undefined') {
+        let z = ZONES.find(x => x.id === currentZone);
+        return z ? z.name : 'Vùng hoang dã';
+    }
+    return 'Vùng hoang dã';
+}
 function renderBattleControls() {
     const balls = SHOP_DB.filter(i => i.type === 'ball');
     
@@ -5739,6 +5810,7 @@ function selectZone(zoneId) {
 </script>
 </body>
 </html>
+
 
 
 
