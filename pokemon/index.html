@@ -1974,6 +1974,7 @@ async function login() {
         updateStats();
         updateZoneNameUI();
         initOnlineSystem();
+        checkAdminPrivileges();
         playBGM('map');
         showMenu(); // Hiện lại menu
         showUpdateLog();
@@ -4250,30 +4251,29 @@ function speakDex(id, isCaught) {
     saveGame(); openBag(); log(`<div class="embed" style="border-left-color:#9b59b6"><div class="embed-header"><div><span class="embed-title">TIẾN HÓA!</span><div class="embed-desc"><b>${p.name}</b><br>HP: ${p.maxHp} | ATK: ${p.atk}</div></div><img class="poke-sprite" src="${p.img}"></div></div>`); } else { btn.innerHTML = "Evo"; btn.classList.remove('loading'); let reqText = reqType === 'use-item' ? 'Cần Evo Stone' : `Cần Level ${(details && details.min_level) || 25}`; alert(`Chưa đủ điều kiện!\n${reqText}`); } } catch(e) { console.log(e); btn.innerHTML="Err"; btn.classList.remove('loading'); } })(); }
     function findNodeInChain(node, name) { if (node.species.name === name) return node; for (let child of node.evolves_to) { let f = findNodeInChain(child, name); if (f) return f; } return null; }
     // --- HỆ THỐNG LEADERBOARD ---
+// --- SỬA LOGIC BXH: ẨN ADMIN ---
 function openLeaderboard() {
     if(!currentUser) return;
     document.getElementById('leaderboard-modal').style.display = 'flex';
-    document.getElementById('leaderboard-list').innerHTML = '<div style="color:yellow">Đang tải dữ liệu từ máy chủ...</div>';
+    document.getElementById('leaderboard-list').innerHTML = '<div style="color:yellow">Đang tải dữ liệu...</div>';
 
-    // Lấy Top 10 người có 'coins' cao nhất
-    firebase.database().ref('users').orderByChild('coins').limitToLast(10).once('value')
+    firebase.database().ref('users').orderByChild('coins').limitToLast(20).once('value') // Lấy 20 người để trừ hao Admin
     .then((snapshot) => {
         let list = [];
         snapshot.forEach((childSnapshot) => {
+            let name = childSnapshot.key;
             let data = childSnapshot.val();
-            // Lấy tên (key) và tiền
-            list.push({ name: childSnapshot.key, coins: data.coins || 0 });
+            
+            // 👇 LOGIC MỚI: Nếu tên là ADMIN thì bỏ qua, không thêm vào list
+            if (name === 'ADMIN') return; 
+
+            list.push({ name: name, coins: data.coins || 0 });
         });
 
-        // Firebase trả về dữ liệu theo thứ tự tăng dần (Thấp -> Cao)
-        // Nên ta phải đảo ngược lại để người giàu nhất lên đầu
-        list.reverse();
+        list.reverse(); // Đảo ngược để cao nhất lên đầu
+        list = list.slice(0, 10); // Chỉ lấy Top 10 sau khi đã lọc Admin
 
         renderLeaderboard(list);
-    })
-    .catch((err) => {
-        console.error(err);
-        document.getElementById('leaderboard-list').innerHTML = '<div style="color:red">Lỗi tải BXH!</div>';
     });
 }
 
@@ -5134,11 +5134,18 @@ function initChat() {
         const div = document.createElement('div');
         div.className = 'chat-msg';
         
-        // Phân màu theo tên (Admin tự set cứng hoặc làm hệ thống role sau)
-        let roleColor = 'role-user';
-        if(msg.user === 'ADMIN' || msg.user === 'Dev') roleColor = 'role-admin';
-        
-        div.innerHTML = `<span class="chat-name ${roleColor}" onclick="alert('User: ${msg.user}')">${msg.user}:</span> <span style="color:#dcddde">${msg.text}</span>`;
+        let userDisplay = msg.user;
+        let msgColor = "#dcddde"; // Màu chữ mặc định
+        let nameStyle = "color:#3ba55c"; // Màu tên mặc định (User)
+
+        // 👇 KIỂM TRA ADMIN
+        if (msg.user === 'ADMIN') {
+            userDisplay = `🛡️ [AD] ${msg.user}`; // Thêm tiền tố
+            nameStyle = "color:#ed4245; font-weight:bold; text-shadow: 0 0 5px red"; // Tên màu đỏ phát sáng
+            msgColor = "#ff7675"; // Chữ màu hồng nhạt cho nổi
+        }
+
+        div.innerHTML = `<span class="chat-name" style="${nameStyle}" onclick="alert('User: ${msg.user}')">${userDisplay}:</span> <span style="color:${msgColor}">${msg.text}</span>`;
         chatBox.appendChild(div);
         chatBox.scrollTop = chatBox.scrollHeight;
     });
@@ -6003,9 +6010,65 @@ function initOnlineSystem() {
         }
     });
 }
+    // --- HỆ THỐNG ADMIN TOOLS (CHỈ HIỆN CHO ADMIN) ---
+function checkAdminPrivileges() {
+    // Chỉ kích hoạt nếu tên là ADMIN
+    if (currentUser !== 'ADMIN') return;
+
+    // 1. Tạo nút Admin Tools trôi nổi
+    const btn = document.createElement('button');
+    btn.innerHTML = "⚡ ADMIN TOOLS";
+    btn.style.cssText = `
+        position: fixed; top: 10px; right: 10px; z-index: 9999;
+        background: #ed4245; color: white; font-weight: bold;
+        border: 2px solid white; border-radius: 5px; padding: 5px 10px;
+        box-shadow: 0 0 10px red; cursor: pointer; animation: pulse 2s infinite;
+    `;
+    
+    // 2. Sự kiện khi bấm vào
+    btn.onclick = () => {
+        let action = prompt("NHẬP LỆNH ADMIN:\n1. Hack 1 Tỷ Vàng\n2. Lấy 100 Master Ball\n3. Hồi Full Stamina\n4. Triệu hồi Boss ngay lập tức\n5. Xóa toàn bộ Chat");
+        
+        if (action === '1') {
+            coins += 1000000000;
+            saveGame(); updateStats();
+            alert("Đã hack 1 tỷ vàng! (Đừng nói ai nhé)");
+        }
+        else if (action === '2') {
+            inventory['master-ball'] = (inventory['master-ball'] || 0) + 100;
+            saveGame();
+            alert("Đã lấy 100 Master Ball!");
+        }
+        else if (action === '3') {
+            stamina = 100;
+            updateStaminaUI();
+            alert("Full Stamina!");
+        }
+        else if (action === '4') {
+            // Reset thời gian tuần để tạo boss mới ngay
+            firebase.database().ref('world_boss/weekId').set(0); 
+            alert("Đã reset Boss! Hãy mở lại menu Boss.");
+        }
+        else if (action === '5') {
+            if(confirm("Xóa sạch lịch sử chat server?")) {
+                firebase.database().ref('global_chat').remove();
+                alert("Chat đã được dọn sạch!");
+            }
+        }
+    };
+
+    document.body.appendChild(btn);
+    
+    // Thông báo chào mừng Admin
+    log(`<div style="color:red; background:black; padding:5px; border:1px solid red; text-align:center">
+        ⚠️ <b>ADMIN ĐÃ ĐĂNG NHẬP</b> ⚠️<br>
+        <i>Chào mừng trở lại, thưa ngài!</i>
+    </div>`);
+}
 </script>
 </body>
 </html>
+
 
 
 
