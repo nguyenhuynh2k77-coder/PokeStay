@@ -1504,7 +1504,16 @@ async function login() {
             }
             // ------------------------------------------
             if (d.gymProgress) gymProgress = d.gymProgress;
-            if (d.maxBagSize) maxBagSize = d.maxBagSize;
+           if (d.maxBagSize) {
+                // Nếu dữ liệu cũ nhỏ hơn 500, tự động nâng lên 500
+                if (d.maxBagSize < 500) {
+                    maxBagSize = 500;
+                } else {
+                    maxBagSize = d.maxBagSize;
+                }
+            } else {
+                maxBagSize = 500; // Mặc định cho người mới
+            }
             if (d.pickaxe) pickaxe = d.pickaxe;
             if (d.dailyRepairs) dailyRepairs = d.dailyRepairs;
             
@@ -4641,6 +4650,7 @@ function makeDraggable(elementId) {
 </script>
 </body>
 </html>
+
 
 
 
