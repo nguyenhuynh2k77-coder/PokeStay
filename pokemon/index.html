@@ -2802,45 +2802,56 @@ function captureSuccess() {
     currentWild = null;
     showMenu();
 }
+// --- HÀM XỬ LÝ HIỆU ỨNG LẮC BÓNG (ĐÃ SỬA LỖI ĐƠ) ---
 function processVisualShake(success, shakeCount) {
     const ballElement = document.getElementById('active-wild-sprite');
     if(!ballElement) return;
     
-    // Trigger animation CSS
+    // 1. Reset Animation (Kỹ thuật Force Reflow để tránh bị đơ animation)
     ballElement.classList.remove('shaking');
-    void ballElement.offsetWidth; // Hack để reset animation
+    void ballElement.offsetWidth; // Dòng này cực quan trọng: Buộc trình duyệt vẽ lại
     ballElement.classList.add('shaking'); 
     
+    // (Optional) Thêm tiếng lắc nếu bạn có file âm thanh
+    // playSFX('shake'); 
+
+    // 2. Xử lý Logic: Lắc tiếp hay Bung bóng?
     if (success) {
-        // TRƯỜNG HỢP: BẮT DÍNH
+        // --- TRƯỜNG HỢP: BẮT DÍNH ---
         if (shakeCount < 3) {
+            // Chưa đủ 3 lần lắc -> Lắc tiếp sau 1 giây
             log(`<span style="color:#bbb">... Lắc (${shakeCount})...</span>`);
             setTimeout(() => { processVisualShake(true, shakeCount + 1); }, 1000); 
         } else {
+            // Đã lắc đủ 3 lần -> CHÚC MỪNG!
             setTimeout(() => {
                 ballElement.classList.remove('shaking');
-                ballElement.classList.add('caught-anim'); // Sáng lên
-                captureSuccess(); // Gọi hàm thành công
-                originalEnemyImgSrc = ""; // Reset biến ảnh gốc
+                ballElement.classList.add('caught-anim'); // Hiệu ứng sáng đèn
+                captureSuccess(); // Gọi hàm nhận thưởng
+                originalEnemyImgSrc = ""; // Reset ảnh gốc
             }, 600);
         }
     } else {
-        // TRƯỜNG HỢP: TRƯỢT
-        // Random lắc thêm 1-2 cái cho hồi hộp
-        if (shakeCount < 3 && Math.random() < 0.5) {
+        // --- TRƯỜNG HỢP: BẮT TRƯỢT ---
+        // Logic hồi hộp: 50% cơ hội lắc thêm cái nữa để lừa người chơi
+        // Nếu bạn muốn nó luôn lắc nhiều, hãy tăng số 0.5 lên (ví dụ 0.8)
+        let keepShaking = Math.random() < 0.5; 
+
+        if (shakeCount < 3 && keepShaking) {
+            // Lừa tình: Lắc tiếp dù sẽ trượt
             log(`<span style="color:#bbb">... Lắc (${shakeCount})...</span>`);
             setTimeout(() => { processVisualShake(false, shakeCount + 1); }, 1000);
         } else {
-            // Bung bóng
+            // Bung lụa: Bóng bật ra
             setTimeout(() => {
                 ballElement.classList.remove('shaking');
-                resetEnemySprite(); // Trả lại hình con Pokemon
+                resetEnemySprite(); // Trả lại hình Pokemon
                 
                 log(`<span style="color:#ed4245; font-weight:bold">Bóng bật ra!</span>`);
                 activeBuffs.berry = false;
                 updateStats();
                 
-                // Tỷ lệ bỏ chạy 25%
+                // Tỷ lệ bỏ chạy sau khi bung bóng (25%)
                 if (Math.random() < 0.25) {
                     setTimeout(() => {
                         log(`💨 <b>${currentWild.name}</b> đã bỏ chạy!`);
@@ -2848,9 +2859,6 @@ function processVisualShake(success, shakeCount) {
                         streakBonus = 0;
                         showMenu();
                     }, 1000);
-                } else {
-                    streakBonus = (streakBonus || 0) + 0.5;
-                    renderBattleControls();
                 }
             }, 600);
         }
@@ -5889,6 +5897,7 @@ function updateZoneNameUI() {
 </script>
 </body>
 </html>
+
 
 
 
