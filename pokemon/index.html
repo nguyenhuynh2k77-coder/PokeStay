@@ -4957,12 +4957,23 @@ function updateStaminaUI() {
 // --- HỆ THỐNG CHỌN TEAM ---
 let tempTeamIndices = []; // Biến tạm khi đang chọn
 
+// --- SỬA LỖI: RESET NÚT LƯU VỀ ĐÚNG CHỨC NĂNG ---
 function openBossTeamSelect() {
     document.getElementById('boss-team-modal').style.display = 'flex';
-    // Copy đội hình hiện tại sang biến tạm để thao tác
-    // Cần lọc lại index hợp lệ (trong trường hợp đã bán bớt Pokemon thì index sẽ sai, 
-    // nhưng để đơn giản ta giả sử người chơi chọn lại nếu thấy lỗi)
-    tempTeamIndices = [...bossTeamIndices]; 
+    
+    // 1. Đặt lại tiêu đề cho đúng
+    document.querySelector('#boss-team-modal h3').innerText = "Chọn Đội Hình Boss (Tối đa 6)";
+
+    // 2. 👇 QUAN TRỌNG: TRẢ LẠI NÚT LƯU CHO BOSS 👇
+    // (Vì hàm openTowerTeamSelect đã cướp nút này, giờ phải đòi lại)
+    const saveBtn = document.querySelector('#boss-team-modal .btn-auth');
+    saveBtn.innerText = "LƯU ĐỘI HÌNH BOSS"; // Đổi tên cho dễ nhận biết
+    saveBtn.onclick = saveBossTeam;          // Gán lại hàm lưu Boss
+    
+    // 3. Lọc bỏ các Pokemon không còn tồn tại (do đã bán) để tránh lỗi
+    // (Copy mảng cũ sang biến tạm để thao tác)
+    tempTeamIndices = bossTeamIndices.filter(idx => myBag[idx]); 
+    
     renderTeamGrid();
 }
 
@@ -6431,6 +6442,7 @@ function getRarity(pokemon) {
 </script>
 </body>
 </html>
+
 
 
 
