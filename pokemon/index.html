@@ -2621,7 +2621,7 @@ function captureSuccess() {
     // 1. Hiệu ứng âm thanh
     playSFX('catch');
     
-    let let xp = 10;
+    let xpGain = 10;
     if (currentWild.baseXp > 200) xpGain += 20;
     if (currentWild.isShiny) xpGain += 40;
     if (currentWild.isShadow || currentWild.isRainbow) xpGain += 50;
@@ -5739,6 +5739,7 @@ function selectZone(zoneId) {
 </script>
 </body>
 </html>
+
 
 
 
