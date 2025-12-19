@@ -980,6 +980,17 @@
         <button class="btn-close" onclick="document.getElementById('tower-shop-modal').style.display='none'">Đóng Shop</button>
     </div>
 </div>
+    <div id="switch-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:3500; justify-content:center; align-items:center;">
+    <div class="box-style" style="border-color:#e74c3c; width:90%; max-width:400px">
+        <h3 style="color:#e74c3c">⚠️ POKEMON ĐÃ GỤC NGÃ!</h3>
+        <div style="margin-bottom:15px; color:#bbb">Hãy chọn Pokemon khác để tiếp tục chiến đấu:</div>
+        
+        <div id="switch-list" class="shop-grid" style="max-height:300px; overflow-y:auto">
+            </div>
+        
+        <button class="btn-auth" style="background:#333; margin-top:10px" onclick="surrenderTower()">🏳️ ĐẦU HÀNG (Reset)</button>
+    </div>
+</div>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -3089,22 +3100,37 @@ function playCry(id) {
         logBattle(`<span style="color:#e74c3c">Mất ${dmg} HP!</span>`);
     }
 
-    function checkWinCondition() {
-        if(battleState.enemy.hp <= 0) {
-            battleState.active = false;
-            logBattle(`<b style="color:#f1c40f">CHIẾN THẮNG!</b>`);
-            document.getElementById('battle-main-menu').style.display = 'none';
-            document.getElementById('battle-end-btn').style.display = 'block';
-            battleState.finished = true;
-            processWin();
-        } else if(battleState.player.hp <= 0) {
-            battleState.active = false;
-            logBattle(`<b style="color:#ed4245">THẤT BẠI...</b>`);
-            document.getElementById('battle-main-menu').style.display = 'none';
-            document.getElementById('battle-end-btn').style.display = 'block';
-            battleState.finished = true;
+    // --- LOGIC KIỂM TRA THẮNG THUA (ĐÃ CẬP NHẬT ĐỔI NGƯỜI) ---
+function checkWinCondition() {
+    // 1. Nếu Địch chết -> Thắng
+    if(battleState.enemy.hp <= 0) {
+        battleState.active = false;
+        logBattle(`<b style="color:#f1c40f">CHIẾN THẮNG!</b>`);
+        document.getElementById('battle-main-menu').style.display = 'none';
+        document.getElementById('battle-end-btn').style.display = 'block';
+        battleState.finished = true;
+        
+        // Gọi hàm xử lý thắng
+        processWin(); 
+    } 
+    // 2. Nếu Ta chết
+    else if(battleState.player.hp <= 0) {
+        
+        // --- LOGIC MỚI: NẾU LEO THÁP THÌ CHO ĐỔI NGƯỜI ---
+        if (battleState.difficulty === 'tower') {
+            handleTowerPlayerFaint(); // <--- Gọi hàm xử lý đổi người
+            return; // Dừng lại, chưa xử thua vội
         }
+        // --------------------------------------------------
+
+        // Nếu không phải leo tháp (đánh thường) thì thua luôn
+        battleState.active = false;
+        logBattle(`<b style="color:#ed4245">THẤT BẠI...</b>`);
+        document.getElementById('battle-main-menu').style.display = 'none';
+        document.getElementById('battle-end-btn').style.display = 'block';
+        battleState.finished = true;
     }
+}
 
     function processWin() {
         let r = battleState.rewards;
@@ -4900,74 +4926,96 @@ function buyTowerItem(itemId) {
         alert("Đổi quà thành công!");
     }
 }
+    // --- HỆ THỐNG ĐỔI POKEMON KHI CHẾT (BATTLE TOWER) ---
+
+// 1. Xử lý khi Pokemon hiện tại bị hạ
+function handleTowerPlayerFaint() {
+    // Tìm những con còn sống trong team tháp (trừ con vừa chết ra)
+    let survivors = towerData.teamIndices.filter(idx => {
+        let p = myBag[idx];
+        return p && p.hp > 0;
+    });
+
+    if (survivors.length > 0) {
+        // Vẫn còn người -> Mở bảng chọn
+        logBattle(`<b>${battleState.player.name}</b> không thể thi đấu tiếp!`);
+        openSwitchModal(survivors);
+    } else {
+        // Chết hết cả 6 con -> THUA THẬT
+        battleState.active = false;
+        logBattle(`<b style="color:#ed4245">ĐỘI HÌNH ĐÃ BỊ QUÉT SẠCH!</b>`);
+        document.getElementById('battle-main-menu').style.display = 'none';
+        
+        // Hiện nút Reset tháp
+        let endBtn = document.getElementById('battle-end-btn');
+        endBtn.style.display = 'block';
+        endBtn.innerText = "Về Tầng 1 (Thất bại)";
+        endBtn.onclick = () => {
+            endBattle();
+            resetTowerRun(); // Reset về tầng 1
+        };
+        
+        battleState.finished = true;
+    }
+}
+
+// 2. Mở bảng chọn
+function openSwitchModal(survivorIndices) {
+    const modal = document.getElementById('switch-modal');
+    const list = document.getElementById('switch-list');
+    
+    list.innerHTML = survivorIndices.map(idx => {
+        let p = myBag[idx];
+        return `
+        <div class="shop-item" style="display:flex; align-items:center; gap:10px; text-align:left; cursor:pointer; background:#2f3136" onclick="confirmSwitch(${idx})">
+            <img src="${p.img}" width="40">
+            <div>
+                <div style="font-weight:bold; color:white">${p.name}</div>
+                <div style="font-size:0.8em; color:#2ecc71">HP: ${p.hp}/${p.maxHp}</div>
+            </div>
+        </div>`;
+    }).join('');
+
+    modal.style.display = 'flex';
+}
+
+// 3. Xác nhận đổi
+function confirmSwitch(newIdx) {
+    let newPoke = myBag[newIdx];
+    
+    // Cập nhật State trận đấu
+    battleState.player = newPoke;
+    selectedBattleIdx = newIdx; // Cập nhật index để hệ thống biết đang dùng con nào
+
+    // Đóng modal
+    document.getElementById('switch-modal').style.display = 'none';
+
+    // Cập nhật giao diện chiến đấu
+    document.getElementById('player-name').innerText = newPoke.name;
+    document.getElementById('player-sprite').src = newPoke.img || `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/${newPoke.id}.png`;
+    
+    // Reset hiệu ứng status cũ trên UI
+    renderStatusIcon(newPoke, 'player-name');
+    updateBattleUI();
+
+    // Log thông báo
+    logBattle(`👉 <b>${newPoke.name}</b> bước vào trận chiến!`);
+
+    // Reset lại menu chiêu thức cho Pokemon mới
+    hideMoveMenu(); // Ẩn menu chiêu cũ đi để user bấm lại nút "Chiến đấu" cho nó load chiêu mới
+    
+    // Quan trọng: Vì đây là thay người sau khi chết, lượt của địch coi như đã xong ở turn trước.
+    // Người chơi được quyền hành động ngay.
+}
+
+// 4. Đầu hàng (Nếu lười đánh tiếp)
+function surrenderTower() {
+    if(confirm("Bạn chắc chắn muốn đầu hàng và reset về tầng 1?")) {
+        document.getElementById('switch-modal').style.display = 'none';
+        endBattle();
+        resetTowerRun();
+    }
+}
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
