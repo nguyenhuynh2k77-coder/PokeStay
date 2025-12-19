@@ -946,6 +946,40 @@
         </div>
     </div>
 </div>
+    <div id="tower-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3200; justify-content:center; align-items:center;">
+    <div class="box-style" style="border-color:#a29bfe; width:95%; max-width:500px; background:linear-gradient(135deg, #2d3436, #000)">
+        <h2 style="color:#a29bfe; margin:0">🗼 THÁP VÔ TẬN</h2>
+        <div style="color:#bbb; font-size:0.8em; margin-bottom:10px">Leo tháp - Sống sót - Nhận quà độc quyền</div>
+
+        <div style="background:rgba(255,255,255,0.1); padding:15px; border-radius:10px; margin-bottom:15px">
+            <div style="font-size:2em; font-weight:bold; color:white">TẦNG <span id="tower-floor-display" style="color:#f1c40f">1</span></div>
+            <div style="font-size:0.9em">Địch: <span id="tower-enemy-preview" style="color:#e74c3c">Lv.10</span></div>
+            <div style="margin-top:5px; font-size:0.8em; color:#aaa">Luật: Hồi 20% HP sau mỗi trận. Thua = Reset.</div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+            <button class="btn-small" style="background:#6c5ce7" onclick="openTowerTeamSelect()">👥 Chọn Team (6)</button>
+            <div style="font-weight:bold; color:#f1c40f">📀 Token: <span id="tower-token-display">0</span></div>
+        </div>
+
+        <div style="display:flex; gap:10px; justify-content:center; margin-top:10px">
+            <button class="btn-auth" style="background:#e74c3c; width:60%" onclick="startTowerBattle()">⚔️ KHIÊU CHIẾN</button>
+            <button class="btn-auth" style="background:#0984e3; width:35%" onclick="openTowerShop()">🛒 Shop</button>
+        </div>
+
+        <button class="btn-close" style="margin-top:15px" onclick="closeTower()">Thoát</button>
+    </div>
+</div>
+
+<div id="tower-shop-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:3300; justify-content:center; align-items:center;">
+    <div class="box-style" style="border-color:#f1c40f">
+        <h3 style="color:#f1c40f">🏰 TOWER SHOP</h3>
+        <div style="margin-bottom:10px">Dùng <b style="color:#f1c40f">Tower Token 📀</b> để đổi vật phẩm hiếm.</div>
+        <div id="tower-shop-list" class="shop-grid">
+            </div>
+        <button class="btn-close" onclick="document.getElementById('tower-shop-modal').style.display='none'">Đóng Shop</button>
+    </div>
+</div>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -1248,6 +1282,12 @@ const REPAIR_QUESTIONS = [
     // --- BIẾN TRẠNG THÁI CHỌN NHIỀU ---
     let stamina = 100;
     let usedCodes = [];
+    let towerData = {
+    floor: 1,           // Tầng hiện tại
+    tokens: 0,          // Tiền tháp
+    teamIndices: [],    // Index của 6 con Pokemon leo tháp
+    bestRecord: 0       // Kỷ lục cao nhất
+    };
     let lastStaminaTime = Date.now();
     const MAX_STAMINA = 100;
     let bossTeamIndices = [];
@@ -1417,6 +1457,7 @@ async function login() {
         coins: coins,
         myBag: myBag,
         usedCodes: usedCodes,
+        towerData: towerData,
         limitedShopHistory: limitedShopHistory,
         pokedex: Array.from(pokedex),
         inventory: inventory,
@@ -1472,6 +1513,13 @@ async function login() {
             lastDailyDate = d.lastDailyDate || "";
             if (d.limitedShopHistory) limitedShopHistory = d.limitedShopHistory;
             if (typeof d.stamina !== 'undefined') stamina = d.stamina;
+            if (d.towerData) {
+            towerData = d.towerData;
+    // Fix lỗi nếu data cũ thiếu field
+            if(!towerData.floor) towerData.floor = 1;
+            if(!towerData.tokens) towerData.tokens = 0;
+            if(!towerData.teamIndices) towerData.teamIndices = [];
+            }
             if (d.lastStaminaTime) lastStaminaTime = d.lastStaminaTime;
             if (d.bossTeamIndices) bossTeamIndices = d.bossTeamIndices;
 
@@ -1659,6 +1707,7 @@ function showMenu() {
             <button class="btn" style="background:#9b59b6; color:white; border:2px solid #8e44ad" onclick="openMarket()"><span>⚖️ Chợ</span></button>
             <button class="btn" style="background:#8e44ad; color:white; border:2px solid #9b59b6" onclick="openLeaderboard()"><span>🏆 BXH</span></button>
             <button class="btn" style="background:#c0392b; color:white; border:2px solid #e74c3c" onclick="openWorldBoss()"><span>☠️ BOSS</span></button>
+            <button class="btn" style="background:#6c5ce7; color:white; border:2px solid #a29bfe" onclick="openTower()"><span>🗼 THÁP</span></button>
         </div>
 
         <div style="width:100%; display:flex; gap:5px">
@@ -2499,6 +2548,34 @@ function playCry(id) {
             enemyName = `Trainer's ${data.name.toUpperCase()}`;
             enemyLevel = p.level; // Ngang cấp
             enemyIv = 15; // IV Trung bình
+            } else if (difficulty === 'tower') {
+            // --- LOGIC TOWER: Địch mạnh dần ---
+            isBoss = false; // Mặc định không phải boss to (trừ tầng 10, 20...)
+            
+            // Mỗi 10 tầng gặp Boss (Legendary hoặc Evolved)
+            let isTowerBossLevel = (towerData.floor % 10 === 0);
+            
+            // Random ID
+            if (isTowerBossLevel) {
+                // Tầng boss: Random Legend hoặc cấp 3
+                id = LEGENDARY_IDS[Math.floor(Math.random() * LEGENDARY_IDS.length)];
+                enemyName = `TOWER KEEPER ${towerData.floor}`;
+                isBoss = true; // Để dùng ảnh đẹp và buff chỉ số
+            } else {
+                id = Math.floor(Math.random() * 649) + 1;
+                enemyName = `Tower Guardian`;
+            }
+
+            // Fetch dữ liệu
+            let res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+            data = await res.json();
+
+            // Tính Level: 9 + Tầng (Tầng 1 -> Lv 10, Tầng 100 -> Lv 109)
+            enemyLevel = 9 + towerData.floor;
+            
+            // IV tăng dần: Tầng 1 (IV 5) -> Tầng 100 (IV 31)
+            enemyIv = Math.min(31, Math.floor(towerData.floor / 3)); 
+        
             
         } else {
             // HARD (GYM): Đúng hệ, Level cao, Max IV, Buff chỉ số
@@ -4647,9 +4724,196 @@ function makeDraggable(elementId) {
     window.addEventListener('touchmove', onDrag, {passive: false});
     window.addEventListener('touchend', endDrag);
 }
+    // --- HỆ THỐNG CHỌN TEAM THÁP ---
+function openTowerTeamSelect() {
+    // Tái sử dụng modal chọn team của Boss nhưng đổi hành động nút Lưu
+    document.getElementById('boss-team-modal').style.display = 'flex';
+    
+    // Đổi tiêu đề cho người chơi biết đang chọn team Tháp
+    document.querySelector('#boss-team-modal h3').innerText = "Chọn Team Leo Tháp (Tối đa 6)";
+    
+    // Load team hiện tại của tháp
+    // Lọc bỏ index không còn tồn tại
+    tempTeamIndices = (towerData.teamIndices || []).filter(idx => myBag[idx]);
+    
+    // Thay đổi nút Lưu để gọi hàm lưu team Tháp
+    const saveBtn = document.querySelector('#boss-team-modal .btn-auth');
+    saveBtn.innerText = "LƯU TEAM THÁP";
+    saveBtn.onclick = saveTowerTeam;
+    
+    renderTeamGrid();
+}
+
+function saveTowerTeam() {
+    if(tempTeamIndices.length === 0) return alert("Phải chọn ít nhất 1 Pokemon!");
+    
+    towerData.teamIndices = [...tempTeamIndices];
+    saveGame();
+    
+    document.getElementById('boss-team-modal').style.display = 'none';
+    alert("Đã lưu đội hình leo tháp!");
+    updateTowerUI();
+}
+    // ======================================================
+// HỆ THỐNG BATTLE TOWER ENGINE
+// ======================================================
+
+function openTower() {
+    document.getElementById('tower-modal').style.display = 'flex';
+    updateTowerUI();
+}
+
+function closeTower() {
+    document.getElementById('tower-modal').style.display = 'none';
+}
+
+function updateTowerUI() {
+    document.getElementById('tower-floor-display').innerText = towerData.floor;
+    document.getElementById('tower-token-display').innerText = towerData.tokens;
+    
+    // Tính Level địch: Floor 1 = Lv 10, mỗi tầng tăng 1 Level
+    // Floor 100 = Lv 109
+    let enemyLv = 9 + towerData.floor;
+    document.getElementById('tower-enemy-preview').innerText = `Lv.${enemyLv}`;
+}
+
+// 1. BẮT ĐẦU TRẬN ĐẤU
+async function startTowerBattle() {
+    // A. Kiểm tra Team
+    towerData.teamIndices = towerData.teamIndices.filter(idx => myBag[idx]); // Lọc lỗi
+    if(towerData.teamIndices.length === 0) return alert("Chưa chọn đội hình leo tháp!");
+
+    // B. Kiểm tra sức khỏe Team (Ai còn sống mới được đánh)
+    let alivePokemonIdx = towerData.teamIndices.find(idx => myBag[idx].hp > 0);
+    
+    if (typeof alivePokemonIdx === 'undefined') {
+        // Toàn bộ team đã chết -> GAME OVER -> RESET
+        if(confirm("Toàn bộ đội hình đã gục ngã! Bạn có muốn Reset về Tầng 1 để chơi lại không?")) {
+            resetTowerRun();
+        }
+        return;
+    }
+
+    // C. Cấu hình trận đấu (Set flag isTowerBattle = true)
+    selectedBattleIdx = alivePokemonIdx; // Chọn con đầu tiên còn sống ra đánh
+    
+    // Đóng UI Tháp, Mở UI Battle
+    document.getElementById('tower-modal').style.display = 'none';
+    
+    // Gọi hàm startBattle với mode đặc biệt 'tower'
+    await startBattle('tower');
+}
+
+// 2. XỬ LÝ SAU TRẬN ĐẤU (THẮNG/THUA)
+// Bạn cần SỬA LẠI hàm processWin() và checkWinCondition() trong code cũ
+// Tuy nhiên, để an toàn, ta sẽ dùng hook vào logic kết thúc trận đấu.
+
+/* ⚠️ QUAN TRỌNG: 
+   Bạn hãy tìm hàm `processWin()` cũ trong code và THÊM ĐOẠN NÀY VÀO CUỐI HÀM ĐÓ:
+*/
+/*
+    // ... code cũ của processWin ...
+    
+    if(battleState.difficulty === 'tower') {
+        handleTowerWin();
+    }
+*/
+
+// Hàm xử lý khi thắng tầng tháp
+function handleTowerWin() {
+    // 1. Tăng tầng
+    towerData.floor++;
+    
+    // 2. Cập nhật kỷ lục
+    if(towerData.floor > towerData.bestRecord) towerData.bestRecord = towerData.floor;
+
+    // 3. Cơ chế Hồi phục 20% cho cả team
+    let healMsg = "";
+    towerData.teamIndices.forEach(idx => {
+        let p = myBag[idx];
+        if(p && p.hp > 0) { // Chỉ hồi cho con còn sống
+            let healAmount = Math.floor(p.maxHp * 0.2);
+            p.hp = Math.min(p.maxHp, p.hp + healAmount);
+        }
+    });
+    healMsg = "Team được hồi 20% HP.";
+
+    // 4. Phần thưởng mỗi 10 tầng
+    let rewardMsg = "";
+    if((towerData.floor - 1) % 10 === 0) {
+        towerData.tokens += 1;
+        rewardMsg = "\n🎁 Nhận được 1 Tower Token!";
+        playSFX('levelup');
+    }
+
+    saveGame();
+    
+    // 5. Thông báo và mở lại bảng Tháp
+    setTimeout(() => {
+        alert(`🏆 CHIẾN THẮNG TẦNG ${towerData.floor - 1}!\n${healMsg}${rewardMsg}`);
+        openTower(); // Mở lại bảng tháp để đi tiếp
+    }, 500);
+}
+
+// Hàm Reset khi thua
+function resetTowerRun() {
+    towerData.floor = 1;
+    // Hồi đầy máu cho team để chơi lại từ đầu
+    towerData.teamIndices.forEach(idx => {
+        if(myBag[idx]) myBag[idx].hp = myBag[idx].maxHp;
+    });
+    saveGame();
+    updateTowerUI();
+    alert("Đã Reset về Tầng 1. Chúc may mắn lần này!");
+}
+
+// ======================================================
+// HỆ THỐNG SHOP TOKEN
+// ======================================================
+const TOWER_SHOP = [
+    { id: 'master-ball', name: 'Master Ball', price: 1, img: 'master-ball.png' },
+    { id: 'shiny-charm', name: 'Shiny Charm', price: 5, img: 'shiny-charm.png' },
+    { id: 'mystery-egg', name: 'Mystery Egg', price: 2, img: 'lucky-egg.png' }, // Trứng hiếm
+    { id: 'rare-candy', name: '5x Rare Candy', price: 1, rewardId: 'rare-candy', qty: 5, img: 'rare-candy.png' }
+];
+
+function openTowerShop() {
+    document.getElementById('tower-shop-modal').style.display = 'flex';
+    const list = document.getElementById('tower-shop-list');
+    
+    list.innerHTML = TOWER_SHOP.map(item => `
+        <div class="shop-card" style="border-color:#f1c40f">
+            <img src="${URL_ITEMS}${item.img}" width="50">
+            <div style="font-weight:bold; color:white">${item.name}</div>
+            <div style="color:#f1c40f; margin:5px 0">${item.price} 📀</div>
+            <button class="btn-small" style="width:100%; background:#6c5ce7" onclick="buyTowerItem('${item.id}')">ĐỔI</button>
+        </div>
+    `).join('');
+}
+
+function buyTowerItem(itemId) {
+    const item = TOWER_SHOP.find(i => i.id === itemId);
+    if(towerData.tokens < item.price) return alert("Không đủ Tower Token!");
+    
+    if(confirm(`Đổi ${item.price} Token lấy ${item.name}?`)) {
+        towerData.tokens -= item.price;
+        
+        let realId = item.rewardId || item.id;
+        let qty = item.qty || 1;
+        
+        if(!inventory[realId]) inventory[realId] = 0;
+        inventory[realId] += qty;
+        
+        saveGame();
+        openTowerShop(); // Reload UI
+        document.getElementById('tower-token-display').innerText = towerData.tokens;
+        alert("Đổi quà thành công!");
+    }
+}
 </script>
 </body>
 </html>
+
 
 
 
