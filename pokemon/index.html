@@ -30,15 +30,25 @@
 
 /* 1. Khung tổng: Xếp dọc từ trên xuống dưới */
 #app {
+    /* --- CẤU TRÚC (SỬA LỖI DỒN CỤC) --- */
     display: flex !important;
-    flex-direction: column !important; /* Quan trọng: Xếp dọc */
-    height: 100vh !important;       /* Chiều cao full màn hình */
-    overflow: hidden !important;    /* Cắt phần thừa */
+    flex-direction: column !important;
     width: 100%;
     max-width: 500px; /* Giới hạn chiều rộng trên PC */
-    margin: 0 auto;   /* Căn giữa */
-}
+    margin: 0 auto;   /* Căn giữa màn hình */
+    height: 100vh !important;
+    overflow: hidden !important;
+    position: relative;
 
+    /* --- GIAO DIỆN (LẤY LẠI KHUNG ĐEN) --- */
+    background-color: rgba(47, 49, 54, 0.95) !important; /* Màu đen xám (Discord style) */
+    backdrop-filter: blur(8px); /* Làm mờ hình nền đằng sau */
+    
+    /* Viền và bóng đổ để tạo khối */
+    border-left: 1px solid rgba(0,0,0,0.5);
+    border-right: 1px solid rgba(0,0,0,0.5);
+    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+}
 /* 2. Header: Cố định chiều cao ở trên cùng */
 header {
     flex: 0 0 auto !important; /* Không được co giãn */
@@ -5958,6 +5968,7 @@ function initOnlineSystem() {
 </script>
 </body>
 </html>
+
 
 
 
