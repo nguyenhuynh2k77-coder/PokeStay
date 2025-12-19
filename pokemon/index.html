@@ -23,6 +23,7 @@
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png">
     
     <style>
+        
         /* Style cho các thẻ độ hiếm */
 .rarity-tag {
     padding: 2px 6px;
@@ -2713,7 +2714,8 @@ async function spawnPokemon() {
             visualClass = "variant-rainbow"; // Rainbow đè hiệu ứng Shadow nếu có
             borderSideColor = "gold";
         }
-
+        const oldSprite = document.getElementById('active-wild-sprite');
+        if (oldSprite) oldSprite.removeAttribute('id');
         // C. Render HTML
         log(`<div class="embed" style="border-left-color:${borderSideColor}">
             <div class="embed-header">
@@ -6389,6 +6391,7 @@ function getRarity(pokemon) {
 </script>
 </body>
 </html>
+
 
 
 
