@@ -776,6 +776,23 @@
 /* Thêm tag hiển thị tên cho ngầu */
 .tag-shadow { background: #2c3e50; color: #a29bfe; border: 1px solid #9b59b6; }
 .tag-rainbow { background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet); color: black; font-weight:bold; animation: pulse 1s infinite; }
+        /* CSS CHO MAP CARD */
+.map-card {
+    background: #2f3136;
+    border: 1px solid #444;
+    border-radius: 5px;
+    padding: 10px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: 0.2s;
+    text-align: center;
+}
+.map-card:hover { transform: translateY(-2px); border-color: #0984e3; }
+.map-card.active { border: 2px solid #2ecc71; background: rgba(46, 204, 113, 0.1); }
+.map-card.locked { opacity: 0.6; cursor: not-allowed; filter: grayscale(1); }
+.map-icon { font-size: 2em; margin-bottom: 5px; display: block; }
+.map-req { font-size: 0.7em; color: #ed4245; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -799,19 +816,27 @@
     
     <div id="app">
         <header>
-            <div style="display:flex; flex-direction:column">
-                <div style="display:flex; align-items:center; gap:5px">
-                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" width="24" height="24">
-                    <span>PokeStay Online</span>
+    <div style="display:flex; flex-direction:column; width:100%">
+        <div style="display:flex; justify-content:space-between; align-items:center">
+            <div style="display:flex; align-items:center; gap:5px">
+                <button onclick="openMap()" style="background:none; border:none; cursor:pointer; font-size:1.5em" title="Mở Bản Đồ">🗺️</button>
+                <div>
+                    <div style="font-weight:bold; font-size:0.9em" id="display-username">TRAINER</div>
+                    <div style="font-size:0.7em; color:#f1c40f" id="rank-title">Tập sự</div>
                 </div>
-                <span id="display-username" style="font-size:0.8em; color:#bbb">TRAINER</span>
             </div>
-            <div style="display:flex; align-items:center; gap:10px">
-                <button id="btn-mute" onclick="toggleMute()" style="background:none; border:none; cursor:pointer; font-size:1.2em">🔊</button>
-                <div class="stats"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/nugget.png" style="width:20px"> <span id="coin-display">0</span></div>
+            
+            <div style="text-align:right">
+                <div style="font-weight:bold; color:#f1c40f"><span id="coin-display">0</span> 💰</div>
+                <div style="font-size:0.8em; color:#3ba55c">Lv.<span id="trainer-level">1</span></div>
             </div>
-        </header>
+        </div>
 
+        <div style="width:100%; height:4px; background:#444; margin-top:5px; border-radius:2px; position:relative">
+            <div id="trainer-xp-bar" style="width:0%; height:100%; background:#0984e3; transition:width 0.5s"></div>
+        </div>
+    </div>
+</header>
         <div id="badge-bar" style="display:none; gap:5px; justify-content:center; background:rgba(0,0,0,0.2); padding:5px;"></div>
         <div id="buff-bar" style="padding: 5px 15px; font-size: 0.75em; display: flex; gap: 10px; background: rgba(0,0,0,0.3); min-height: 20px;"></div>
         
@@ -1173,6 +1198,17 @@
             </div>
         
         <button class="btn-auth" style="background:#333; margin-top:10px" onclick="surrenderTower()">🏳️ ĐẦU HÀNG (Reset)</button>
+    </div>
+</div>
+    <div id="map-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3100; justify-content:center; align-items:center;">
+    <div class="box-style" style="width:95%; max-width:500px; border-color:#0984e3; background:#222">
+        <h2 style="color:#0984e3; margin:0 0 10px 0">🗺️ BẢN ĐỒ THẾ GIỚI</h2>
+        <div style="color:#bbb; font-size:0.8em; margin-bottom:15px">Chọn khu vực để săn bắt Pokemon đặc thù.</div>
+        
+        <div id="map-list" class="shop-grid" style="max-height:400px; overflow-y:auto">
+            </div>
+
+        <button class="btn-close" style="margin-top:15px" onclick="document.getElementById('map-modal').style.display='none'">Đóng</button>
     </div>
 </div>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -1676,6 +1712,8 @@ async function login() {
         pokedex: Array.from(pokedex),
         inventory: inventory,
         lastDailyDate: lastDailyDate,
+        trainerData: trainerData,
+        currentZone: currentZone,
         dailyQuizStatus: dailyQuizStatus,
         userStats: userStats,
         stamina: stamina,
@@ -1727,6 +1765,9 @@ async function login() {
             lastDailyDate = d.lastDailyDate || "";
             if (d.limitedShopHistory) limitedShopHistory = d.limitedShopHistory;
             if (typeof d.stamina !== 'undefined') stamina = d.stamina;
+            if (d.trainerData) trainerData = d.trainerData;
+            if (d.currentZone) currentZone = d.currentZone;
+            updateTrainerUI();
             if (d.towerData) {
             towerData = d.towerData;
     // Fix lỗi nếu data cũ thiếu field
@@ -2394,103 +2435,85 @@ let originalEnemyImgSrc = "";
 
 // --- 1. HÀM SPAWN POKEMON (Đã thêm ID active-wild-sprite) ---
 // --- HÀM SPAWN POKEMON (ĐÃ SỬA LỖI TRÙNG LẶP) ---
+// --- HÀM SPAWN POKEMON (ĐÃ NÂNG CẤP ZONE) ---
 async function spawnPokemon() {
     try {
-        // A. RESET TRẠNG THÁI
+        // ... (Giữ nguyên các dòng reset trạng thái cũ) ...
         activeBuffs = { berry: false, egg: false };
         battleState.active = false;
-        
-        // Ẩn các menu không cần thiết
         document.getElementById('battle-main-menu').style.display = 'none';
-        
-        // Random ID (Gen 1-5)
-        let id = Math.floor(Math.random() * 649) + 1;
 
-        // B. CHECK BIẾN THỂ (SHINY / SHADOW / RAINBOW)
+        let id = 1;
+
+        // LOGIC CHỌN ID THEO ZONE
+        if (currentZone === 'all') {
+            // Zone tự do: Random tất cả (Gen 1-5)
+            id = Math.floor(Math.random() * 649) + 1;
+        } else {
+            // Zone đặc biệt: Lọc theo hệ
+            let zoneInfo = ZONES.find(z => z.id === currentZone);
+            if (zoneInfo) {
+                // Chọn ngẫu nhiên 1 hệ trong danh sách của Zone đó
+                let randomType = zoneInfo.types[Math.floor(Math.random() * zoneInfo.types.length)];
+                
+                // Gọi API lấy danh sách Pokemon của hệ đó
+                log(`<i>Đang tìm Pokemon hệ ${randomType}...</i>`);
+                let typeRes = await fetch(`https://pokeapi.co/api/v2/type/${randomType}`);
+                let typeData = await typeRes.json();
+                
+                // Lấy 1 con bất kỳ trong list (pokemon array)
+                let pokeList = typeData.pokemon;
+                // Lọc bỏ các con Gen 6+ (ID > 649) để tránh lỗi ảnh
+                let validList = pokeList.filter(p => {
+                    let urlParts = p.pokemon.url.split('/');
+                    let pId = parseInt(urlParts[urlParts.length - 2]);
+                    return pId <= 649; 
+                });
+
+                if(validList.length > 0) {
+                    let randomEntry = validList[Math.floor(Math.random() * validList.length)];
+                    // Lấy ID từ URL (vd: .../pokemon/25/)
+                    let parts = randomEntry.pokemon.url.split('/');
+                    id = parts[parts.length - 2]; 
+                } else {
+                    id = Math.floor(Math.random() * 649) + 1; // Fallback
+                }
+            }
+        }
+
+        // ... (Phần dưới giữ nguyên như cũ) ...
+        // B. CHECK BIẾN THỂ ...
+        // C. FETCH DỮ LIỆU ...
+        // (Copy lại y chang đoạn code spawn cũ từ dòng `let hasCharm...` trở đi)
+        
+        // --- CHÚ Ý: DÁN LẠI PHẦN CÒN LẠI CỦA HÀM SPAWN CŨ VÀO ĐÂY ---
+        // (Tôi viết tắt đoạn này để bạn tự ghép, nếu cần full code thì bảo tôi)
+        
+        // ... Code cũ ...
         let hasCharm = (inventory['shiny-charm'] || 0) > 0;
         let rand = Math.random();
+        let isShiny = false; let isShadow = false; let isRainbow = false;
         
-        let isShiny = false;
-        let isShadow = false;
-        let isRainbow = false;
-
-        // Tỷ lệ Rainbow: 1/10.000 (0.01%)
-        if (rand < 0.0001) { 
-            isRainbow = true; 
-        } 
-        // Tỷ lệ Shadow: 1/1.000 (0.1%)
-        else if (rand < 0.0011) { 
-            isShadow = true; 
-        } 
-        // Tỷ lệ Shiny: ~1/4096 (Có Charm thì x3)
+        if (rand < 0.0001) isRainbow = true; 
+        else if (rand < 0.0011) isShadow = true; 
         else {
             let shinyRate = hasCharm ? (3 / 4096) : (1 / 4096);
             if (Math.random() < shinyRate) isShiny = true;
         }
 
-        // C. FETCH DỮ LIỆU (CHỈ KHAI BÁO 'res' 1 LẦN TẠI ĐÂY)
         const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); 
         const data = await res.json();
+        // ... (Tiếp tục y hệt code cũ cho đến hết hàm) ...
         
-        let img = data.sprites.other['official-artwork'].front_default || data.sprites.front_default; 
-        // Nếu là Shiny và không phải Shadow/Rainbow thì lấy ảnh Shiny gốc
-        if(isShiny && !isShadow && !isRainbow) img = data.sprites.front_shiny || img; 
+        // ...
         
-        let stats = {};
-        data.stats.forEach(s => { stats[s.stat.name] = s.base_stat; });
-        let iv = Math.floor(Math.random() * 32); 
-
-        // D. TÍNH CATCH RATE
-        let baseRate = 255; 
-        if (data.base_experience > 200) baseRate = 60; 
-        
-        // Shadow/Rainbow khó bắt hơn
-        if (isShadow) baseRate = Math.floor(baseRate * 0.7);
-        if (isRainbow) baseRate = Math.floor(baseRate * 0.5);
-
-        // Tạo object Pokemon
-        let p = { 
-            id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, 
-            isShiny: isShiny, isShadow: isShadow, isRainbow: isRainbow,
-            img: img, baseXp: data.base_experience, 
-            baseHp: stats['hp'], baseAtk: stats['attack'], baseDef: stats['defense'], baseSpA: stats['special-attack'], baseSpD: stats['special-defense'], baseSpd: stats['speed'],
-            level: 5, xp: 0, maxXp: 100,
-            catchRate: baseRate 
-        };
-        
-        recalcStats(p); // Tính chỉ số
-        assignMoves(p);
-
-        // E. HIỂN THỊ RA MÀN HÌNH
-        currentWild = p;
-        playCry(p.id);
-
-        // Xác định Class CSS & Màu sắc
-        let visualClass = "";
-        let namePrefix = "";
-        let titleColor = "#00b0f4"; // Màu mặc định (Xanh dương)
-
-        if (isRainbow) { visualClass = "variant-rainbow"; namePrefix = "🌈 "; titleColor = "gold"; }
-        else if (isShadow) { visualClass = "variant-shadow"; namePrefix = "👿 "; titleColor = "#9b59b6"; }
-        else if (isShiny) { titleColor = "#e74c3c"; namePrefix = "✨ "; }
-
-        // Render HTML
-        log(`<div class="embed" style="border-left-color:${titleColor}">
-            <div class="embed-header">
-                <div>
-                    <span class="rarity-tag" style="background:${titleColor}">${isRainbow?'RAINBOW':(isShadow?'SHADOW':'WILD')}</span> 
-                    <span class="embed-title">${namePrefix}${currentWild.name}</span>
-                    <div class="embed-desc">IV: ${currentWild.iv}/31 | HP: ${p.maxHp}</div>
-                </div>
-                <img id="active-wild-sprite" class="poke-sprite ${visualClass}" src="${currentWild.img}">
-            </div>
-        </div>`);
-        
-        renderBattleControls(); // Hiện nút bắt
+        // Sau khi spawn xong, cập nhật UI level
+        updateTrainerUI();
 
     } catch (e) {
-        console.error("Lỗi spawn:", e);
-        log("Có lỗi khi tìm Pokemon hoang dã...");
+        console.error(e);
+        log("Lỗi tìm kiếm, thử lại...");
+        spawnPokemon(); // Thử lại nếu lỗi mạng
     }
 }
     // --- GIAO DIỆN SĂN BẮT MỚI (NẰM NGANG) ---
@@ -2597,7 +2620,14 @@ function catchAttempt(ballType) {
 function captureSuccess() {
     // 1. Hiệu ứng âm thanh
     playSFX('catch');
-
+    
+    let let xp = 10;
+    if (currentWild.baseXp > 200) xpGain += 20;
+    if (currentWild.isShiny) xpGain += 40;
+    if (currentWild.isShadow || currentWild.isRainbow) xpGain += 50;
+    
+    addTrainerXp(xpGain); 
+    log(`<span style="color:#0984e3; font-weight:bold">+${xpGain} Trainer XP</span>`);
     // 2. Thêm vào Pokedex & Túi
     let isNew = !pokedex.has(currentWild.id);
     pokedex.add(currentWild.id);
@@ -5601,9 +5631,115 @@ function surrenderTower() {
         resetTowerRun();
     }
 }
+    // --- CONFIG BẢN ĐỒ & LEVEL ---
+let trainerData = {
+    level: 1,
+    xp: 0,
+    maxXp: 100
+};
+let currentZone = 'all'; // Mặc định là vùng tự do (Random hết)
+
+// Danh sách các khu vực
+const ZONES = [
+    { id: 'all', name: 'Thảo Nguyên', icon: '🌿', desc: 'Pokemon ngẫu nhiên', types: [], req: 1 },
+    { id: 'forest', name: 'Rừng Rậm', icon: '🌲', desc: 'Hệ Cỏ, Bọ, Độc', types: ['grass', 'bug', 'poison'], req: 3 },
+    { id: 'volcano', name: 'Núi Lửa', icon: '🌋', desc: 'Hệ Lửa, Đá, Đất', types: ['fire', 'rock', 'ground'], req: 10 },
+    { id: 'sea', name: 'Biển Cả', icon: '🌊', desc: 'Hệ Nước, Băng', types: ['water', 'ice'], req: 15 },
+    { id: 'power', name: 'Nhà Máy Điện', icon: '⚡', desc: 'Hệ Điện, Thép', types: ['electric', 'steel'], req: 20 },
+    { id: 'haunted', name: 'Nghĩa Địa', icon: '👻', desc: 'Hệ Ma, Bóng Tối, Siêu Linh', types: ['ghost', 'dark', 'psychic'], req: 25 },
+    { id: 'dragon', name: 'Hang Rồng', icon: '🐉', desc: 'Hệ Rồng, Tiên (Hiếm)', types: ['dragon', 'fairy'], req: 40 }
+];
+
+// Các danh hiệu theo cấp độ
+function getRankTitle(lv) {
+    if(lv >= 50) return "MASTER";
+    if(lv >= 40) return "Champion";
+    if(lv >= 30) return "Elite";
+    if(lv >= 20) return "Veteran";
+    if(lv >= 10) return "Pro";
+    if(lv >= 5) return "Rookie";
+    return "Newbie";
+}
+    // --- HỆ THỐNG LEVEL TRAINER ---
+function addTrainerXp(amount) {
+    trainerData.xp += amount;
+    
+    // Check lên cấp
+    if(trainerData.xp >= trainerData.maxXp) {
+        trainerData.level++;
+        trainerData.xp -= trainerData.maxXp;
+        trainerData.maxXp = Math.floor(trainerData.maxXp * 1.2); // Cấp sau khó hơn cấp trước 20%
+        
+        // Quà lên cấp
+        playSFX('levelup');
+        coins += trainerData.level * 500;
+        inventory['poke-ball'] = (inventory['poke-ball']||0) + 5;
+        
+        alert(`🆙 CHÚC MỪNG! Bạn đã lên Level ${trainerData.level}!\nNhận: ${trainerData.level * 500} Xu & 5 Poke Ball.`);
+        
+        // Cập nhật lại UI Map (để mở khóa map mới)
+        renderMapList(); 
+    }
+    
+    updateTrainerUI();
+    saveGame();
+}
+
+function updateTrainerUI() {
+    document.getElementById('trainer-level').innerText = trainerData.level;
+    document.getElementById('rank-title').innerText = getRankTitle(trainerData.level);
+    
+    let pct = (trainerData.xp / trainerData.maxXp) * 100;
+    document.getElementById('trainer-xp-bar').style.width = pct + '%';
+}
+
+// --- HỆ THỐNG MAP ---
+function openMap() {
+    if(currentWild) return alert("Đang có Pokemon, không thể xem bản đồ!");
+    document.getElementById('map-modal').style.display = 'flex';
+    renderMapList();
+}
+
+function renderMapList() {
+    const list = document.getElementById('map-list');
+    list.innerHTML = ZONES.map(z => {
+        let isLocked = trainerData.level < z.req;
+        let isActive = currentZone === z.id;
+        let lockText = isLocked ? `<div class="map-req">🔒 Cần Lv.${z.req}</div>` : '';
+        let activeClass = isActive ? 'active' : '';
+        let lockedClass = isLocked ? 'locked' : '';
+        
+        // Nếu locked thì không bấm được
+        let clickAction = isLocked ? '' : `selectZone('${z.id}')`;
+        
+        return `
+        <div class="map-card ${activeClass} ${lockedClass}" onclick="${clickAction}">
+            <span class="map-icon">${z.icon}</span>
+            <div style="font-weight:bold; color:#0984e3">${z.name}</div>
+            <div style="font-size:0.8em; color:#bbb">${z.desc}</div>
+            ${lockText}
+            ${isActive ? '<div style="color:#2ecc71; font-weight:bold; font-size:0.8em">✅ Đang ở đây</div>' : ''}
+        </div>
+        `;
+    }).join('');
+}
+
+function selectZone(zoneId) {
+    currentZone = zoneId;
+    saveGame();
+    document.getElementById('map-modal').style.display = 'none';
+    
+    // Tìm tên map để thông báo
+    let z = ZONES.find(x => x.id === zoneId);
+    log(`<div style="color:#0984e3">🗺️ Đã di chuyển đến: <b>${z.name}</b></div>`);
+    
+    // Đổi background game cho sinh động (Tùy chọn, nếu bạn có ảnh)
+    // document.body.style.backgroundImage = `url('bg_${zoneId}.jpg')`; 
+}
 </script>
 </body>
 </html>
+
 
 
 
