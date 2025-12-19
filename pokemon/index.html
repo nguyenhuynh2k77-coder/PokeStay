@@ -2373,43 +2373,19 @@ function submitBuy() {
 let originalEnemyImgSrc = ""; 
 
 // --- 1. HÀM SPAWN POKEMON (Đã thêm ID active-wild-sprite) ---
+// --- HÀM SPAWN POKEMON (ĐÃ SỬA LỖI TRÙNG LẶP) ---
 async function spawnPokemon() {
-    if(myBag.length >= maxBagSize) { 
-        showMenu(); 
-        return alert("Túi đầy! Hãy nâng cấp hoặc bán bớt."); 
-    }
-if (Math.random() < 0.005) {
-    // Random một câu thoại bí ẩn
-    const secretCodes = [
-        { code: "POKESTAY", msg: "Bạn tìm thấy cái chai trôi dạt, bên trong là mã: ''" }
-    ];
-    
-    const found = secretCodes[Math.floor(Math.random() * secretCodes.length)];
-    
-    // In ra màn hình log với màu sắc nổi bật
-    log(`<div style="border:1px dashed #f1c40f; padding:10px; margin:10px 0; background:rgba(241, 196, 15, 0.1); color:#f1c40f">
-        📜 <b>MAY MẮN!</b><br>
-        ${found.msg}<br>
-        <span style="font-size:0.8em; color:#bbb">(Hãy nhập mã này vào mục Giftcode)</span>
-    </div>`);
-    
-    // Play sound nhẹ nhàng
-    playSFX('levelup');
-}
     try {
-        // A. XÁC ĐỊNH ĐỘ HIẾM & ID
-        let id = 1;
-        let randTier = Math.random(); 
+        // A. RESET TRẠNG THÁI
+        activeBuffs = { berry: false, egg: false };
+        battleState.active = false;
+        
+        // Ẩn các menu không cần thiết
+        document.getElementById('battle-main-menu').style.display = 'none';
+        
+        // Random ID (Gen 1-5)
+        let id = Math.floor(Math.random() * 649) + 1;
 
-        if (randTier < 0.002) { 
-            id = LEGENDARY_IDS[Math.floor(Math.random() * LEGENDARY_IDS.length)];
-        } else {
-            do {
-                id = Math.floor(Math.random() * MAX_ID) + 1;
-            } while (LEGENDARY_IDS.includes(id));
-        }
-
-        // B. CHECK SHINY
         // B. CHECK BIẾN THỂ (SHINY / SHADOW / RAINBOW)
         let hasCharm = (inventory['shiny-charm'] || 0) > 0;
         let rand = Math.random();
@@ -2418,7 +2394,6 @@ if (Math.random() < 0.005) {
         let isShadow = false;
         let isRainbow = false;
 
-        // Thứ tự check: Rainbow (Hiếm nhất) -> Shadow -> Shiny -> Thường
         // Tỷ lệ Rainbow: 1/10.000 (0.01%)
         if (rand < 0.0001) { 
             isRainbow = true; 
@@ -2433,12 +2408,13 @@ if (Math.random() < 0.005) {
             if (Math.random() < shinyRate) isShiny = true;
         }
 
-        // C. FETCH DỮ LIỆU
+        // C. FETCH DỮ LIỆU (CHỈ KHAI BÁO 'res' 1 LẦN TẠI ĐÂY)
         const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); 
         const data = await res.json();
         
         let img = data.sprites.other['official-artwork'].front_default || data.sprites.front_default; 
-        if(isShiny && !isShadow && !isRainbow) img = data.sprites.front_shiny || img; // Shadow/Rainbow dùng ảnh gốc rồi đè hiệu ứng
+        // Nếu là Shiny và không phải Shadow/Rainbow thì lấy ảnh Shiny gốc
+        if(isShiny && !isShadow && !isRainbow) img = data.sprites.front_shiny || img; 
         
         let stats = {};
         data.stats.forEach(s => { stats[s.stat.name] = s.base_stat; });
@@ -2452,26 +2428,27 @@ if (Math.random() < 0.005) {
         if (isShadow) baseRate = Math.floor(baseRate * 0.7);
         if (isRainbow) baseRate = Math.floor(baseRate * 0.5);
 
+        // Tạo object Pokemon
         let p = { 
             id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, 
-            isShiny: isShiny, isShadow: isShadow, isRainbow: isRainbow, // <--- LƯU FLAG VÀO ĐÂY
+            isShiny: isShiny, isShadow: isShadow, isRainbow: isRainbow,
             img: img, baseXp: data.base_experience, 
             baseHp: stats['hp'], baseAtk: stats['attack'], baseDef: stats['defense'], baseSpA: stats['special-attack'], baseSpD: stats['special-defense'], baseSpd: stats['speed'],
             level: 5, xp: 0, maxXp: 100,
             catchRate: baseRate 
         };
         
-        recalcStats(p); // Tính chỉ số (đã bao gồm bonus Shadow/Rainbow)
+        recalcStats(p); // Tính chỉ số
         assignMoves(p);
 
         // E. HIỂN THỊ RA MÀN HÌNH
         currentWild = p;
         playCry(p.id);
 
-        // Xác định Class CSS cho ảnh
+        // Xác định Class CSS & Màu sắc
         let visualClass = "";
         let namePrefix = "";
-        let titleColor = "#00b0f4";
+        let titleColor = "#00b0f4"; // Màu mặc định (Xanh dương)
 
         if (isRainbow) { visualClass = "variant-rainbow"; namePrefix = "🌈 "; titleColor = "gold"; }
         else if (isShadow) { visualClass = "variant-shadow"; namePrefix = "👿 "; titleColor = "#9b59b6"; }
@@ -2489,63 +2466,11 @@ if (Math.random() < 0.005) {
             </div>
         </div>`);
         
-        renderBattleControls();
-        // C. FETCH DỮ LIỆU
-        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); 
-        const data = await res.json();
-        
-        let img = data.sprites.other['official-artwork'].front_default || data.sprites.front_default; 
-        if(isShiny) img = data.sprites.front_shiny || img;
-        
-        let stats = {};
-        data.stats.forEach(s => { stats[s.stat.name] = s.base_stat; });
-        let iv = Math.floor(Math.random() * 32); 
+        renderBattleControls(); // Hiện nút bắt
 
-        // D. TÍNH CATCH RATE (QUAN TRỌNG)
-        let baseRate = 255; 
-        if (data.base_experience > 250) baseRate = 15;      // Rất khó
-        else if (data.base_experience > 200) baseRate = 60; // Khó
-        else if (data.base_experience > 150) baseRate = 110; // Trung bình
-        else if (data.base_experience > 100) baseRate = 160; // Dễ
-        
-        let p = { 
-            id: data.id, name: data.name.toUpperCase(), types: data.types.map(t=>t.type.name), iv: iv, isShiny: isShiny, img: img, baseXp: data.base_experience, 
-            baseHp: stats['hp'], baseAtk: stats['attack'], baseDef: stats['defense'], baseSpA: stats['special-attack'], baseSpD: stats['special-defense'], baseSpd: stats['speed'],
-            level: 5, xp: 0, maxXp: 100,
-            catchRate: baseRate // Lưu rate vào object
-        };
-        recalcStats(p);
-        assignMoves(p);
-
-        // E. HIỂN THỊ (QUAN TRỌNG: GÁN ID active-wild-sprite)
-        currentWild = p;
-        playCry(p.id);
-
-        const r = getRarity(currentWild);
-        let borderColor = '#00b0f4'; 
-        if (LEGENDARY_IDS.includes(p.id)) borderColor = '#f1c40f'; 
-        if (isShiny) borderColor = '#e74c3c'; 
-        let charmIcon = hasCharm ? `<span title="Shiny Charm Active" style="font-size:0.8em">✨Charm</span>` : '';
-
-        // Xóa ID cũ nếu còn sót
-        const oldSprite = document.getElementById('active-wild-sprite');
-        if(oldSprite) oldSprite.removeAttribute('id');
-
-        log(`<div class="embed" style="border-left-color:${borderColor}">
-            <div class="embed-header">
-                <div>
-                    <span class="rarity-tag ${r.class}">${r.label}</span> 
-                    <span class="embed-title">${currentWild.name}</span>
-                    <div class="embed-desc">IV: ${currentWild.iv}/31 | HP: ${p.maxHp} ${charmIcon}</div>
-                </div>
-                <img id="active-wild-sprite" class="poke-sprite" src="${currentWild.img}">
-            </div>
-        </div>`);
-        
-        renderBattleControls();
-    } catch(e) { 
-        console.error(e); 
-        showMenu(); 
+    } catch (e) {
+        console.error("Lỗi spawn:", e);
+        log("Có lỗi khi tìm Pokemon hoang dã...");
     }
 }
     // --- GIAO DIỆN SĂN BẮT MỚI (NẰM NGANG) ---
@@ -5492,6 +5417,7 @@ function surrenderTower() {
 </script>
 </body>
 </html>
+
 
 
 
