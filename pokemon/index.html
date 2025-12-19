@@ -4967,6 +4967,7 @@ function switchMarketTab(tab) {
 
 // --- LOGIC MUA: Tải danh sách ---
 // --- CẬP NHẬT: HIỂN THỊ HÀNG CỦA MÌNH & NGƯỜI KHÁC ---
+// --- HÀM LOAD CHỢ ĐEN (ĐÃ SỬA LỖI HIỂN THỊ MÀU SHADOW/RAINBOW) ---
 function loadMarketListings() {
     const container = document.getElementById('market-buy-tab');
     container.innerHTML = '<div style="grid-column:span 2; text-align:center; color:yellow">Đang tải dữ liệu...</div>';
@@ -4992,17 +4993,33 @@ function loadMarketListings() {
             const item = data[key];
             const isMine = item.seller === currentUser;
             
-            // Visual cơ bản
-            let shinyIcon = item.data.isShiny ? '✨' : '';
+            // --- [SỬA LỖI TẠI ĐÂY] XỬ LÝ VISUAL SHADOW/RAINBOW ---
+            let variantClass = "";  // Class CSS cho ảnh
+            let variantPrefix = ""; // Icon trước tên
+            
+            if (item.data.isRainbow) {
+                variantClass = "variant-rainbow";
+                variantPrefix = "🌈 ";
+            } else if (item.data.isShadow) {
+                variantClass = "variant-shadow";
+                variantPrefix = "👿 ";
+            } else if (item.data.isShiny) {
+                variantPrefix = "✨ ";
+            }
+            // ----------------------------------------------------
+
             let rarityInfo = getRarity(item.data); 
             
             // Tạo HTML cho thẻ Pokemon
+            // Chú ý dòng <img class="${variantClass}"> được thêm vào bên dưới
             let cardHtml = `
             <div class="market-item" style="${isMine ? 'border:1px solid #3ba55c; background:rgba(59, 165, 92, 0.1)' : ''}">
                 <span class="seller-name" style="${isMine ? 'color:#3ba55c' : ''}">${isMine ? 'Của bạn' : item.seller}</span>
-                <img src="${item.data.img}" width="60" style="image-rendering:pixelated">
+                
+                <img src="${item.data.img}" width="60" class="${variantClass}" style="image-rendering:pixelated">
+                
                 <div style="font-weight:bold; font-size:0.9em; margin-top:5px">
-                    <span class="${rarityInfo.class}">${shinyIcon}${item.data.name}</span>
+                    <span class="${rarityInfo.class}">${variantPrefix}${item.data.name}</span>
                 </div>
                 <div style="font-size:0.7em; color:#aaa">Lv.${item.data.level} | IV:${item.data.iv}</div>
                 <div class="market-price">${parseInt(item.price).toLocaleString()}💰</div>
@@ -5562,6 +5579,7 @@ function surrenderTower() {
 </script>
 </body>
 </html>
+
 
 
 
