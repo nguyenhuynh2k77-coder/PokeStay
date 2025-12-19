@@ -1664,7 +1664,7 @@ function showMenu() {
         <div style="width:100%; display:flex; gap:5px">
              <button class="btn btn-job" onclick="openJobs()"><span>💼 Job</span></button>
              <button class="btn btn-daycare" onclick="openDaycare()"><span>🏡 Care</span></button>
-             <button class="btn btn-daily" onclick="openDaily()"><span>📅 Quà</span></button>
+             <button class="btn btn-daily" onclick="openDaily()"><span>📅 Daily</span></button>
         </div>
         
         <div style="width:100%; display:flex; gap:5px">
@@ -3067,7 +3067,7 @@ function playCry(id) {
     function closeDaily() { document.getElementById('daily-modal').style.display = 'none'; }
     function checkDailyQuestGen() {
         const today = new Date().toDateString();
-        if(lastDailyDate !== today) { document.getElementById('btn-claim-daily').disabled = false; document.getElementById('btn-claim-daily').innerText = "Nhận 0💰"; } 
+        if(lastDailyDate !== today) { document.getElementById('btn-claim-daily').disabled = false; document.getElementById('btn-claim-daily').innerText = "Nhận 5000💰"; } 
         else { document.getElementById('btn-claim-daily').disabled = true; document.getElementById('btn-claim-daily').innerText = "Đã nhận"; }
         if(dailyQuests.length === 0 || dailyQuests[0].date !== today) {
             dailyQuests = [];
@@ -4650,6 +4650,7 @@ function makeDraggable(elementId) {
 </script>
 </body>
 </html>
+
 
 
 
