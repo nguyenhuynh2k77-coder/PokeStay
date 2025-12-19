@@ -2041,6 +2041,7 @@ async function login() {
         updateStats();
         updateZoneNameUI();
         initOnlineSystem();
+        initAdminListener();
         checkAdminPrivileges();
         playBGM('map');
         showMenu(); // Hiện lại menu
@@ -5261,7 +5262,25 @@ function toggleChat() {
         document.getElementById('btn-chat-float').style.display = 'block';
     }
 }
+// --- HÀM LẮNG NGHE LỆNH TỪ ADMIN (DÀNH CHO NGƯỜI CHƠI) ---
+function initAdminListener() {
+    if (!currentUser) return;
 
+    // Lắng nghe thư mục 'admin_event' trong data của mình
+    firebase.database().ref('users/' + currentUser + '/admin_event').on('value', (snapshot) => {
+        const data = snapshot.val();
+        
+        // Nếu có lệnh mới
+        if (data && data.type === 'spawn') {
+            // 1. Thực hiện Spawn ngay lập tức
+            log(`<div style="color:red; font-weight:bold">⚠️ ADMIN ĐÃ TRIỆU HỒI QUÁI VẬT!</div>`);
+            forceSpawnPokemon(data.id, data.shiny, data.shadow, data.rainbow);
+
+            // 2. Xóa lệnh ngay sau khi nhận (để tránh lặp lại khi F5)
+            snapshot.ref.remove();
+        }
+    });
+}
 function initChat() {
     if(chatListenerAdded) return;
     chatListenerAdded = true;
@@ -6153,10 +6172,21 @@ function initOnlineSystem() {
 }
     // --- HỆ THỐNG ADMIN TOOLS (CHỈ HIỆN CHO ADMIN) ---
 // --- HỆ THỐNG ADMIN PANEL CAO CẤP (DRAGGABLE) ---
+// =========================================================================
+//              HỆ THỐNG ADMIN PANEL TOÀN DIỆN (FINAL VERSION)
+// =========================================================================
+
 function checkAdminPrivileges() {
+    // Chỉ chạy nếu là ADMIN
     if (currentUser !== 'ADMIN') return;
 
-    // 1. CHÈN HTML CỦA PANEL VÀO TRANG
+    // 1. XÓA PANEL CŨ (NẾU CÓ) ĐỂ TRÁNH TRÙNG LẶP
+    const oldPanel = document.getElementById('admin-panel');
+    if (oldPanel) oldPanel.remove();
+    const oldBtn = document.getElementById('admin-toggle-btn');
+    if (oldBtn) oldBtn.remove();
+
+    // 2. TẠO HTML GIAO DIỆN PANEL MỚI
     const panelHTML = `
     <div id="admin-toggle-btn" onclick="toggleAdminPanel()">⚡</div>
     
@@ -6176,58 +6206,71 @@ function checkAdminPrivileges() {
 
             <div class="admin-group">
                 <span class="admin-label">--- TRIỆU HỒI (SPAWN) ---</span>
+                <input type="text" id="adm-spawn-target" class="admin-input" placeholder="Tên người nhận (Trống = Tự sướng)">
                 <input type="number" id="adm-poke-id" class="admin-input" placeholder="Nhập ID Pokemon (1-649)">
-                <div style="display:flex; gap:5px; margin-bottom:5px">
-                    <label><input type="checkbox" id="adm-shiny"> Shiny</label>
-                    <label><input type="checkbox" id="adm-shadow"> Shadow</label>
-                    <label><input type="checkbox" id="adm-rainbow"> Rainbow</label>
+                
+                <div style="display:flex; gap:5px; margin-bottom:5px; margin-top:5px; justify-content: space-between;">
+                    <label><input type="checkbox" id="adm-shiny"> ✨Shiny</label>
+                    <label><input type="checkbox" id="adm-shadow"> 👿Shadow</label>
+                    <label><input type="checkbox" id="adm-rainbow"> 🌈Rainbow</label>
                 </div>
-                <button class="admin-btn" onclick="adminForceSpawn()">🦖 Triệu Hồi Ngay</button>
+                
+                <button class="admin-btn" onclick="adminForceSpawn()">🦖 TRIỆU HỒI NGAY</button>
             </div>
 
             <div class="admin-group">
                 <span class="admin-label">--- TẶNG QUÀ (GIFT) ---</span>
                 <input type="text" id="adm-target-user" class="admin-input" placeholder="Tên người nhận (VD: PLAYER1)">
-                <select id="adm-gift-type" class="admin-input">
-                    <option value="coins">Vàng (Coins)</option>
-                    <option value="master-ball">Master Ball</option>
-                    <option value="ultra-ball">Ultra Ball</option>
-                </select>
-                <input type="number" id="adm-gift-amount" class="admin-input" placeholder="Số lượng (VD: 1000)">
+                <div style="display:flex; gap:5px">
+                    <select id="adm-gift-type" class="admin-input" style="width:60%">
+                        <option value="coins">Vàng (Coins)</option>
+                        <option value="master-ball">Master Ball</option>
+                        <option value="ultra-ball">Ultra Ball</option>
+                    </select>
+                    <input type="number" id="adm-gift-amount" class="admin-input" style="width:40%" placeholder="Số lượng">
+                </div>
                 <button class="admin-btn" onclick="adminSendGift()">🎁 Gửi Quà</button>
             </div>
 
-            <div class="admin-group">
-                <span class="admin-label">--- SERVER ---</span>
+            <div class="admin-group" style="border-bottom:none">
+                <span class="admin-label">--- QUẢN LÝ SERVER ---</span>
                 <input type="text" id="adm-broadcast-msg" class="admin-input" placeholder="Nội dung thông báo server...">
-                <button class="admin-btn" onclick="adminBroadcast()">📢 Phát Loa</button>
-                <button class="admin-btn" style="background:#500" onclick="adminClearChat()">🗑️ Xóa Sạch Chat</button>
-                <button class="admin-btn" style="background:#500" onclick="adminResetBoss()">☠️ Reset Boss Tuần</button>
+                <button class="admin-btn" onclick="adminBroadcast()">📢 Phát Loa Server</button>
+                <div style="display:flex; gap:5px; margin-top:5px">
+                    <button class="admin-btn" style="background:#800" onclick="adminClearChat()">🗑️ Xóa Chat</button>
+                    <button class="admin-btn" style="background:#800" onclick="adminResetBoss()">☠️ Reset Boss</button>
+                </div>
             </div>
         </div>
     </div>`;
 
-    // Chèn vào body
+    // 3. CHÈN VÀO TRANG WEB
     document.body.insertAdjacentHTML('beforeend', panelHTML);
 
-    // 2. KÍCH HOẠT KÉO THẢ (DRAG & DROP)
+    // 4. KÍCH HOẠT KÉO THẢ (DRAG & DROP)
     dragElement(document.getElementById("admin-panel"));
 }
 
-// --- CÁC HÀM HỖ TRỢ ADMIN ---
+// ---------------------------------------------------------
+//        CÁC HÀM HỖ TRỢ (HELPER FUNCTIONS)
+// ---------------------------------------------------------
 
 // 1. Đóng/Mở Panel
 function toggleAdminPanel() {
     const p = document.getElementById('admin-panel');
-    p.style.display = (p.style.display === 'none' || p.style.display === '') ? 'block' : 'none';
+    if (p.style.display === 'none' || p.style.display === '') {
+        p.style.display = 'block';
+    } else {
+        p.style.display = 'none';
+    }
 }
 
 // 2. Logic Kéo Thả (Draggable)
 function dragElement(elmnt) {
     var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-    if (document.getElementById(elmnt.id + "-header")) {
-        // Nếu có header thì nắm đầu header để kéo
-        document.getElementById(elmnt.id + "-header").onmousedown = dragMouseDown;
+    const header = document.getElementById(elmnt.id + "-header");
+    if (header) {
+        header.onmousedown = dragMouseDown;
     } else {
         elmnt.onmousedown = dragMouseDown;
     }
@@ -6258,53 +6301,73 @@ function dragElement(elmnt) {
     }
 }
 
-// --- CÁC CHỨC NĂNG HACK CỤ THỂ ---
+// ---------------------------------------------------------
+//        CÁC HÀM CHỨC NĂNG (LOGIC XỬ LÝ)
+// ---------------------------------------------------------
 
-// Hack cho bản thân
+// [SELF] Hack Đồ Cho Mình
 function adminAddCoins() {
     coins += 1000000000;
     saveGame(); updateStats();
-    alert("Đã thêm 1 tỷ vàng!");
+    alert("✅ Đã hack 1 Tỷ Vàng!");
 }
 function adminAddBalls() {
     inventory['master-ball'] = (inventory['master-ball'] || 0) + 100;
     saveGame();
-    alert("Đã thêm 100 Master Ball!");
+    alert("✅ Đã lấy 100 Master Ball!");
 }
 function adminFullStamina() {
     stamina = 100;
     updateStaminaUI();
+    alert("✅ Full Stamina!");
 }
 
-// Triệu hồi Pokemon chỉ định
+// [SPAWN] Triệu Hồi Pokemon (Hỗ trợ từ xa)
 async function adminForceSpawn() {
     let id = document.getElementById('adm-poke-id').value;
-    if(!id || id < 1 || id > 649) return alert("ID không hợp lệ (1-649)");
+    let targetUser = document.getElementById('adm-spawn-target').value.trim().toUpperCase(); // Lấy tên người nhận
+
+    if(!id || id < 1 || id > 649) return alert("❌ ID không hợp lệ (1-649)");
     
     let isShiny = document.getElementById('adm-shiny').checked;
     let isShadow = document.getElementById('adm-shadow').checked;
     let isRainbow = document.getElementById('adm-rainbow').checked;
 
-    alert(`Đang triệu hồi Pokemon ID: ${id}...`);
-    
-    // Gọi hàm spawn đặc biệt (Bỏ qua random)
-    await forceSpawnPokemon(id, isShiny, isShadow, isRainbow);
-    
-    // Ẩn panel để nhìn thấy pokemon
-    toggleAdminPanel();
+    // CASE 1: Spawn cho người khác
+    if (targetUser && targetUser !== "") {
+        if (!confirm(`Bạn muốn triệu hồi Pokemon ID ${id} cho người chơi [${targetUser}]?`)) return;
+
+        // Gửi lệnh vào Firebase của người đó
+        firebase.database().ref('users/' + targetUser + '/admin_event').set({
+            type: 'spawn',
+            id: id,
+            shiny: isShiny,
+            shadow: isShadow,
+            rainbow: isRainbow,
+            timestamp: Date.now()
+        }, (error) => {
+            if (error) alert("❌ Lỗi: Người chơi không tồn tại hoặc lỗi mạng.");
+            else alert(`✅ Đã gửi Pokemon tới màn hình của ${targetUser}!`);
+        });
+    } 
+    // CASE 2: Spawn cho chính mình (Test)
+    else {
+        // alert(`Đang triệu hồi Pokemon ID: ${id} tại đây...`);
+        await forceSpawnPokemon(id, isShiny, isShadow, isRainbow);
+        // Không đóng panel nữa để tiện spawn liên tục
+    }
 }
 
-// Tặng quà người chơi khác
+// [GIFT] Tặng Quà
 function adminSendGift() {
     let target = document.getElementById('adm-target-user').value.toUpperCase().trim();
     let type = document.getElementById('adm-gift-type').value;
     let amount = parseInt(document.getElementById('adm-gift-amount').value);
 
-    if(!target || !amount) return alert("Nhập thiếu thông tin!");
+    if(!target || !amount) return alert("❌ Nhập thiếu thông tin!");
 
-    // Kết nối Firebase của người đó
     firebase.database().ref('users/' + target).once('value', snapshot => {
-        if(!snapshot.exists()) return alert("Không tìm thấy người chơi này!");
+        if(!snapshot.exists()) return alert("❌ Không tìm thấy người chơi này!");
         
         let data = snapshot.val();
         
@@ -6312,43 +6375,43 @@ function adminSendGift() {
             let current = data.coins || 0;
             firebase.database().ref('users/' + target + '/coins').set(current + amount);
         } else {
-            // Tặng vật phẩm (Bóng)
             let currentInv = data.inventory || {};
             let currentItemQty = currentInv[type] || 0;
-            
-            // Cập nhật đường dẫn inventory
             firebase.database().ref('users/' + target + '/inventory/' + type).set(currentItemQty + amount);
         }
         alert(`✅ Đã gửi ${amount} ${type} cho ${target}`);
     });
 }
 
-// Server Tools
+// [SERVER] Công cụ quản lý
 function adminClearChat() {
-    if(confirm("Xóa sạch chat server?")) {
+    if(confirm("Xóa sạch toàn bộ lịch sử Chat Server?")) {
         firebase.database().ref('global_chat').remove();
-        alert("Done!");
+        alert("✅ Chat đã được dọn sạch!");
     }
 }
 function adminResetBoss() {
-    firebase.database().ref('world_boss/weekId').set(0);
-    alert("Boss đã được reset.");
+    if(confirm("Bạn có chắc muốn Reset Boss tuần không?")) {
+        firebase.database().ref('world_boss/weekId').set(0);
+        alert("✅ Boss đã được Reset.");
+    }
 }
 function adminBroadcast() {
     let msg = document.getElementById('adm-broadcast-msg').value;
-    if(!msg) return;
+    if(!msg) return alert("Chưa nhập nội dung!");
     
-    // Gửi tin nhắn chat đặc biệt
     firebase.database().ref('global_chat').push({
         user: "ADMIN",
         text: "📢 THÔNG BÁO: " + msg,
         timestamp: firebase.database.ServerValue.TIMESTAMP
     });
-    alert("Đã phát thông báo!");
+    alert("✅ Đã phát thông báo toàn server!");
+    document.getElementById('adm-broadcast-msg').value = ""; // Xóa ô nhập sau khi gửi
 }
 </script>
 </body>
 </html>
+
 
 
 
