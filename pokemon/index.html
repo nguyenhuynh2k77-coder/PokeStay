@@ -3610,10 +3610,90 @@ else dailyQuests.push({
     function buyDaycareSlot() { if(daycare.unlocked >= 5) return; let price = DAYCARE_PRICES[daycare.unlocked]; if(coins >= price) { coins -= price; daycare.unlocked++; daycare.slots.push({pokemon: null, depositTime: 0}); saveGame(); updateStats(); updateDaycareUI(); alert("Đã mở rộng Daycare thành công!"); } else { alert("Không đủ tiền!"); } }
     function openJobs() { if(currentWild) return; updateMiningUI(); let totalBalls = (inventory['poke-ball']||0); let povertyLine = coins < 200 && totalBalls < 5; const aidBtn = document.getElementById('emergency-aid'); if(povertyLine) { aidBtn.style.display = 'block'; } else { aidBtn.style.display = 'none'; } document.getElementById('job-modal').style.display = 'flex'; document.getElementById('job-menu').style.display = 'block'; document.getElementById('quiz-ui').style.display = 'none'; }
     function closeJobs() { document.getElementById('job-modal').style.display = 'none'; }
-    function openAchieve() { if(currentWild) return; const list = document.getElementById('achieve-list'); list.innerHTML = ACHIEVEMENT_DB.map(a => { let isDone = completedAchievements.includes(a.id); let canClaim = !isDone && a.req(userStats); let btn = isDone ? `<button class="achieve-btn achieve-done">Đã nhận</button>` : (canClaim ? `<button class="achieve-btn achieve-claim" onclick="claimAchieve('${a.id}')">NHẬN</button>` : `<button class="achieve-btn" style="opacity:0.5">Chưa đạt</button>`); return `<div class="achieve-row" onclick="previewAchieve('${a.id}')"><div class="achieve-info"><b>${a.name}</b><div style="font-size:0.8em;color:#bbb">${a.desc}</div></div>${btn}</div>`; }).join(''); document.getElementById('achieve-modal').style.display = 'flex'; }
-    function closeAchieve() { document.getElementById('achieve-modal').style.display = 'none'; }
-    function previewAchieve(id) { const a = ACHIEVEMENT_DB.find(x => x.id === id); if(a) alert(`Phần thưởng: ${a.reward.qty}x ${a.reward.id.toUpperCase()}`); }
-    function claimAchieve(id) { if(completedAchievements.includes(id)) return; const a = ACHIEVEMENT_DB.find(x => x.id === id); if(a) { completedAchievements.push(id); if(a.reward.type === 'item') { if(!inventory[a.reward.id]) inventory[a.reward.id]=0; inventory[a.reward.id]+=a.reward.qty; } saveGame(); openAchieve(); } }
+    // --- HỆ THỐNG THÀNH TỰU (ĐÃ SỬA LỖI HỒI LẠI) ---
+
+function openAchieve() {
+    if(currentWild) return;
+    
+    const list = document.getElementById('achieve-list');
+    list.innerHTML = '';
+    let html = '';
+
+    ACHIEVEMENT_DB.forEach(a => {
+        // 1. Kiểm tra xem thành tựu này ID đã nằm trong danh sách đã hoàn thành chưa
+        // (completedAchievements là mảng lưu các ID đã nhận, ví dụ: ['novice', 'catch_10'])
+        let isDone = completedAchievements.includes(a.id);
+
+        // 2. Kiểm tra điều kiện (Nếu chưa xong thì mới check chỉ số)
+        let canClaim = !isDone && a.req(userStats);
+
+        let btn = '';
+
+        if (isDone) {
+            // Nếu đã nhận -> Hiện nút xám "Đã nhận"
+            btn = `<button class="achieve-btn achieve-done" style="background:#444; color:#bbb; border:1px solid #666; cursor:default" disabled>Đã nhận</button>`;
+        } else if (canClaim) {
+            // Nếu đủ điều kiện -> Hiện nút "NHẬN" sáng màu
+            btn = `<button class="achieve-btn achieve-claim" style="background:#2ecc71; animation:pulse 1s infinite" onclick="claimAchieve('${a.id}')">NHẬN THƯỞNG</button>`;
+        } else {
+            // Chưa đủ -> Hiện nút mờ
+            btn = `<button class="achieve-btn" style="opacity:0.5; background:#333; cursor:not-allowed">Chưa đạt</button>`;
+        }
+
+        // Render giao diện
+        html += `
+        <div class="achieve-row" onclick="previewAchieve('${a.id}')" style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3); padding:10px; margin-bottom:5px; border-radius:5px; border:1px solid ${isDone ? '#2ecc71' : '#444'}">
+            <div class="achieve-info" style="text-align:left">
+                <b style="color:${isDone ? '#2ecc71' : 'white'}">${a.name}</b>
+                <div style="font-size:0.8em;color:#bbb">${a.desc}</div>
+            </div>
+            ${btn}
+        </div>`;
+    });
+
+    list.innerHTML = html;
+    document.getElementById('achieve-modal').style.display = 'flex';
+}
+
+function closeAchieve() { 
+    document.getElementById('achieve-modal').style.display = 'none'; 
+}
+
+function previewAchieve(id) { 
+    const a = ACHIEVEMENT_DB.find(x => x.id === id); 
+    if(a) {
+        let rewardText = "";
+        if(a.reward.type === 'item') rewardText = `${a.reward.qty}x ${a.reward.id.toUpperCase()}`;
+        // Nếu bạn có thêm loại reward khác (ví dụ coin) thì thêm vào đây
+        
+        alert(`🎁 Phần thưởng: ${rewardText}`); 
+    }
+}
+
+function claimAchieve(id) { 
+    // 1. Kiểm tra kỹ: Nếu đã có trong danh sách hoàn thành thì dừng ngay
+    if(completedAchievements.includes(id)) return; 
+
+    const a = ACHIEVEMENT_DB.find(x => x.id === id); 
+    if(a) { 
+        // 2. Thêm ID vào mảng đã hoàn thành
+        completedAchievements.push(id); 
+
+        // 3. Cộng quà vào túi
+        if(a.reward.type === 'item') { 
+            if(!inventory[a.reward.id]) inventory[a.reward.id]=0; 
+            inventory[a.reward.id]+=a.reward.qty; 
+            alert(`🎉 Chúc mừng! Bạn nhận được ${a.reward.qty}x ${a.reward.id.toUpperCase()}`);
+        } 
+
+        // 4. LƯU GAME NGAY LẬP TỨC (Quan trọng để không bị mất khi F5)
+        saveGame(); 
+        updateStats(); // Cập nhật hiển thị tiền/item
+        
+        // 5. Vẽ lại bảng thành tựu để nút đổi thành "Đã nhận"
+        openAchieve(); 
+    } 
+}
     function openRepairModal() { document.getElementById('job-modal').style.display = 'none'; const today = new Date().toDateString(); if(dailyRepairs.date !== today) { dailyRepairs = {date: today, count: 0}; saveGame(); } if(dailyRepairs.count >= 10) { alert("Hôm nay bạn đã sửa 10 lần! Hãy quay lại vào ngày mai."); openJobs(); return; } document.getElementById('repair-limit-text').innerText = `Lượt sửa hôm nay: ${dailyRepairs.count}/10`; let a = Math.floor(Math.random() * 10) + 1; let b = Math.floor(Math.random() * 10) + 1; repairAnswer = a + b; document.getElementById('repair-question').innerText = `${a} + ${b} = ?`; let opts = [repairAnswer]; while(opts.length < 4) { let fake = Math.floor(Math.random() * 20) + 1; if(!opts.includes(fake)) opts.push(fake); } opts.sort(() => Math.random() - 0.5); document.getElementById('repair-options').innerHTML = opts.map(n => `<button class="btn-auth" onclick="submitRepair(${n})">${n}</button>`).join(''); document.getElementById('repair-modal').style.display = 'flex'; }
     function submitRepair(ans) { document.getElementById('repair-modal').style.display = 'none'; if(ans === repairAnswer) { pickaxe.durability = pickaxe.max; dailyRepairs.count++; alert("Sửa thành công!"); saveGame(); openJobs(); } else { alert("Sai rồi! Cúp vẫn gãy. Thử lại sau."); setTimeout(() => openJobs(), 2000); } }
     // --- HỆ THỐNG QUIZ NÂNG CẤP (STREAK REWARDS) ---
@@ -5482,6 +5562,7 @@ function surrenderTower() {
 </script>
 </body>
 </html>
+
 
 
 
