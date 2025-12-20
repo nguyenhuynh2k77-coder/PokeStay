@@ -964,6 +964,27 @@ header {
 .map-card.locked { opacity: 0.6; cursor: not-allowed; filter: grayscale(1); }
 .map-icon { font-size: 2em; margin-bottom: 5px; display: block; }
 .map-req { font-size: 0.7em; color: #ed4245; font-weight: bold; }
+        /* --- SỬA LỖI KHOẢNG CÁCH MENU & FOOTER TRÊN ĐIỆN THOẠI --- */
+
+/* 1. Xóa khoảng đệm thừa ở dưới nút điều khiển */
+#controls {
+    padding-bottom: 0 !important; /* Code cũ là 20px -> Xóa về 0 */
+}
+
+/* 2. Làm gọn thanh Footer lại */
+.footer {
+    padding: 5px 10px !important; /* Thu nhỏ đệm trên dưới */
+    font-size: 0.7em !important;  /* Chữ nhỏ lại xíu cho tinh tế */
+    background: #111 !important;  /* Đảm bảo nền đen đồng bộ */
+    border-top: 1px solid #333;   /* Kẻ vạch mờ ngăn cách */
+}
+
+/* 3. Dính chặt thanh Tab vào Footer */
+.menu-tabs {
+    margin-bottom: 0 !important; /* Không cho đẩy xuống */
+    border-bottom: none !important; /* Xóa viền dưới nếu có */
+    background: #18191c !important;
+}
     </style>
 </head>
 <body>
@@ -6472,6 +6493,7 @@ function getRarity(pokemon) {
 </script>
 </body>
 </html>
+
 
 
 
