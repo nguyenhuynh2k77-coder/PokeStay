@@ -1845,44 +1845,41 @@ async function register() {
 // --- CẬP NHẬT HÀM LOGIN (SỬA LỖI KHÔNG ĐĂNG NHẬP ĐƯỢC) ---
 // --- HÀM ĐĂNG NHẬP (ĐÃ SỬA LỖI) ---
 async function login() {
+    // 1. Lấy dữ liệu người dùng nhập (chỉ cắt khoảng trắng thừa 2 đầu)
     let u = document.getElementById('username-input').value.trim();
     const p = document.getElementById('password-input').value.trim();
     const btn = document.querySelector('.btn-login');
 
     if (!u || !p) return alert("Vui lòng nhập tên và mật khẩu!");
 
-    // 👇 QUAN TRỌNG: Chuyển tên thành chữ HOA để khớp với lúc đăng ký
-    u = u.toUpperCase(); 
+    // ❌ ĐÃ XÓA DÒNG u = u.toUpperCase(); 
+    // Giờ đây bạn nhập "Nguyen" thì code sẽ tìm "Nguyen", nhập "admin" tìm "admin"
 
     if(btn) btn.innerText = "Đang kiểm tra...";
 
     try {
-        // 1. Tìm tài khoản trên Firebase
+        // 2. Tìm tài khoản trên Firebase
         const snapshot = await firebase.database().ref('accounts/' + u).once('value');
         const acc = snapshot.val();
 
-        // 2. Kiểm tra mật khẩu
+        // 3. Kiểm tra kết quả
         if (acc) {
             if (acc.password === p) {
-                // -> Mật khẩu đúng
+                // Đăng nhập thành công -> Gọi hàm vào game
                 loginSuccess(u);
             } else {
                 alert("❌ Sai mật khẩu!");
                 if(btn) btn.innerText = "ĐĂNG NHẬP";
             }
         } else {
-            alert("❌ Tài khoản không tồn tại!");
+            // Không tìm thấy tên chính xác -> Báo lỗi
+            alert(`❌ Tài khoản "${u}" không tồn tại!`); 
             if(btn) btn.innerText = "ĐĂNG NHẬP";
         }
 
     } catch (err) {
         console.error("Lỗi đăng nhập:", err);
-        // Nếu lỗi là Permission Denied thì nhắc người chơi
-        if (err.code === 'PERMISSION_DENIED') {
-            alert("⚠️ Lỗi quyền truy cập! Admin cần mở khóa Firebase Rules.");
-        } else {
-            alert("Lỗi kết nối: " + err.message);
-        }
+        alert("Lỗi kết nối: " + err.message);
         if(btn) btn.innerText = "ĐĂNG NHẬP";
     }
 }
@@ -6475,6 +6472,7 @@ function getRarity(pokemon) {
 </script>
 </body>
 </html>
+
 
 
 
