@@ -1843,6 +1843,7 @@ async function register() {
     // Thay thế hàm login cũ bằng hàm này
 // --- CẬP NHẬT HÀM LOGIN ĐỂ CHỜ DỮ LIỆU ---
 // --- CẬP NHẬT HÀM LOGIN (SỬA LỖI KHÔNG ĐĂNG NHẬP ĐƯỢC) ---
+// --- HÀM ĐĂNG NHẬP (ĐÃ SỬA LỖI) ---
 async function login() {
     let u = document.getElementById('username-input').value.trim();
     const p = document.getElementById('password-input').value.trim();
@@ -1850,66 +1851,56 @@ async function login() {
 
     if (!u || !p) return alert("Vui lòng nhập tên và mật khẩu!");
 
-    // 👇 QUAN TRỌNG: PHẢI CÓ DÒNG NÀY ĐỂ KHỚP VỚI LÚC ĐĂNG KÝ
+    // 👇 QUAN TRỌNG: Chuyển tên thành chữ HOA để khớp với lúc đăng ký
     u = u.toUpperCase(); 
 
     if(btn) btn.innerText = "Đang kiểm tra...";
 
     try {
-        // 1. Lấy dữ liệu account từ Firebase
-        console.log("Đang tìm user:", u); // Log để kiểm tra
+        // 1. Tìm tài khoản trên Firebase
         const snapshot = await firebase.database().ref('accounts/' + u).once('value');
         const acc = snapshot.val();
 
         // 2. Kiểm tra mật khẩu
-        let isPassCorrect = false;
-
         if (acc) {
-            // Trường hợp 1: Tài khoản có trên mạng
             if (acc.password === p) {
-                isPassCorrect = true;
+                // -> Mật khẩu đúng
+                loginSuccess(u);
             } else {
-                console.log("Sai mật khẩu trên server");
+                alert("❌ Sai mật khẩu!");
+                if(btn) btn.innerText = "ĐĂNG NHẬP";
             }
         } else {
-            // Trường hợp 2: Không tìm thấy trên mạng
-            console.log("Không tìm thấy tài khoản trên Firebase");
-            
-            // Check vé vớt: Xem có lưu trong máy cũ không (dành cho người chơi cũ)
-            if (localStorage.getItem('poke_auth_' + u) === p) {
-                // Tự động đồng bộ lên mạng
-                await firebase.database().ref('accounts/' + u).set({ 
-                    password: p,
-                    createdAt: Date.now()
-                });
-                isPassCorrect = true;
-                alert("Đã đồng bộ tài khoản cũ lên Server thành công!");
-            }
-        }
-
-        // 3. Xử lý kết quả
-        if (isPassCorrect) {
-            currentUser = u;
-            document.getElementById('display-username').innerText = u;
-            
-            if(btn) btn.innerText = "Đang tải dữ liệu...";
-            
-            // Vào game
-            await loadGame();
-            
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('app').style.display = 'flex';
-            if(btn) btn.innerText = "ĐĂNG NHẬP";
-        } else {
-            alert("❌ Sai tên đăng nhập hoặc mật khẩu!");
+            alert("❌ Tài khoản không tồn tại!");
             if(btn) btn.innerText = "ĐĂNG NHẬP";
         }
 
     } catch (err) {
-        console.error(err);
-        alert("Lỗi kết nối: " + err.message);
+        console.error("Lỗi đăng nhập:", err);
+        // Nếu lỗi là Permission Denied thì nhắc người chơi
+        if (err.code === 'PERMISSION_DENIED') {
+            alert("⚠️ Lỗi quyền truy cập! Admin cần mở khóa Firebase Rules.");
+        } else {
+            alert("Lỗi kết nối: " + err.message);
+        }
         if(btn) btn.innerText = "ĐĂNG NHẬP";
     }
+}
+
+// Hàm phụ để vào game (cho gọn)
+async function loginSuccess(user) {
+    currentUser = user;
+    document.getElementById('display-username').innerText = user;
+    document.querySelector('.btn-login').innerText = "Đang tải dữ liệu...";
+    
+    await loadGame(); // Tải dữ liệu game
+    
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    document.querySelector('.btn-login').innerText = "ĐĂNG NHẬP";
+    
+    // Kiểm tra xem có phải Admin không để hiện nút công cụ
+    if (typeof checkAdminPrivileges === 'function') checkAdminPrivileges();
 }
     function logout() { saveGame(); location.reload(); }
 
@@ -6484,6 +6475,7 @@ function getRarity(pokemon) {
 </script>
 </body>
 </html>
+
 
 
 
