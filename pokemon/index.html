@@ -1817,49 +1817,66 @@ async function register() {
 }
     // Thay thế hàm login cũ bằng hàm này
 // --- CẬP NHẬT HÀM LOGIN ĐỂ CHỜ DỮ LIỆU ---
+// --- CẬP NHẬT HÀM LOGIN (SỬA LỖI KHÔNG ĐĂNG NHẬP ĐƯỢC) ---
 async function login() {
-    const u = document.getElementById('username-input').value.trim();
+    let u = document.getElementById('username-input').value.trim();
     const p = document.getElementById('password-input').value.trim();
     const btn = document.querySelector('.btn-login');
 
     if (!u || !p) return alert("Vui lòng nhập tên và mật khẩu!");
 
+    // 👇 QUAN TRỌNG: PHẢI CÓ DÒNG NÀY ĐỂ KHỚP VỚI LÚC ĐĂNG KÝ
+    u = u.toUpperCase(); 
+
     if(btn) btn.innerText = "Đang kiểm tra...";
 
     try {
-        // 1. Lấy mật khẩu từ Firebase về để so sánh
+        // 1. Lấy dữ liệu account từ Firebase
+        console.log("Đang tìm user:", u); // Log để kiểm tra
         const snapshot = await firebase.database().ref('accounts/' + u).once('value');
         const acc = snapshot.val();
 
-        // 2. Logic kiểm tra (Ưu tiên mạng -> Nếu mạng ko có thì check máy -> Nếu máy có thì đồng bộ lên mạng)
+        // 2. Kiểm tra mật khẩu
         let isPassCorrect = false;
 
-        if (acc && acc.password === p) {
-            // Mật khẩu trên mạng đúng
-            isPassCorrect = true;
-        } else if (!acc && localStorage.getItem(AUTH_KEY + u) === p) {
-            // Trường hợp đặc biệt: Bạn là người cũ, mật khẩu chưa có trên mạng nhưng có trong máy
-            // -> Tự động cập nhật mật khẩu lên mạng luôn
-            await firebase.database().ref('accounts/' + u).set({ password: p });
-            isPassCorrect = true;
-            console.log("Đã đồng bộ mật khẩu cũ lên hệ thống.");
+        if (acc) {
+            // Trường hợp 1: Tài khoản có trên mạng
+            if (acc.password === p) {
+                isPassCorrect = true;
+            } else {
+                console.log("Sai mật khẩu trên server");
+            }
+        } else {
+            // Trường hợp 2: Không tìm thấy trên mạng
+            console.log("Không tìm thấy tài khoản trên Firebase");
+            
+            // Check vé vớt: Xem có lưu trong máy cũ không (dành cho người chơi cũ)
+            if (localStorage.getItem('poke_auth_' + u) === p) {
+                // Tự động đồng bộ lên mạng
+                await firebase.database().ref('accounts/' + u).set({ 
+                    password: p,
+                    createdAt: Date.now()
+                });
+                isPassCorrect = true;
+                alert("Đã đồng bộ tài khoản cũ lên Server thành công!");
+            }
         }
 
         // 3. Xử lý kết quả
         if (isPassCorrect) {
             currentUser = u;
-            document.getElementById('display-username').innerText = u.toUpperCase();
+            document.getElementById('display-username').innerText = u;
             
             if(btn) btn.innerText = "Đang tải dữ liệu...";
             
-            // Vào game và tải dữ liệu
+            // Vào game
             await loadGame();
             
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('app').style.display = 'flex';
             if(btn) btn.innerText = "ĐĂNG NHẬP";
         } else {
-            alert("Sai mật khẩu hoặc tài khoản không tồn tại!");
+            alert("❌ Sai tên đăng nhập hoặc mật khẩu!");
             if(btn) btn.innerText = "ĐĂNG NHẬP";
         }
 
@@ -6442,6 +6459,7 @@ function getRarity(pokemon) {
 </script>
 </body>
 </html>
+
 
 
 
