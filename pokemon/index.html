@@ -130,25 +130,50 @@
         /* --- SỬA LỖI GIAO DIỆN BỊ DỒN --- */
 
 /* 1. Khung tổng: Xếp dọc từ trên xuống dưới */
+/* --- SỬA LỖI FOOTER & BỐ CỤC --- */
+
+/* 1. Cấu hình lại khung chính #app */
 #app {
-    /* --- CẤU TRÚC (SỬA LỖI DỒN CỤC) --- */
     display: flex !important;
     flex-direction: column !important;
-    width: 100%;
-    max-width: 500px; /* Giới hạn chiều rộng trên PC */
-    margin: 0 auto;   /* Căn giữa màn hình */
-    height: 100vh !important;
-    overflow: hidden !important;
-    position: relative;
+    height: 100vh !important;       /* Chiều cao 100% màn hình */
+    height: 100dvh !important;      /* Chiều cao động (Fix lỗi trình duyệt mobile che footer) */
+    width: 100% !important;
+    max-width: 500px !important;    /* Giới hạn chiều rộng trên PC */
+    margin: 0 auto !important;
+    overflow: hidden !important;    /* Cắt bỏ mọi thứ thừa ra ngoài */
+    position: relative !important;
+    background-color: #2f3136 !important;
+}
 
-    /* --- GIAO DIỆN (LẤY LẠI KHUNG ĐEN) --- */
-    background-color: rgba(47, 49, 54, 0.95) !important; /* Màu đen xám (Discord style) */
-    backdrop-filter: blur(8px); /* Làm mờ hình nền đằng sau */
+/* 2. Khung Chat: Phải co giãn để nhường chỗ cho Footer */
+#chat-area {
+    flex: 1 1 auto !important;      /* Tự động chiếm khoảng trống còn lại */
+    min-height: 0 !important;       /* BẮT BUỘC: Để cho phép co lại khi màn hình bé */
+    overflow-y: auto !important;    /* Chỉ cuộn nội dung chat, không cuộn cả trang */
+    width: 100%;
+}
+/* 3. Controls (Nút bấm): Không được co giãn */
+#controls {
+    flex: 0 0 auto !important;      /* Giữ nguyên kích thước nội dung */
+    width: 100%;
+    z-index: 10;
+}
+/* 4. Footer (Thoát/Donate): Luôn nằm đáy, không bị chạy */
+.footer {
+    flex: 0 0 auto !important;      /* Không co giãn */
+    width: 100% !important;
+    background: #111 !important;    /* Màu nền đen tách biệt */
+    border-top: 1px solid #333;
+    padding: 8px 10px !important;
     
-    /* Viền và bóng đổ để tạo khối */
-    border-left: 1px solid rgba(0,0,0,0.5);
-    border-right: 1px solid rgba(0,0,0,0.5);
-    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+    /* Căn chỉnh nội dung */
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    
+    /* Fix lỗi bị che trên iPhone đời mới (Tai thỏ) */
+    padding-bottom: env(safe-area-inset-bottom, 10px) !important;
 }
 /* 2. Header: Cố định chiều cao ở trên cùng */
 header {
@@ -6459,6 +6484,7 @@ function getRarity(pokemon) {
 </script>
 </body>
 </html>
+
 
 
 
