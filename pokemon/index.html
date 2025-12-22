@@ -1853,7 +1853,7 @@ async function register() {
         
         // Tạo dữ liệu game khởi đầu
         await firebase.database().ref('users/' + u).set({
-            coins: 1000,
+            coins: 5000,
             level: 1,
             // ... các chỉ số khởi đầu khác
         });
@@ -6493,6 +6493,7 @@ function getRarity(pokemon) {
 </script>
 </body>
 </html>
+
 
 
 
