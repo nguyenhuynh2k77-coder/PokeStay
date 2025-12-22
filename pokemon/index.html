@@ -1832,7 +1832,7 @@ async function register() {
     
     // Ép về chữ hoa/thường thống nhất để tránh trùng kiểu "Admin" và "admin"
     // (Ở đây mình ép về viết hoa hết cho đồng bộ)
-    u = u.toUpperCase(); 
+    u = u; 
 
     if (!u || !p) return alert("Thiếu thông tin!");
     if (u.length < 3) return alert("Tên quá ngắn!");
@@ -6493,6 +6493,7 @@ function getRarity(pokemon) {
 </script>
 </body>
 </html>
+
 
 
 
