@@ -19,7 +19,7 @@
     <link rel="canonical" href="https://nguyenhuynh2k77-coder.github.io/PokeStay/pokemon/" />
 
     </head>
-    <title>PokeStay v2.4.2: Shadow & Light</title>
+    <title>PokeStay v2.5.0: REAWAKENED POWER</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png">
     
     <style>
@@ -1111,8 +1111,8 @@ header {
     <div id="login-screen">
         <div class="box-style">
             <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto">
-            <h2 style="color: white; margin: 10px 0;">POKESTAY v2.4.1</h2>
-            <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;"> Shadow & Light</div>
+            <h2 style="color: white; margin: 10px 0;">POKESTAY v2.5.0</h2>
+            <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;"> REAWAKENED POWER</div>
             <div style="width:100%">
                 <input type="text" id="username-input" class="login-input" placeholder="Tên đăng nhập..." onkeypress="handleEnter(event)">
                 <input type="password" id="password-input" class="login-input" placeholder="Mật khẩu..." onkeypress="handleEnter(event)">
@@ -5426,55 +5426,39 @@ function showDamageText(amount, isCrit) {
     }, 1000);
 }
     // --- UPDATE LOG (v2.4.2) ---
+// Hàm hiển thị Update Log (Chạy khi vào game)
 function showUpdateLog() {
-    const logContent = `
-    <div style="text-align:left; max-height:300px; overflow-y:auto; padding-right:5px">
-        <h3 style="color:#f1c40f; margin-top:0">🌟 PHIÊN BẢN v2.4.2: SHADOW & LIGHT</h3>
-        
-        <p style="color:#ed4245; font-weight:bold">🔥 TÍNH NĂNG MỚI:</p>
-        <ul style="padding-left:20px; margin:5px 0">
-            <li><b>🗼 Tháp Vô Tận (Endless Tower):</b> Chế độ leo tháp cực khó. Hồi 20% HP sau mỗi tầng. Chết là về tầng 1. Leo càng cao quà càng khủng (Token đổi đồ hiếm).</li>
-            <li><b>⚖️ Chợ Đen (Black Market):</b> Mua bán Pokemon tự do với người chơi khác trên toàn server.</li>
-            <li><b>👿 Shadow Pokemon (Mới):</b> Tỉ lệ 1/1.000. Sức tấn công tăng 30% nhưng máu giấy. Có hào quang tím.</li>
-            <li><b>🌈 Rainbow Pokemon (Mới):</b> Tỉ lệ siêu hiếm 1/10.000. Toàn bộ chỉ số +15%. Đổi màu liên tục cực đẹp.</li>
-            <li><b>💬 Global Chat:</b> Kênh chat thế giới thời gian thực (nút chat kéo thả được).</li>
-        </ul>
-
-        <p style="color:#3498db; font-weight:bold">🛠️ CẢI TIẾN & SỬA LỖI:</p>
-        <ul style="padding-left:20px; margin:5px 0">
-            <li><b>Giao diện mới:</b> Menu được gom gọn thành 4 Tab (Battle, City, Me, Social) giúp màn hình thoáng hơn.</li>
-            <li><b>Săn bắt:</b> Các nút ném bóng được xếp hàng ngang, dễ thao tác hơn.</li>
-            <li><b>Visual:</b> Sửa lỗi bóng Poke Ball bị méo khi ném. Thêm hiệu ứng phát sáng khi dùng Berry.</li>
-            <li><b>Cân bằng:</b> Tăng giá Token trong Shop Tháp để game thử thách hơn.</li>
-            <li><b>Fix lỗi:</b> Sửa lỗi mất Slot Daycare, lỗi hiển thị tiền thưởng hàng ngày, và lỗi kẹt khi đánh xong tầng tháp.</li>
-        </ul>
-        
-        <div style="margin-top:15px; border-top:1px solid #444; padding-top:10px; font-style:italic; font-size:0.9em; color:#bbb">
-            "Chúc các Trainer săn được Rainbow Pokemon đầu tiên!" - Dev Team
-        </div>
-    </div>
-    `;
-
-    // Hiển thị Modal
-    // (Tự tạo modal đơn giản để hiện log)
-    const modalId = 'update-log-modal';
-    let modal = document.getElementById(modalId);
+    // Kiểm tra xem người chơi đã đọc bản update này chưa (Lưu ở localStorage)
+    const lastReadVersion = localStorage.getItem('last_read_version');
     
-    if(!modal) {
-        modal = document.createElement('div');
-        modal.id = modalId;
-        modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:4000; display:flex; justify-content:center; align-items:center;";
+    if (lastReadVersion !== GAME_VERSION) {
+        // Tạo Modal thông báo
+        let modal = document.createElement('div');
+        modal.style.position = 'fixed';
+        modal.style.left = '0'; 
+        modal.style.top = '0';
+        modal.style.width = '100%'; 
+        modal.style.height = '100%';
+        modal.style.background = 'rgba(0,0,0,0.85)';
+        modal.style.zIndex = '10000';
+        modal.style.display = 'flex';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'center';
+        
+        modal.innerHTML = `
+            <div class="box-style" style="width:90%; max-width:500px; background:#222; border-color:#f1c40f; max-height:80vh; overflow-y:auto;">
+                ${UPDATE_LOG_CONTENT}
+                <button class="btn-auth" style="margin-top:20px; width:100%" onclick="this.parentElement.parentElement.remove(); localStorage.setItem('last_read_version', '${GAME_VERSION}')">
+                    ĐÃ HIỂU, VÀO GAME!
+                </button>
+            </div>
+        `;
         document.body.appendChild(modal);
     }
-    
-    modal.innerHTML = `
-        <div class="box-style" style="width:90%; max-width:500px; border-color:#00b894">
-            ${logContent}
-            <button class="btn-auth" style="margin-top:15px; background:#00b894" onclick="document.getElementById('${modalId}').style.display='none'">Đã hiểu!</button>
-        </div>
-    `;
-    modal.style.display = 'flex';
 }
+
+// Gọi hàm này ở cuối hàm loginSuccess hoặc loadGame
+// showUpdateLog();
 
 // Gọi hàm này 1 lần khi người chơi mới vào game (Check version)
 const CURRENT_VERSION = '2.4.2';
@@ -7089,6 +7073,7 @@ function onReplaceMove(slotIndex) {
 </script>
 </body>
 </html>
+
 
 
 
