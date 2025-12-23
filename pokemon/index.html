@@ -1008,33 +1008,38 @@ header {
     </style>
 </head>
 <body>
-    <div id="learn-move-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9000; justify-content:center; align-items:center;">
-    <div class="box-style" style="border-color:#3498db; width:95%; max-width:400px; background:#222;">
+    <div id="learn-move-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; justify-content:center; align-items:center; flex-direction:column;">
+    
+    <div style="color:white; margin-bottom:10px; font-size:1.2em; text-align:center">
+        <b id="learner-name" style="color:#f1c40f">POKEMON</b> muốn học chiêu mới!<br>
+        Nhưng giới hạn là 4 chiêu.
+    </div>
+
+    <div style="display:flex; gap:10px; width:100%; max-width:600px; justify-content:center; align-items:stretch;">
         
-        <div style="text-align:center; margin-bottom:15px;">
-            <img id="learn-move-img" src="" width="80" class="shake">
-            <div style="margin-top:10px; font-size:1.1em; color:white;">
-                <b id="learn-poke-name" style="color:#f1c40f">Pokemon</b> muốn học chiêu mới: <br>
-                <b id="learn-move-name" style="color:#3498db; font-size:1.3em">MOVE NAME</b>
+        <div style="width:40%; background:#2c3e50; border:2px solid #3498db; border-radius:10px; padding:15px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+            <div style="color:#bbb; font-size:0.8em; margin-bottom:5px">CHIÊU MỚI</div>
+            <div id="new-move-name" style="font-size:1.3em; font-weight:bold; color:#3498db; margin-bottom:10px">TACKLE</div>
+            
+            <div style="width:100%; text-align:left; font-size:0.9em; color:#ddd; border-top:1px solid #555; padding-top:10px;">
+                <div>Hệ: <span id="new-move-type" style="font-weight:bold">NORMAL</span></div>
+                <div>Sức mạnh: <span id="new-move-pwr" style="color:#e74c3c">40</span></div>
+                <div>Chính xác: <span id="new-move-acc">100</span>%</div>
+                <div style="margin-top:5px; font-style:italic; font-size:0.8em; color:#aaa" id="new-move-desc">
+                    Gây sát thương thường.
+                </div>
             </div>
-            <div style="color:#bbb; font-size:0.9em; margin-top:5px">
-                Nhưng nó đã biết 4 chiêu! Bạn muốn quên chiêu nào?
-            </div>
+
+            <button class="btn-auth" style="background:#ed4245; margin-top:20px;" onclick="giveUpMove()">
+                ❌ BỎ QUA
+            </button>
         </div>
 
-        <div style="background:rgba(52, 152, 219, 0.2); border:1px solid #3498db; padding:10px; border-radius:5px; margin-bottom:15px; font-size:0.9em;">
-            <div style="display:flex; justify-content:space-between;">
-                <span style="color:#3498db; font-weight:bold">MỚI:</span>
-                <span id="new-move-stats" style="color:white">Type: Fire | Pow: 90</span>
-            </div>
+        <div style="width:60%; background:#222; border:2px solid #555; border-radius:10px; padding:10px;">
+            <div style="color:#bbb; font-size:0.8em; margin-bottom:5px; text-align:center">CHỌN CHIÊU ĐỂ QUÊN:</div>
+            <div id="old-moves-list" style="display:flex; flex-direction:column; gap:5px;">
+                </div>
         </div>
-
-        <div id="move-forget-list" style="display:grid; gap:8px;">
-            </div>
-
-        <button class="btn-auth" style="margin-top:15px; background:#ed4245;" onclick="cancelLearnMove()">
-            🚫 KHÔNG HỌC (Giữ chiêu cũ)
-        </button>
     </div>
 </div>
     <div id="login-screen">
@@ -4685,44 +4690,68 @@ function openRepairModal() {
     }
 }
 // --- BIẾN TOÀN CỤC LƯU TRẠNG THÁI HỌC CHIÊU ---
-let pendingLearnState = null; 
+// Biến tạm để lưu trạng thái học chiêu
+let pendingLearning = {
+    pokemon: null,
+    newMoveData: null,
+    moveIndex: -1 // Dùng khi học nhiều chiêu 1 lúc
+};
 
-// --- 1. HÀM KIỂM TRA LÊN CẤP (GỌI HÀM NÀY TRONG processWin HOẶC addTrainerXp) ---
-function checkNewMoves(pokemon) {
-    // Tìm chiêu phù hợp với Level và Hệ
-    let type = pokemon.types[0];
-    let possibleMoveName = null;
+// --- HÀM KIỂM TRA LEVEL UP CHUẨN GAME GỐC ---
+async function checkLevelUpMoves(pokemon) {
+    // Hiển thị thông báo nhỏ để người chơi biết đang tải
+    logBattle(`Checking moves for ${pokemon.name}...`);
 
-    // --- LOGIC GIẢ LẬP LEARNSET (Thay vì nhập data 649 con) ---
-    // Level 5, 10, 15... sẽ học chiêu mới
-    // Bạn có thể chỉnh lại ALL_MOVES để khớp level nếu muốn chính xác 100%
-    let movesPool = ALL_MOVES.filter(m => m.type === type || m.type === 'normal');
-    
-    // Sắp xếp chiêu theo sức mạnh (Power) để level cao học chiêu mạnh
-    movesPool.sort((a,b) => (a.pwr||0) - (b.pwr||0));
+    try {
+        // 1. Lấy dữ liệu Pokemon từ API
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon.id}`);
+        const data = await res.json();
 
-    // Công thức chọn chiêu theo Level (Ví dụ)
-    // Lv 1-15: Chiêu yếu (index 0-2)
-    // Lv 16-30: Chiêu trung bình
-    // Lv 31+: Chiêu mạnh
-    let moveIndex = -1;
-    if (pokemon.level === 5) moveIndex = 0;
-    else if (pokemon.level === 10) moveIndex = 1;
-    else if (pokemon.level === 18) moveIndex = 2;
-    else if (pokemon.level === 26) moveIndex = 3;
-    else if (pokemon.level === 36) moveIndex = 4;
-    else if (pokemon.level === 45) moveIndex = 5; // Chiêu cuối
+        // 2. Lọc ra các chiêu học được ở Level hiện tại (move_learn_method = level-up)
+        // Lưu ý: Phiên bản 'yellow' hoặc 'red-blue' cho Gen 1 chuẩn nhất, nhưng mặc định lấy bản mới nhất cũng ok
+        const potentialMoves = data.moves.filter(m => {
+            const details = m.version_group_details[m.version_group_details.length - 1]; // Lấy bản mới nhất
+            return details.move_learn_method.name === 'level-up' && details.level_learned_at === pokemon.level;
+        });
 
-    // Nếu không trúng level học chiêu hoặc không có chiêu ở index đó -> Dừng
-    if (moveIndex === -1 || !movesPool[moveIndex]) return;
+        if (potentialMoves.length === 0) return; // Không có chiêu nào ở level này
 
-    let newMove = movesPool[moveIndex];
+        // 3. Duyệt qua từng chiêu tìm được
+        for (let m of potentialMoves) {
+            let moveName = m.move.name;
+            
+            // Kiểm tra xem đã học chưa
+            if (pokemon.moves.some(known => known.id === moveName || known.name.toLowerCase() === moveName.replace(/-/g,' '))) continue;
 
-    // Kiểm tra đã biết chưa
-    if (pokemon.moves.some(m => m.name === newMove.name)) return;
+            // Lấy chi tiết sức mạnh chiêu
+            let moveDetails = await fetchMoveDetails(moveName);
+            if (moveDetails) {
+                await processLearningMove(pokemon, moveDetails);
+            }
+        }
 
-    // --- BẮT ĐẦU QUY TRÌNH HỌC ---
-    attemptLearnMove(pokemon, newMove);
+    } catch (e) {
+        console.error("Lỗi check move:", e);
+    }
+}
+
+// --- HÀM XỬ LÝ QUY TRÌNH HỌC ---
+async function processLearningMove(pokemon, newMove) {
+    return new Promise(resolve => {
+        // Trường hợp 1: Còn slot trống -> Học luôn
+        if (pokemon.moves.length < 4) {
+            pokemon.moves.push(newMove);
+            alert(`💡 ${pokemon.name} đã học được ${newMove.name}!`);
+            logBattle(`<span style="color:#2ecc71">${pokemon.name} học được <b>${newMove.name}</b>!</span>`);
+            saveGame();
+            resolve();
+        } 
+        // Trường hợp 2: Full 4 chiêu -> Mở bảng chọn
+        else {
+            // Mở UI và chờ người chơi chọn (Async UI)
+            openMoveRelearner(pokemon, newMove, resolve);
+        }
+    });
 }
 
 // --- 2. HÀM XỬ LÝ HỌC (AUTO HOẶC HỎI) ---
@@ -6246,6 +6275,7 @@ function addTrainerXp(amount) {
         inventory['poke-ball'] = (inventory['poke-ball']||0) + 5;
         
         alert(`🆙 CHÚC MỪNG! Bạn đã lên Level ${trainerData.level}!\nNhận: ${trainerData.level * 500} Xu & 5 Poke Ball.`);
+        await checkLevelUpMoves(p);
         
         // Cập nhật lại UI Map (để mở khóa map mới)
         renderMapList(); 
@@ -6618,9 +6648,103 @@ function getRarity(pokemon) {
     // 3. Còn lại là Epic/Mythic
     return { label: "EPIC", class: "rarity-epic", color: "#9b59b6" }; // Tím
 }
+    // --- HÀM LẤY CHI TIẾT CHIÊU TỪ API ---
+async function fetchMoveDetails(moveNameOrId) {
+    try {
+        // 1. Gọi API lấy thông tin chiêu
+        const res = await fetch(`https://pokeapi.co/api/v2/move/${moveNameOrId}`);
+        const data = await res.json();
+
+        // 2. Lấy mô tả tiếng Anh
+        const descEntry = data.effect_entries.find(e => e.language.name === 'en');
+        const desc = descEntry ? descEntry.short_effect : "No description.";
+
+        // 3. Chuẩn hóa về format game của bạn
+        return {
+            name: data.name.split('-').map(w => w.charAt(0).toUpperCase()+w.slice(1)).join(' '), // Format tên đẹp
+            id: data.name, // ID gốc để lưu
+            type: data.type.name,
+            pwr: data.power || 0, // Nếu null (chiêu status) thì cho bằng 0
+            acc: data.accuracy || 100,
+            cat: data.damage_class.name === 'special' ? 'spe' : (data.damage_class.name === 'physical' ? 'phy' : 'status'),
+            desc: desc,
+            priority: data.priority || 0
+        };
+    } catch (e) {
+        console.error("Lỗi lấy move:", e);
+        return null;
+    }
+}
+    let learnResolve = null; // Biến để báo hiệu khi nào học xong
+
+function openMoveRelearner(pokemon, newMove, resolveCallback) {
+    pendingLearning.pokemon = pokemon;
+    pendingLearning.newMoveData = newMove;
+    learnResolve = resolveCallback; // Lưu callback để gọi sau khi chọn xong
+
+    // 1. Điền thông tin chiêu MỚI
+    document.getElementById('learner-name').innerText = pokemon.name;
+    document.getElementById('new-move-name').innerText = newMove.name;
+    document.getElementById('new-move-type').innerText = newMove.type.toUpperCase();
+    document.getElementById('new-move-type').style.color = TYPE_COLORS[newMove.type] || 'white';
+    document.getElementById('new-move-pwr').innerText = newMove.pwr > 0 ? newMove.pwr : '-';
+    document.getElementById('new-move-acc').innerText = newMove.acc || '-';
+    document.getElementById('new-move-desc').innerText = newMove.desc;
+
+    // 2. Điền danh sách 4 chiêu CŨ
+    const list = document.getElementById('old-moves-list');
+    list.innerHTML = pokemon.moves.map((m, idx) => `
+        <div onclick="forgetAndLearn(${idx})" style="background:#333; padding:10px; border:1px solid #555; border-radius:5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:0.2s">
+            <div>
+                <div style="font-weight:bold; color:${TYPE_COLORS[m.type] || 'white'}">${m.name}</div>
+                <div style="font-size:0.8em; color:#aaa">PP: 10/10 | Pwr: ${m.pwr||'-'}</div>
+            </div>
+            <div style="background:#ed4245; color:white; font-size:0.7em; padding:2px 5px; border-radius:3px">QUÊN</div>
+        </div>
+    `).join('');
+
+    // 3. Hiện Modal
+    document.getElementById('learn-move-modal').style.display = 'flex';
+}
+
+// --- NGƯỜI CHƠI CHỌN QUÊN CHIÊU CŨ ---
+function forgetAndLearn(slotIdx) {
+    let p = pendingLearning.pokemon;
+    let oldMove = p.moves[slotIdx];
+    let newMove = pendingLearning.newMoveData;
+
+    // Thay thế
+    p.moves[slotIdx] = newMove;
+
+    alert(`1, 2, 3... Poof! 💨\n${p.name} đã quên [${oldMove.name}] và học được [${newMove.name}]!`);
+    logBattle(`${p.name} học <b>${newMove.name}</b> (thay ${oldMove.name}).`);
+    
+    saveGame();
+    closeRelearner();
+}
+
+// --- NGƯỜI CHƠI BỎ QUA ---
+function giveUpMove() {
+    let p = pendingLearning.pokemon;
+    let m = pendingLearning.newMoveData;
+    
+    if(confirm(`${p.name} sẽ không học ${m.name}. Bạn chắc chứ?`)) {
+        logBattle(`${p.name} đã từ bỏ việc học ${m.name}.`);
+        closeRelearner();
+    }
+}
+
+function closeRelearner() {
+    document.getElementById('learn-move-modal').style.display = 'none';
+    if(learnResolve) {
+        learnResolve(); // Báo hiệu đã xong để code chạy tiếp (nếu có chiêu thứ 2)
+        learnResolve = null;
+    }
+}
 </script>
 </body>
 </html>
+
 
 
 
