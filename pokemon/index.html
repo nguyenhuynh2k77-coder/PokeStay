@@ -985,9 +985,58 @@ header {
     border-bottom: none !important; /* Xóa viền dưới nếu có */
     background: #18191c !important;
 }
+        /* Style cho nút chọn quên chiêu */
+.move-select-btn {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    background: #2f3136; 
+    border: 1px solid #555; 
+    padding: 10px; 
+    border-radius: 5px; 
+    color: white; 
+    cursor: pointer;
+    transition: 0.2s;
+    text-align: left;
+}
+.move-select-btn:hover {
+    background: #40444b;
+    border-color: #f1c40f;
+}
+.move-select-btn .m-name { font-weight: bold; }
+.move-select-btn .m-info { font-size: 0.8em; color: #aaa; }
     </style>
 </head>
 <body>
+    <div id="learn-move-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9000; justify-content:center; align-items:center;">
+    <div class="box-style" style="border-color:#3498db; width:95%; max-width:400px; background:#222;">
+        
+        <div style="text-align:center; margin-bottom:15px;">
+            <img id="learn-move-img" src="" width="80" class="shake">
+            <div style="margin-top:10px; font-size:1.1em; color:white;">
+                <b id="learn-poke-name" style="color:#f1c40f">Pokemon</b> muốn học chiêu mới: <br>
+                <b id="learn-move-name" style="color:#3498db; font-size:1.3em">MOVE NAME</b>
+            </div>
+            <div style="color:#bbb; font-size:0.9em; margin-top:5px">
+                Nhưng nó đã biết 4 chiêu! Bạn muốn quên chiêu nào?
+            </div>
+        </div>
+
+        <div style="background:rgba(52, 152, 219, 0.2); border:1px solid #3498db; padding:10px; border-radius:5px; margin-bottom:15px; font-size:0.9em;">
+            <div style="display:flex; justify-content:space-between;">
+                <span style="color:#3498db; font-weight:bold">MỚI:</span>
+                <span id="new-move-stats" style="color:white">Type: Fire | Pow: 90</span>
+            </div>
+        </div>
+
+        <div id="move-forget-list" style="display:grid; gap:8px;">
+            </div>
+
+        <button class="btn-auth" style="margin-top:15px; background:#ed4245;" onclick="cancelLearnMove()">
+            🚫 KHÔNG HỌC (Giữ chiêu cũ)
+        </button>
+    </div>
+</div>
     <div id="login-screen">
         <div class="box-style">
             <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto">
@@ -1819,11 +1868,63 @@ function recalcStats(p) {
 
     p.moves = moves;
 }
-    function ensureDataIntegrity(p) {
-        if(!p.spA || !p.spD) { p.baseSpA = p.baseAtk || 50; p.baseSpD = p.baseDef || 50; recalcStats(p); }
-        if(!p.moves || p.moves.length === 0) { assignMoves(p); }
+    // --- HÀM TỰ ĐỘNG SỬA LỖI & CẬP NHẬT CHIÊU CHO POKEMON CŨ ---
+function ensureDataIntegrity(p) {
+    // 1. Fix chỉ số (Nếu là data cũ thiếu SpA/SpD)
+    if(!p.spA || !p.spD) { 
+        p.baseSpA = p.baseAtk || 50; 
+        p.baseSpD = p.baseDef || 50; 
+        recalcStats(p); 
     }
 
+    // 2. Khởi tạo mảng moves nếu chưa có
+    if (!p.moves) p.moves = [];
+
+    // 3. LOGIC MỚI: Tự động học chiêu nếu thiếu (áp dụng cho Pokemon cũ)
+    // Nếu Pokemon có ít hơn 4 chiêu, hệ thống sẽ tìm chiêu mạnh nhất phù hợp với Level để dạy
+    if (p.moves.length < 4) {
+        autoLearnMovesForOldPokemon(p);
+    }
+}
+
+// --- HÀM PHỤ: TÌM CHIÊU PHÙ HỢP ĐỂ DẠY ---
+function autoLearnMovesForOldPokemon(p) {
+    let type = p.types[0]; // Lấy hệ chính
+    
+    // Lấy tất cả chiêu của hệ đó + hệ Normal
+    let pool = ALL_MOVES.filter(m => m.type === type || m.type === 'normal');
+    
+    // Sắp xếp chiêu theo sức mạnh (Mạnh nhất lên đầu)
+    // Để ưu tiên dạy chiêu xịn cho Pokemon level cao
+    pool.sort((a, b) => (b.pwr || 0) - (a.pwr || 0));
+
+    // Duyệt qua danh sách chiêu
+    for (let move of pool) {
+        // Nếu đã đủ 4 chiêu thì dừng
+        if (p.moves.length >= 4) break;
+
+        // Kiểm tra điều kiện Level giả lập (Chiêu mạnh cần level cao)
+        // Ví dụ: Chiêu Power > 80 cần Lv 30+, Power > 60 cần Lv 15+
+        let reqLv = 1;
+        if (move.pwr >= 100) reqLv = 45;
+        else if (move.pwr >= 80) reqLv = 30;
+        else if (move.pwr >= 60) reqLv = 15;
+
+        // Nếu Level người chơi đủ & Chưa học chiêu này -> Dạy luôn
+        if (p.level >= reqLv) {
+            // Kiểm tra trùng
+            if (!p.moves.some(existing => existing.name === move.name)) {
+                p.moves.push(move);
+            }
+        }
+    }
+    
+    // Nếu sau khi quét mà vẫn chưa có chiêu nào (Level 1), dạy Tackle
+    if (p.moves.length === 0) {
+        let tackle = ALL_MOVES.find(m => m.name === 'Tackle');
+        if(tackle) p.moves.push(tackle);
+    }
+}
     function handleEnter(e) { if(e.key === 'Enter') login(); }
     // --- HÀM ĐĂNG KÝ (ĐÃ CÓ CHECK TRÙNG TÊN) ---
 async function register() {
@@ -3940,6 +4041,7 @@ function processWin() {
         recalcStats(p);
         logBattle(`🆙 Lên cấp ${p.level}! Stats tăng!`);
         checkNewMoves(p);
+        checkNewMoves(p);
     }
     
     updateQuestProgress('win', 1);
@@ -4582,99 +4684,125 @@ function openRepairModal() {
         alert("❌ Sai rồi! Bạn bị điện giật tê người. Thử lại nhé!");
     }
 }
-    // --- LOGIC HỌC CHIÊU MỚI ---
-let pendingLearnMove = null; // Biến tạm lưu thông tin học chiêu
+// --- BIẾN TOÀN CỤC LƯU TRẠNG THÁI HỌC CHIÊU ---
+let pendingLearnState = null; 
 
-// 1. Kiểm tra xem Level này có chiêu gì không
+// --- 1. HÀM KIỂM TRA LÊN CẤP (GỌI HÀM NÀY TRONG processWin HOẶC addTrainerXp) ---
 function checkNewMoves(pokemon) {
-    let type = pokemon.types[0]; // Lấy hệ chính
-    let learnset = getLearnsetForType(type);
-    
-    // Kiểm tra xem level hiện tại có trong learnset không
-    if (learnset[pokemon.level]) {
-        let moveName = learnset[pokemon.level];
-        
-        // Kiểm tra xem đã học chưa
-        if (pokemon.moves.some(m => m.name === moveName)) return;
+    // Tìm chiêu phù hợp với Level và Hệ
+    let type = pokemon.types[0];
+    let possibleMoveName = null;
 
-        let newMove = getMoveData(moveName);
-        attemptLearnMove(pokemon, newMove);
-    }
+    // --- LOGIC GIẢ LẬP LEARNSET (Thay vì nhập data 649 con) ---
+    // Level 5, 10, 15... sẽ học chiêu mới
+    // Bạn có thể chỉnh lại ALL_MOVES để khớp level nếu muốn chính xác 100%
+    let movesPool = ALL_MOVES.filter(m => m.type === type || m.type === 'normal');
+    
+    // Sắp xếp chiêu theo sức mạnh (Power) để level cao học chiêu mạnh
+    movesPool.sort((a,b) => (a.pwr||0) - (b.pwr||0));
+
+    // Công thức chọn chiêu theo Level (Ví dụ)
+    // Lv 1-15: Chiêu yếu (index 0-2)
+    // Lv 16-30: Chiêu trung bình
+    // Lv 31+: Chiêu mạnh
+    let moveIndex = -1;
+    if (pokemon.level === 5) moveIndex = 0;
+    else if (pokemon.level === 10) moveIndex = 1;
+    else if (pokemon.level === 18) moveIndex = 2;
+    else if (pokemon.level === 26) moveIndex = 3;
+    else if (pokemon.level === 36) moveIndex = 4;
+    else if (pokemon.level === 45) moveIndex = 5; // Chiêu cuối
+
+    // Nếu không trúng level học chiêu hoặc không có chiêu ở index đó -> Dừng
+    if (moveIndex === -1 || !movesPool[moveIndex]) return;
+
+    let newMove = movesPool[moveIndex];
+
+    // Kiểm tra đã biết chưa
+    if (pokemon.moves.some(m => m.name === newMove.name)) return;
+
+    // --- BẮT ĐẦU QUY TRÌNH HỌC ---
+    attemptLearnMove(pokemon, newMove);
 }
 
-// 2. Thử học chiêu
+// --- 2. HÀM XỬ LÝ HỌC (AUTO HOẶC HỎI) ---
 function attemptLearnMove(pokemon, newMove) {
-    // Nếu chưa đủ 4 chiêu -> Học luôn
+    // TRƯỜNG HỢP 1: Chưa đủ 4 chiêu -> Học luôn
     if (pokemon.moves.length < 4) {
         pokemon.moves.push(newMove);
-        alert(`${pokemon.name} đã học được ${newMove.name}!`);
-        logBattle(`${pokemon.name} học được <b style="color:${TYPE_COLORS[newMove.type]}">${newMove.name}</b>!`);
-    } else {
-        // Nếu đã đủ 4 chiêu -> Mở bảng chọn quên
+        alert(`💡 ${pokemon.name} đã học được ${newMove.name}!`);
+        logBattle(`<span style="color:#2ecc71">${pokemon.name} học được <b>${newMove.name}</b>!</span>`);
+        saveGame();
+    } 
+    // TRƯỜNG HỢP 2: Đã đủ 4 chiêu -> Hiện Modal chọn
+    else {
         showLearnMoveUI(pokemon, newMove);
     }
 }
 
-// 3. Hiển thị UI chọn quên chiêu
+// --- 3. HIỂN THỊ UI ---
 function showLearnMoveUI(pokemon, newMove) {
-    pendingLearnMove = { pokemon: pokemon, newMove: newMove };
-    
-    document.getElementById('learn-move-msg').innerHTML = `
-        <div style="text-align:center">
-            <img src="${pokemon.img}" width="80"><br>
-            <b>${pokemon.name}</b> muốn học <b style="color:#f1c40f">${newMove.name}</b>.<br>
-            Nhưng chỉ được nhớ tối đa 4 chiêu. Bạn muốn quên chiêu nào?
-        </div>
-        <div style="margin-top:10px; font-size:0.9em; border:1px solid #444; padding:5px; background:#202225">
-            <b>Chiêu mới:</b> <br>
-            ${newMove.name} (Pwr: ${newMove.pwr || '-'}, Type: ${newMove.type})
-        </div>
-    `;
+    pendingLearnState = { pokemon: pokemon, newMove: newMove }; // Lưu lại để xử lý sau
 
-    const list = document.getElementById('move-forget-list');
-    list.innerHTML = pokemon.moves.map((m, idx) => `
-        <button class="btn-auth" style="background:#2f3136; border:1px solid #555; display:flex; justify-content:space-between; align-items:center" onclick="confirmForgetMove(${idx})">
-            <span>${m.name}</span>
-            <span style="font-size:0.8em; color:${TYPE_COLORS[m.type] || '#fff'}">${m.type}</span>
+    // Điền thông tin vào Modal
+    document.getElementById('learn-poke-name').innerText = pokemon.name;
+    document.getElementById('learn-move-name').innerText = newMove.name;
+    document.getElementById('learn-move-img').src = pokemon.img;
+    
+    document.getElementById('new-move-stats').innerHTML = 
+        `Hệ: <b style="color:${TYPE_COLORS[newMove.type]}">${newMove.type.toUpperCase()}</b> | ` +
+        `Pwr: <b>${newMove.pwr || '-'}</b> | Acc: ${newMove.acc || '-'}`;
+
+    // Render danh sách 4 chiêu cũ
+    const listDiv = document.getElementById('move-forget-list');
+    listDiv.innerHTML = pokemon.moves.map((m, idx) => `
+        <button class="move-select-btn" onclick="confirmForgetMove(${idx})">
+            <div>
+                <div class="m-name">${m.name}</div>
+                <div class="m-info">Type: ${m.type} | Pwr: ${m.pwr||'-'}</div>
+            </div>
+            <div style="color:#ed4245; font-weight:bold; font-size:0.8em">QUÊN 🗑️</div>
         </button>
     `).join('');
 
+    // Hiện Modal
     document.getElementById('learn-move-modal').style.display = 'flex';
 }
 
-// 4. Xác nhận quên chiêu cũ, học chiêu mới
-function confirmForgetMove(oldMoveIdx) {
-    if(!pendingLearnMove) return;
-    
-    let p = pendingLearnMove.pokemon;
-    let oldMoveName = p.moves[oldMoveIdx].name;
-    let newMove = pendingLearnMove.newMove;
+// --- 4. XÁC NHẬN QUÊN CHIÊU CŨ ---
+function confirmForgetMove(index) {
+    if (!pendingLearnState) return;
 
-    // Thay thế
-    p.moves[oldMoveIdx] = newMove;
+    let p = pendingLearnState.pokemon;
+    let newM = pendingLearnState.newMove;
+    let oldM = p.moves[index];
+
+    // Ghi đè chiêu mới vào vị trí cũ
+    p.moves[index] = newM;
+
+    // Thông báo & Lưu
+    alert(`1.. 2.. 3.. Poof! 💨\n${p.name} đã quên ${oldM.name} và học được ${newM.name}!`);
+    logBattle(`${p.name} quên <b>${oldM.name}</b> để học <b>${newM.name}</b>.`);
     
-    alert(`1, 2, 3... Poof!\n${p.name} đã quên ${oldMoveName} và học được ${newMove.name}!`);
-    logBattle(`${p.name} đã học <b>${newMove.name}</b> thay cho ${oldMoveName}.`);
-    
-    closeLearnMove();
     saveGame();
+    closeLearnModal();
 }
 
-// 5. Hủy học chiêu
+// --- 5. HỦY BỎ (KHÔNG HỌC) ---
 function cancelLearnMove() {
-    if(!pendingLearnMove) return;
-    let p = pendingLearnMove.pokemon;
-    let m = pendingLearnMove.newMove;
-    
-    if(confirm(`${p.name} sẽ không học ${m.name}. Bạn chắc chứ?`)) {
+    if (!pendingLearnState) return;
+    let p = pendingLearnState.pokemon;
+    let m = pendingLearnState.newMove;
+
+    if (confirm(`${p.name} sẽ từ bỏ việc học chiêu ${m.name}. Bạn chắc chứ?`)) {
         logBattle(`${p.name} đã không học ${m.name}.`);
-        closeLearnMove();
+        closeLearnModal();
     }
 }
 
-function closeLearnMove() {
+function closeLearnModal() {
     document.getElementById('learn-move-modal').style.display = 'none';
-    pendingLearnMove = null;
+    pendingLearnState = null;
 }
     // --- LOGIC XỬ LÝ CHỌN NHIỀU & BÁN SLL ---
 
@@ -6493,6 +6621,7 @@ function getRarity(pokemon) {
 </script>
 </body>
 </html>
+
 
 
 
