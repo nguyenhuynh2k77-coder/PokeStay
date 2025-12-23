@@ -3790,135 +3790,162 @@ function useItem(id) {
         checkWinCondition();
     }
 
-    async function runMove(attacker, defender, move, isPlayer) {
-        if(attacker.hp <= 0) return;
-        
-        // A. Check Status đầu lượt (Sleep / Freeze / Paralyze)
-        if(attacker.status === 'slp') {
-            logBattle(`${attacker.name} đang ngủ... 💤`);
-            if(Math.random() < 0.33) { // 33% dậy
-                attacker.status = null;
-                logBattle(`${attacker.name} đã tỉnh dậy!`);
-                updateBattleUI(); // <--- THÊM DÒNG NÀY: Để xóa icon ZZZ ngay lập tức
-            } else {
-                await sleep(500); return; // Mất lượt
-            }
-        }
-        if(attacker.status === 'par') {
-            if(Math.random() < 0.25) { // 25% bị tê
-                logBattle(`${attacker.name} bị tê liệt không thể di chuyển! ⚡`);
-                await sleep(500); return; // Mất lượt
-            }
-        }
+    // --- HÀM XỬ LÝ RA CHIÊU (ĐÃ SỬA LỖI TARGET) ---
+async function runMove(attacker, defender, move) {
+    // 1. Thông báo ra chiêu
+    logBattle(`<b>${attacker.name}</b> dùng <b>${move.name}</b>!`);
 
-        // B. Xử lý Hành động (Item / Attack / Status / Stat)
-        // B. Xử lý Hành động (Item / Attack / Status / Stat)
-        if(move.isItem) {
-            // Kiểm tra lại lần nữa cho chắc
-            if((inventory['potion'] || 0) > 0) {
-                // 1. Trừ trong kho
-                inventory['potion']--;
-                saveGame(); // Lưu lại ngay để tránh F5 hack đồ
-                
-                // 2. Cập nhật số hiển thị trên nút ngay lập tức
-                document.getElementById('potion-count').innerText = inventory['potion'];
-
-                // 3. Hồi máu
-                let heal = 50;
-                attacker.hp = Math.min(attacker.maxHp, attacker.hp + heal);
-                logBattle(`<span style="color:#2ecc71">💊 ${attacker.name} dùng Potion hồi ${heal} HP.</span>`);
-                updateBattleUI();
-            } else {
-                logBattle("Không còn Potion để dùng!");
-            }
-            
-            await sleep(500);
+    // 2. Kiểm tra độ chính xác (Accuracy)
+    // Nếu move.acc = 0 hoặc null thì là chiêu tất trúng (như Aerial Ace)
+    if (move.acc && move.acc < 100) {
+        if (Math.random() * 100 > move.acc) {
+            logBattle("❌ Nhưng chiêu thức bị trượt!");
             return;
         }
-        if(move.isSkip) {
-            logBattle(`${attacker.name} đang chờ đợi...`);
-            await sleep(500);
-            return;
-        }
+    }
 
-        // C. Tấn công
-        logBattle(`<b>${attacker.name}</b> dùng ${move.name}!`);
+    // ====================================================
+    // TRƯỜNG HỢP 1: CHIÊU GÂY SÁT THƯƠNG (Vật lý / Phép)
+    // ====================================================
+    if (move.cat === 'phy' || move.cat === 'spe') {
         
-        // Hiệu ứng hình ảnh
-        let spriteId = isPlayer ? 'player-sprite' : 'enemy-sprite';
-        let moveDir = isPlayer ? 20 : -20;
-        document.getElementById(spriteId).style.transform = `translateX(${moveDir}px)`;
-        setTimeout(()=>document.getElementById(spriteId).style.transform="translateX(0)", 200);
-        await sleep(500);
+        // A. Xác định chỉ số Tấn công vs Phòng thủ
+        let atkStat = (move.cat === 'phy') ? attacker.atk : attacker.spA;
+        let defStat = (move.cat === 'phy') ? defender.def : defender.spD;
 
-        // -- LOGIC CHIÊU THỨC --
-        // 1. Chiêu gây sát thương (Damage)
-        if(move.pwr > 0) {
-            // Check Accuracy (chưa làm chi tiết, tạm thời 95% trúng)
-            if(Math.random() > 0.95) {
-                logBattle("Đòn đánh bị trượt!");
-                return;
-            }
+        // B. Tính Damage cơ bản (Công thức Pokemon giản lược)
+        // Damage = (((2 * Level / 5 + 2) * Power * A / D) / 50 + 2)
+        let damage = Math.floor(((2 * attacker.level / 5 + 2) * move.pwr * (atkStat / defStat)) / 50 + 2);
 
-            let typeMod = getEffectiveness(move.type, defender.types);
-            
-            // Tính Stage (Buff/Debuff)
-            let atkStage = move.cat === 'spe' ? attacker.stages.spA : attacker.stages.atk;
-            let defStage = move.cat === 'spe' ? defender.stages.spD : defender.stages.def;
-            
-            // Burn giảm 50% Atk vật lý
-            let burnMod = (attacker.status === 'brn' && move.cat === 'phy') ? 0.5 : 1;
-
-            let atkStat = (move.cat === 'spe' ? attacker.spA : attacker.atk) * getStageMulti(atkStage) * burnMod;
-            let defStat = (move.cat === 'spe' ? defender.spD : defender.def) * getStageMulti(defStage);
-
-            // Công thức Damage chuẩn
-            let levelFactor = ((2 * attacker.level) / 5) + 2;
-            let baseDamage = ((levelFactor * move.pwr * (atkStat / defStat)) / 50) + 2;
-            
-            let isCrit = Math.random() < 0.0625;
-            let stab = attacker.types.includes(move.type) ? 1.5 : 1.0;
-            let finalDamage = Math.floor(baseDamage * typeMod * stab * (isCrit?1.5:1) * ((Math.random()*16+85)/100));
-
-            if(isCrit) logBattle(`<span style="color:#e74c3c">Chí mạng!</span>`);
-            if(typeMod > 1) logBattle("Siêu hiệu quả!");
-            if(typeMod < 1) logBattle("Không hiệu quả lắm...");
-
-            applyDamage(defender, Math.max(1, finalDamage), isPlayer ? 'enemy' : 'player');
-            
-            // Hiệu ứng phụ (Ember gây Burn, v.v.)
-            if(move.effect && !defender.status && defender.hp > 0) {
-                 if(Math.random() < (move.chance || 0.1)) {
-                     applyStatus(defender, move.effect);
-                 }
+        // C. Tính khắc hệ (Type Effectiveness)
+        // Giả sử bạn có hàm getTypeEffectiveness, nếu không thì mặc định là 1
+        let multiplier = 1;
+        if (typeof getMultiplier === 'function') {
+            multiplier = getMultiplier(move.type, defender.types[0]);
+            if (defender.types[1]) {
+                multiplier *= getMultiplier(move.type, defender.types[1]);
             }
         }
-        
-        // 2. Chiêu Status thuần (Will-O-Wisp, Thunder Wave)
-        else if(move.cat === 'status') {
-        // A. Nếu chiêu có hiệu ứng đặc biệt (như Recover)
-        // (Đây là fix tạm thời để Recover không bị lỗi, sau này bạn có thể làm hệ thống effect xịn hơn)
-        if (move.name === 'Recover' || move.name === 'Roost' || move.name === 'Soft-Boiled') {
-            let healAmount = Math.floor(defender.maxHp / 2);
-            defender.hp = Math.min(defender.maxHp, defender.hp + healAmount);
-            logBattle(`${defender.name} tự hồi phục sức khỏe! (+${healAmount} HP)`);
-            updateBattleUI(); // Cập nhật thanh máu ngay
+
+        // D. Tính Critical Hit (Chí mạng - Tỉ lệ 1/16)
+        let isCrit = Math.random() < 0.0625;
+        if (isCrit) {
+            damage *= 1.5;
+            multiplier *= 1; // Crit thường bỏ qua giảm thủ, ở đây làm đơn giản
         }
-        // B. Nếu là chiêu gây trạng thái (như Will-O-Wisp)
+
+        // E. Áp dụng Multiplier vào Damage
+        damage = Math.floor(damage * multiplier);
+        if (damage < 1) damage = 1; // Sát thương tối thiểu là 1
+
+        // F. Trừ máu
+        defender.hp -= damage;
+        if (defender.hp < 0) defender.hp = 0;
+
+        // G. Hiển thị thông báo
+        if (isCrit) logBattle("🎯 CHÍ MẠNG! (Critical Hit)");
+        if (multiplier > 1) logBattle("🔥 Siêu hiệu quả! (Super Effective)");
+        if (multiplier < 1 && multiplier > 0) logBattle("🛡️ Không hiệu quả lắm...");
+        if (multiplier === 0) logBattle("🚫 Không có tác dụng!");
+
+        logBattle(`Mất <b style="color:red">${damage} HP</b>!`);
+        
+        // Rung màn hình nếu damage to
+        if(damage > defender.maxHp / 4) {
+            let spriteId = defender === battleState.player ? 'player-sprite' : 'enemy-sprite';
+            let el = document.getElementById(spriteId);
+            if(el) {
+                el.classList.add('shake');
+                setTimeout(()=>el.classList.remove('shake'), 500);
+            }
+        }
+    } 
+
+    // ====================================================
+    // TRƯỜNG HỢP 2: CHIÊU TRẠNG THÁI (STATUS / HEAL)
+    // ====================================================
+    else if (move.cat === 'status') {
+        
+        // A. NHÓM HỒI MÁU (Target = Attacker)
+        // Danh sách các chiêu hồi máu phổ biến
+        const healingMoves = ['Recover', 'Roost', 'Soft-Boiled', 'Synthesis', 'Moonlight', 'Morning Sun', 'Slack Off'];
+        
+        if (healingMoves.includes(move.name)) {
+            // Target là CHÍNH MÌNH (Attacker) chứ không phải Defender
+            let healAmount = Math.floor(attacker.maxHp / 2);
+            attacker.hp += healAmount;
+            if (attacker.hp > attacker.maxHp) attacker.hp = attacker.maxHp;
+            
+            logBattle(`💚 <b>${attacker.name}</b> tự hồi phục sức khỏe! (+${healAmount} HP)`);
+        } 
+        
+        // B. NHÓM GÂY HIỆU ỨNG XẤU (Target = Defender)
         else if (move.status) {
-            if(defender.status) {
-                logBattle("Nhưng nó thất bại!");
+            if (defender.status) {
+                logBattle("Nhưng đối thủ đang bị hiệu ứng rồi!");
             } else {
-                applyStatus(defender, move.status);
+                // Gọi hàm applyStatus (đảm bảo hàm này đã fix như hướng dẫn trước)
+                if (typeof applyStatus === 'function') {
+                    applyStatus(defender, move.status);
+                }
             }
-        }
-        // C. Các chiêu status khác không làm gì cả (như Splash)
+        } 
+        
+        // C. CÁC CHIÊU STATUS KHÁC (Splash, Teleport...)
         else {
             logBattle("Nhưng không có gì xảy ra!");
         }
     }
+
+    // ====================================================
+    // TRƯỜNG HỢP 3: CHIÊU TĂNG/GIẢM CHỈ SỐ (STAT)
+    // ====================================================
+    else if (move.cat === 'stat' || move.stat) { // Hỗ trợ cả 2 kiểu dữ liệu
+        // Xác định mục tiêu: 
+        // Nếu API trả về target là 'user' hoặc 'selected-pokemon-me' -> Buff cho bản thân
+        // Nếu không thì mặc định là Debuff đối thủ
+        
+        let target = defender; // Mặc định nhắm vào địch (như Growl, Tail Whip)
+        let isSelf = false;
+
+        // Kiểm tra danh sách các chiêu Buff bản thân phổ biến
+        const selfBuffMoves = ['Swords Dance', 'Dragon Dance', 'Calm Mind', 'Bulk Up', 'Agility', 'Nasty Plot', 'Growth', 'Harden', 'Defense Curl'];
+        
+        if (move.target === 'user' || selfBuffMoves.includes(move.name)) {
+            target = attacker;
+            isSelf = true;
+        }
+
+        let statName = move.stat; // atk, def, spA...
+        let stageChange = move.stage || 1;
+
+        // Logic tăng/giảm stage (Tối đa +6, Tối thiểu -6)
+        if (!target.stages) target.stages = { atk:0, def:0, spA:0, spD:0, spe:0 }; // Khởi tạo nếu chưa có
+        
+        if (!target.stages[statName]) target.stages[statName] = 0;
+
+        let currentStage = target.stages[statName];
+
+        if (currentStage >= 6 && stageChange > 0) {
+            logBattle(`${statName.toUpperCase()} của ${target.name} không thể tăng thêm!`);
+        } else if (currentStage <= -6 && stageChange < 0) {
+            logBattle(`${statName.toUpperCase()} của ${target.name} không thể giảm thêm!`);
+        } else {
+            target.stages[statName] += stageChange;
+            
+            let text = "";
+            if (stageChange >= 2) text = "tăng rất mạnh!";
+            else if (stageChange === 1) text = "tăng lên!";
+            else if (stageChange === -1) text = "giảm xuống!";
+            else if (stageChange <= -2) text = "giảm rất mạnh!";
+            
+            logBattle(`${statName.toUpperCase()} của <b>${target.name}</b> đã ${text}`);
+        }
     }
-    // --- FIX LỖI CRASH KHI GẶP CHIÊU KHÔNG CÓ TRẠNG THÁI ---
+
+    // 3. Cập nhật giao diện thanh máu ngay lập tức
+    updateBattleUI();
+}
 function applyStatus(target, status) {
     // 👇 KIỂM TRA QUAN TRỌNG: Nếu không có status thì dừng ngay
     if (!status) return; 
@@ -7062,6 +7089,7 @@ function onReplaceMove(slotIndex) {
 </script>
 </body>
 </html>
+
 
 
 
