@@ -1876,23 +1876,23 @@ function recalcStats(p) {
 }
     // --- HÀM TỰ ĐỘNG SỬA LỖI & CẬP NHẬT CHIÊU CHO POKEMON CŨ ---
 function ensureDataIntegrity(p) {
-    // 1. Fix chỉ số (Nếu là data cũ thiếu SpA/SpD)
+    // 1. Fix chỉ số cũ
     if(!p.spA || !p.spD) { 
         p.baseSpA = p.baseAtk || 50; 
         p.baseSpD = p.baseDef || 50; 
         recalcStats(p); 
     }
 
-    // 2. Khởi tạo mảng moves nếu chưa có
+    // 2. Khởi tạo mảng moves
     if (!p.moves) p.moves = [];
 
-    // 3. LOGIC MỚI: Tự động học chiêu nếu thiếu (áp dụng cho Pokemon cũ)
-    // Nếu Pokemon có ít hơn 4 chiêu, hệ thống sẽ tìm chiêu mạnh nhất phù hợp với Level để dạy
+    // 3. LOGIC MỚI: Nếu thiếu chiêu -> Gọi hàm chạy ngầm để điền chiêu chuẩn
     if (p.moves.length < 4) {
-        autoLearnMovesForOldPokemon(p);
+        // Gọi hàm async nhưng KHÔNG dùng await để tránh làm đơ giao diện túi đồ
+        // Nó sẽ tự động cập nhật ngầm và lưu lại sau vài giây
+        backfillMovesForOldPokemon(p);
     }
 }
-
 // --- HÀM PHỤ: TÌM CHIÊU PHÙ HỢP ĐỂ DẠY ---
 function autoLearnMovesForOldPokemon(p) {
     let type = p.types[0]; // Lấy hệ chính
@@ -6740,9 +6740,67 @@ function closeRelearner() {
         learnResolve = null;
     }
 }
+    // --- HÀM TỰ ĐỘNG CẬP NHẬT CHIÊU CHO POKEMON CŨ (DÙNG API) ---
+async function backfillMovesForOldPokemon(pokemon) {
+    // Chỉ chạy nếu Pokemon có ít hơn 4 chiêu
+    if (pokemon.moves.length >= 4) return;
+
+    console.log(`Đang cập nhật chiêu cho ${pokemon.name}...`);
+
+    try {
+        // 1. Lấy dữ liệu chuẩn từ API
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon.id}`);
+        const data = await res.json();
+
+        // 2. Lấy tất cả các chiêu có thể học bằng cách Lên Cấp (Level-up)
+        // Điều kiện: Level học được phải nhỏ hơn hoặc bằng Level hiện tại của Pokemon
+        let possibleMoves = data.moves.filter(m => {
+            const details = m.version_group_details[m.version_group_details.length - 1];
+            return details.move_learn_method.name === 'level-up' && 
+                   details.level_learned_at <= pokemon.level;
+        });
+
+        // 3. Sắp xếp chiêu: Ưu tiên chiêu học ở Level cao nhất (Chiêu mạnh/mới nhất)
+        possibleMoves.sort((a, b) => {
+            const getLv = (m) => m.version_group_details[m.version_group_details.length - 1].level_learned_at;
+            return getLv(b) - getLv(a); // Giảm dần
+        });
+
+        // 4. Điền vào các ô trống
+        for (let m of possibleMoves) {
+            // Nếu đã đầy 4 chiêu thì dừng
+            if (pokemon.moves.length >= 4) break;
+
+            let moveName = m.move.name;
+
+            // Kiểm tra trùng: Không học lại chiêu đã biết
+            // (So sánh cả ID và Tên để chắc chắn)
+            let isKnown = pokemon.moves.some(known => 
+                known.id === moveName || 
+                known.name.toUpperCase() === moveName.replace(/-/g, ' ').toUpperCase()
+            );
+
+            if (!isKnown) {
+                // Lấy chi tiết và thêm vào
+                let moveDetails = await fetchMoveDetails(moveName);
+                if (moveDetails) {
+                    pokemon.moves.push(moveDetails);
+                    console.log(`-> Đã dạy ${moveName} cho ${pokemon.name}`);
+                }
+            }
+        }
+
+        // 5. Lưu lại game sau khi cập nhật xong con này
+        saveGame();
+
+    } catch (e) {
+        console.error(`Lỗi cập nhật move cho ${pokemon.name}:`, e);
+    }
+}
 </script>
 </body>
 </html>
+
 
 
 
