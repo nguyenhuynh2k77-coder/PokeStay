@@ -1042,6 +1042,7 @@ header {
         </div>
     </div>
 </div>
+    </div>
     <div id="login-screen">
         <div class="box-style">
             <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto">
@@ -4016,7 +4017,7 @@ function checkWinCondition() {
 }
 
     // --- SỬA LỖI LOGIC CHIẾN THẮNG (FIX LỖI THÁP) ---
-function processWin() {
+async function processWin() {
     let r = battleState.rewards;
     let p = battleState.player;
     
@@ -6742,6 +6743,7 @@ function closeRelearner() {
 </script>
 </body>
 </html>
+
 
 
 
