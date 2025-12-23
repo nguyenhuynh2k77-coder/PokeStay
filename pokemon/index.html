@@ -1814,7 +1814,6 @@ function getLearnsetForType(type) {
         { id: 'lucky-egg', name: 'Lucky Egg', price: 300, type: 'item', desc: 'x2 Coins', img: 'lucky-egg.png' },
         { id: 'incense', name: 'Incense', price: 200, type: 'item', desc: 'Reroll', img: 'super-repel.png' },
         { id: 'evo-stone', name: 'Evo Stone', price: 1000, type: 'item', desc: 'Tiến hóa', img: 'fire-stone.png' },
-        { id: 'old-map', name: 'Bản Đồ Cũ', price: 500, img: 'map.png', type: 'misc', desc: 'Tấm bản đồ cũ nát, soi lên đèn thấy dòng chữ: "UPDATE241"',uniqueKey: 'UPDATE241' },
         { id: 'amulet-coin', name: 'Amulet Coin', price: 5000, type: 'item', desc: '+5% Coin/Catch (Max 10)', img: 'amulet-coin.png' },
         { id: 'nugget', name: 'Nugget', price: 5000, type: 'sell', desc: 'Bán lấy tiền', img: 'nugget.png' },
         { id: 'shiny-charm', name: 'Shiny Charm', price: 1000000, type: 'item', desc: 'Tăng 3x tỉ lệ gặp Shiny (Vĩnh viễn)', img: 'shiny-charm.png' },
@@ -5427,26 +5426,38 @@ function showDamageText(amount, isCrit) {
 }
     // --- UPDATE LOG (v2.4.2) ---
 // Hàm hiển thị Update Log (Chạy khi vào game)
+// --- CẤU HÌNH PHIÊN BẢN (DÁN CÁI NÀY LÊN ĐẦU FILE JS) ---
+const GAME_VERSION = "v2.5.0"; // <-- Đây là cái biến bị thiếu
+const VERSION_NAME = "Reawakened Power";
+
+const UPDATE_LOG_CONTENT = `
+<div style="text-align:left; font-size:0.9em; color:#ddd; line-height:1.5;">
+    <p style="color:#f1c40f; font-weight:bold; font-size:1.1em; text-align:center; margin-bottom:10px">
+        🚀 CHÀO MỪNG ĐẾN VỚI V2.5.0 🚀<br>
+        "SỨC MẠNH THỨC TỈNH"
+    </p>
+    <ul style="padding-left:20px;">
+        <li><b>✨ Move Relearner:</b> Đã thêm tính năng Hồi Tưởng Chiêu Thức trong Túi Đồ.</li>
+        <li><b>🤖 Auto-Fill:</b> Tự động cập nhật chiêu chuẩn cho Pokemon cũ.</li>
+        <li><b>🔥 Battle Fix:</b> Sửa lỗi Recover hồi máu cho địch và các lỗi Status.</li>
+        <li><b>🎁 Quà:</b> Tăng vàng khởi đầu lên 5,000.</li>
+        <li><b>🎁 CodeCode:</b> UPDATE250.</li>
+    </ul>
+    <div style="text-align:center; margin-top:10px; color:#777;">~ Dev Team ~</div>
+</div>
+`;
+
+// --- HÀM HIỂN THỊ LOG ---
 function showUpdateLog() {
-    // Kiểm tra xem người chơi đã đọc bản update này chưa (Lưu ở localStorage)
+    // Bây giờ nó đã tìm thấy GAME_VERSION ở ngay bên trên rồi!
     const lastReadVersion = localStorage.getItem('last_read_version');
     
     if (lastReadVersion !== GAME_VERSION) {
-        // Tạo Modal thông báo
         let modal = document.createElement('div');
-        modal.style.position = 'fixed';
-        modal.style.left = '0'; 
-        modal.style.top = '0';
-        modal.style.width = '100%'; 
-        modal.style.height = '100%';
-        modal.style.background = 'rgba(0,0,0,0.85)';
-        modal.style.zIndex = '10000';
-        modal.style.display = 'flex';
-        modal.style.justifyContent = 'center';
-        modal.style.alignItems = 'center';
+        modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; display:flex; justify-content:center; align-items:center;";
         
         modal.innerHTML = `
-            <div class="box-style" style="width:90%; max-width:500px; background:#222; border-color:#f1c40f; max-height:80vh; overflow-y:auto;">
+            <div class="box-style" style="width:90%; max-width:500px; background:#222; border-color:#f1c40f; max-height:80vh; overflow-y:auto; padding:20px;">
                 ${UPDATE_LOG_CONTENT}
                 <button class="btn-auth" style="margin-top:20px; width:100%" onclick="this.parentElement.parentElement.remove(); localStorage.setItem('last_read_version', '${GAME_VERSION}')">
                     ĐÃ HIỂU, VÀO GAME!
@@ -5456,24 +5467,14 @@ function showUpdateLog() {
         document.body.appendChild(modal);
     }
 }
-
-// Gọi hàm này ở cuối hàm loginSuccess hoặc loadGame
-// showUpdateLog();
-
-// Gọi hàm này 1 lần khi người chơi mới vào game (Check version)
-const CURRENT_VERSION = '2.4.2';
-if(localStorage.getItem('gameVersion') !== CURRENT_VERSION) {
-    setTimeout(showUpdateLog, 2000); // Hiện sau 2s khi vào game
-    localStorage.setItem('gameVersion', CURRENT_VERSION);
-}
     // --- HỆ THỐNG GIFTCODE ---
 
 // 1. Cấu hình danh sách Code và Quà
 const GIFT_CODES = {
-    "UPDATE241": { 
+    "UPDATE250": { 
         coins: 10000, 
-        items: { 'master-ball': 1, 'rare-candy': 5 },
-        msg: "Mừng bản cập nhật 2.4.1! Tặng bạn 1 Master Ball & 5 Kẹo."
+        items: { 'ultra-ball': 20, 'rare-candy': 5 },
+        msg: "Mừng bản cập nhật 2.5.0! Tặng bạn 20 Ultra balls & 5 Kẹo."
     },
     "POKESTAY": {
         coins: 5000,
@@ -7073,6 +7074,7 @@ function onReplaceMove(slotIndex) {
 </script>
 </body>
 </html>
+
 
 
 
