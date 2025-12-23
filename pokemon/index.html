@@ -1005,9 +1005,74 @@ header {
 }
 .move-select-btn .m-name { font-weight: bold; }
 .move-select-btn .m-info { font-size: 0.8em; color: #aaa; }
+        /* Style cho Item chiêu thức */
+.move-item {
+    background: #2f3136;
+    border: 1px solid #444;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.move-item:hover {
+    background: #40444b;
+    border-color: white;
+}
+/* Hiệu ứng khi đang chọn chiêu để học */
+.move-item.selected-learn {
+    border-color: #2ecc71;
+    background: rgba(46, 204, 113, 0.2);
+    animation: pulse 1s infinite;
+}
+/* Tag hiển thị hệ */
+.type-tag {
+    font-size: 0.7em;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-weight: bold;
+    color: black;
+    text-transform: uppercase;
+}
     </style>
 </head>
 <body>
+    <div id="move-manager-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; justify-content:center; align-items:center;">
+    <div class="box-style" style="width:95%; max-width:700px; height:80vh; border-color:#9b59b6; display:flex; flex-direction:column;">
+        
+        <div style="display:flex; align-items:center; gap:10px; border-bottom:1px solid #555; padding-bottom:10px; margin-bottom:10px">
+            <img id="mm-poke-img" src="" width="60">
+            <div>
+                <h3 id="mm-poke-name" style="margin:0; color:#f1c40f">POKEMON</h3>
+                <div style="font-size:0.8em; color:#bbb">Quản Lý & Hồi Tưởng Chiêu Thức</div>
+            </div>
+            <button class="btn-close" style="margin-left:auto; width:auto" onclick="closeMoveManager()">Đóng</button>
+        </div>
+
+        <div style="display:flex; flex:1; gap:10px; overflow:hidden;">
+            
+            <div style="width:40%; background:rgba(0,0,0,0.3); border:1px solid #3498db; border-radius:5px; padding:5px; display:flex; flex-direction:column;">
+                <div style="text-align:center; color:#3498db; font-weight:bold; margin-bottom:5px">ĐANG SỬ DỤNG (4/4)</div>
+                <div id="mm-current-list" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:5px;">
+                    </div>
+            </div>
+
+            <div style="width:60%; background:rgba(0,0,0,0.3); border:1px solid #9b59b6; border-radius:5px; padding:5px; display:flex; flex-direction:column;">
+                <div style="text-align:center; color:#9b59b6; font-weight:bold; margin-bottom:5px">KHO TÀNG KÝ ỨC (Có thể học)</div>
+                <div id="mm-pool-list" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:5px;">
+                    <div style="text-align:center; color:yellow; margin-top:20px">⏳ Đang tải dữ liệu Move Pool...</div>
+                </div>
+            </div>
+
+        </div>
+        
+        <div style="margin-top:10px; font-size:0.9em; color:#bbb; text-align:center">
+            <i>*Bấm vào chiêu bên phải để học, sau đó chọn chiêu bên trái để quên.*</i>
+        </div>
+    </div>
+</div>
     <div id="learn-move-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; justify-content:center; align-items:center; flex-direction:column;">
     
     <div style="color:white; margin-bottom:10px; font-size:1.2em; text-align:center">
@@ -2474,6 +2539,7 @@ function renderBag() {
                     </div>
                 </div>
                 <div class="bag-actions">
+                    <button class="btn-small" style="background:#9b59b6; color:white" onclick="openMoveManager(${realIdx})">SKILL</button>
                     <button class="btn-small btn-battle" onclick="openBattleModal(${realIdx})">ĐẤU</button> 
                     ${candyBtn} ${evoBtn}
                     <button class="btn-small btn-sell" onclick="sell(${realIdx},${pr})">Bán</button>
@@ -6797,9 +6863,186 @@ async function backfillMovesForOldPokemon(pokemon) {
         console.error(`Lỗi cập nhật move cho ${pokemon.name}:`, e);
     }
 }
+    // --- BIẾN TOÀN CỤC QUẢN LÝ MOVE ---
+let currentMmPokemonIdx = -1; // Index của Pokemon đang chỉnh
+let selectedMoveToLearn = null; // Chiêu đang chọn để học
+
+// 1. MỞ GIAO DIỆN
+function openMoveManager(bagIndex) {
+    currentMmPokemonIdx = bagIndex;
+    selectedMoveToLearn = null;
+    let p = myBag[bagIndex];
+
+    if(!p) return;
+
+    // Hiển thị Modal
+    document.getElementById('move-manager-modal').style.display = 'flex';
+    document.getElementById('mm-poke-img').src = p.img;
+    document.getElementById('mm-poke-name').innerText = p.name;
+
+    // Render danh sách hiện tại
+    renderCurrentMoves();
+
+    // Tải danh sách có thể học (Async)
+    loadRelearnableMoves(p);
+}
+
+function closeMoveManager() {
+    document.getElementById('move-manager-modal').style.display = 'none';
+}
+
+// 2. HIỂN THỊ CHIÊU HIỆN TẠI (Cột Trái)
+function renderCurrentMoves() {
+    let p = myBag[currentMmPokemonIdx];
+    const list = document.getElementById('mm-current-list');
+    list.innerHTML = '';
+
+    p.moves.forEach((m, idx) => {
+        let typeColor = TYPE_COLORS[m.type] || '#ccc';
+        
+        list.innerHTML += `
+        <div class="move-item" onclick="onReplaceMove(${idx})">
+            <div>
+                <div style="font-weight:bold; color:${typeColor}">${m.name}</div>
+                <div style="font-size:0.7em; color:#aaa">Pwr: ${m.pwr||'-'} | Acc: ${m.acc||'-'}</div>
+            </div>
+            <span class="type-tag" style="background:${typeColor}">${m.type.substring(0,3)}</span>
+        </div>`;
+    });
+
+    // Nếu chưa đủ 4 chiêu, hiện ô trống
+    for(let i = p.moves.length; i < 4; i++) {
+        list.innerHTML += `
+        <div class="move-item" onclick="onReplaceMove(${i})" style="border:1px dashed #555; justify-content:center; color:#555">
+            (Trống)
+        </div>`;
+    }
+}
+
+// 3. TẢI CHIÊU CÓ THỂ HỌC (Cột Phải) - Dùng API
+async function loadRelearnableMoves(pokemon) {
+    const list = document.getElementById('mm-pool-list');
+    list.innerHTML = '<div style="text-align:center; color:yellow; padding:20px">⏳ Đang đọc ký ức...</div>';
+
+    try {
+        // Gọi API lấy toàn bộ chiêu
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon.id}`);
+        const data = await res.json();
+
+        // Lọc chiêu:
+        // 1. Phải là learn method 'level-up'
+        // 2. Level học phải <= Level hiện tại của Pokemon
+        // 3. Không nằm trong danh sách chiêu hiện tại
+        let pool = data.moves.filter(m => {
+            const details = m.version_group_details[m.version_group_details.length - 1]; // Lấy bản mới nhất
+            const isLevelUp = details.move_learn_method.name === 'level-up';
+            const isLevelOk = details.level_learned_at <= pokemon.level;
+            
+            // Check trùng
+            const isKnown = pokemon.moves.some(known => known.id === m.move.name);
+
+            return isLevelUp && isLevelOk && !isKnown;
+        });
+
+        // Sắp xếp: Level cao lên đầu (Chiêu mạnh thường ở lv cao)
+        pool.sort((a, b) => {
+            const lvA = a.version_group_details[a.version_group_details.length - 1].level_learned_at;
+            const lvB = b.version_group_details[b.version_group_details.length - 1].level_learned_at;
+            return lvB - lvA;
+        });
+
+        // Render ra list
+        list.innerHTML = '';
+        if(pool.length === 0) {
+            list.innerHTML = '<div style="text-align:center; color:#777">Không có chiêu nào để học lại.</div>';
+            return;
+        }
+
+        // Tạo nút cho từng chiêu (Chưa fetch chi tiết, chỉ hiện tên để nhẹ)
+        // Khi bấm vào mới fetch chi tiết để học
+        pool.forEach(m => {
+            let moveNameRaw = m.move.name;
+            let moveNameNice = moveNameRaw.split('-').map(w => w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+            let lv = m.version_group_details[m.version_group_details.length - 1].level_learned_at;
+
+            list.innerHTML += `
+            <div id="pool-btn-${moveNameRaw}" class="move-item" onclick="onSelectMoveToLearn('${moveNameRaw}')">
+                <div>
+                    <div style="font-weight:bold; color:white">${moveNameNice}</div>
+                    <div style="font-size:0.7em; color:#aaa">Học tại Lv.${lv}</div>
+                </div>
+                <button class="btn-small" style="background:#9b59b6">HỌC</button>
+            </div>`;
+        });
+
+    } catch (e) {
+        console.error(e);
+        list.innerHTML = '<div style="color:red">Lỗi kết nối Move Relearner.</div>';
+    }
+}
+
+// 4. XỬ LÝ CHỌN CHIÊU ĐỂ HỌC
+async function onSelectMoveToLearn(moveId) {
+    // Highlight nút đang chọn
+    const allBtns = document.querySelectorAll('#mm-pool-list .move-item');
+    allBtns.forEach(b => b.classList.remove('selected-learn'));
+    
+    const btn = document.getElementById(`pool-btn-${moveId}`);
+    if(btn) btn.classList.add('selected-learn');
+
+    // Fetch chi tiết chiêu này (Power, Type...) để chuẩn bị gán
+    btn.innerHTML = `<div>Đang tải dữ liệu...</div>`; // Hiệu ứng loading nhẹ
+    
+    const moveDetails = await fetchMoveDetails(moveId);
+    
+    if(!moveDetails) {
+        alert("Lỗi tải chiêu này!");
+        return;
+    }
+
+    selectedMoveToLearn = moveDetails;
+    
+    // Khôi phục lại giao diện nút
+    let moveNameNice = moveDetails.name;
+    btn.innerHTML = `
+        <div>
+            <div style="font-weight:bold; color:${TYPE_COLORS[moveDetails.type]}">${moveNameNice}</div>
+            <div style="font-size:0.7em; color:#aaa">Pwr: ${moveDetails.pwr} | Acc: ${moveDetails.acc}</div>
+        </div>
+        <div style="font-size:0.7em; color:#2ecc71; font-weight:bold">ĐANG CHỌN</div>
+    `;
+
+    alert(`Đã chọn [${moveNameNice}].\nBây giờ hãy bấm vào 1 chiêu ở cột TRÁI để thay thế!`);
+}
+
+// 5. XỬ LÝ THAY THẾ (Bấm vào cột trái)
+function onReplaceMove(slotIndex) {
+    if(!selectedMoveToLearn) {
+        return alert("Hãy chọn một chiêu bên PHẢI để học trước!");
+    }
+
+    let p = myBag[currentMmPokemonIdx];
+    let oldMoveName = p.moves[slotIndex] ? p.moves[slotIndex].name : "(Ô Trống)";
+
+    if(confirm(`Bạn muốn ${p.name} quên [${oldMoveName}] để học [${selectedMoveToLearn.name}]?`)) {
+        // Thực hiện đổi
+        p.moves[slotIndex] = selectedMoveToLearn;
+        
+        saveGame();
+        
+        // Reset và vẽ lại
+        selectedMoveToLearn = null;
+        alert("Học chiêu thành công!");
+        
+        // Vẽ lại 2 cột
+        renderCurrentMoves();
+        loadRelearnableMoves(p); // Load lại để trừ chiêu vừa học ra
+    }
+}
 </script>
 </body>
 </html>
+
 
 
 
