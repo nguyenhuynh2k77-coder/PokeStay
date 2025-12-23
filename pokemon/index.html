@@ -4045,8 +4045,7 @@ function processWin() {
         p.level++; p.xp -= p.maxXp; p.maxXp = Math.floor(p.maxXp * 1.2);
         recalcStats(p);
         logBattle(`🆙 Lên cấp ${p.level}! Stats tăng!`);
-        checkNewMoves(p);
-        checkNewMoves(p);
+        await checkLevelUpMoves(p);
     }
     
     updateQuestProgress('win', 1);
@@ -6275,7 +6274,6 @@ function addTrainerXp(amount) {
         inventory['poke-ball'] = (inventory['poke-ball']||0) + 5;
         
         alert(`🆙 CHÚC MỪNG! Bạn đã lên Level ${trainerData.level}!\nNhận: ${trainerData.level * 500} Xu & 5 Poke Ball.`);
-        await checkLevelUpMoves(p);
         
         // Cập nhật lại UI Map (để mở khóa map mới)
         renderMapList(); 
@@ -6744,6 +6742,7 @@ function closeRelearner() {
 </script>
 </body>
 </html>
+
 
 
 
