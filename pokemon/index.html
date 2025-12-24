@@ -1036,38 +1036,9 @@ header {
     color: black;
     text-transform: uppercase;
 }
-        /* Toast Container */
-#toast-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 10000;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-/* Toast Item */
-.toast-msg {
-    background: rgba(0, 0, 0, 0.9);
-    color: white;
-    padding: 10px 15px;
-    border-radius: 5px;
-    border-left: 4px solid #3ba55c; /* Màu xanh mặc định */
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    font-size: 0.9em;
-    animation: slideIn 0.3s ease-out forwards;
-    min-width: 200px;
-}
-
-@keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
     </style>
 </head>
 <body>
-    <div id="toast-container"></div>
     <div id="move-manager-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; justify-content:center; align-items:center;">
     <div class="box-style" style="width:95%; max-width:700px; height:80vh; border-color:#9b59b6; display:flex; flex-direction:column;">
         
@@ -1685,47 +1656,25 @@ header {
     const URL_ITEMS = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/";
     const LEGENDARY_IDS = [144,145,146,150,151,243,244,245,249,250,251,377,378,379,380,381,382,383,384,385,386,480,481,482,483,484,485,486,487,488,489,490,491,492,493,494,638,639,640,641,642,643,644,645,646];
     
-    // BẢNG KHẮC HỆ CHUẨN (Gen 6+)
-const TYPE_CHART = {
-    normal:   { rock: 0.5, ghost: 0, steel: 0.5 },
-    fire:     { fire: 0.5, water: 0.5, grass: 2, ice: 2, bug: 2, rock: 0.5, dragon: 0.5, steel: 2 },
-    water:    { fire: 2, water: 0.5, grass: 0.5, ground: 2, rock: 2, dragon: 0.5 },
-    electric: { water: 2, electric: 0.5, grass: 0.5, ground: 0, flying: 2, dragon: 0.5 },
-    grass:    { fire: 0.5, water: 2, grass: 0.5, poison: 0.5, ground: 2, flying: 0.5, bug: 0.5, rock: 2, dragon: 0.5, steel: 0.5 },
-    ice:      { fire: 0.5, water: 0.5, grass: 2, ice: 0.5, ground: 2, flying: 2, dragon: 2, steel: 0.5 },
-    fighting: { normal: 2, ice: 2, rock: 2, dark: 2, steel: 2, poison: 0.5, flying: 0.5, psychic: 0.5, bug: 0.5, ghost: 0, fairy: 0.5 },
-    poison:   { grass: 2, poison: 0.5, ground: 0.5, rock: 0.5, ghost: 0.5, steel: 0, fairy: 2 },
-    ground:   { fire: 2, electric: 2, grass: 0.5, poison: 2, flying: 0, bug: 0.5, rock: 2, steel: 2 },
-    flying:   { electric: 0.5, grass: 2, fighting: 2, bug: 2, rock: 0.5, steel: 0.5 },
-    psychic:  { fighting: 2, poison: 2, psychic: 0.5, dark: 0, steel: 0.5 },
-    bug:      { fire: 0.5, grass: 2, fighting: 0.5, poison: 0.5, flying: 0.5, psychic: 2, ghost: 0.5, dark: 2, steel: 0.5, fairy: 0.5 },
-    rock:     { fire: 2, ice: 2, fighting: 0.5, ground: 0.5, flying: 2, bug: 2, steel: 0.5 },
-    ghost:    { normal: 0, psychic: 2, ghost: 2, dark: 0.5 },
-    dragon:   { dragon: 2, steel: 0.5, fairy: 0 },
-    dark:     { fighting: 0.5, psychic: 2, ghost: 2, dark: 0.5, fairy: 0.5 },
-    steel:    { fire: 0.5, water: 0.5, electric: 0.5, ice: 2, rock: 2, steel: 0.5, fairy: 2 },
-    fairy:    { fire: 0.5, fighting: 2, poison: 0.5, dragon: 2, dark: 2, steel: 0.5 }
-};
-
-// Hàm tính khắc hệ mới (Thay thế hàm getEffectiveness cũ)
-function getEffectiveness(moveType, targetTypes) {
-    let multiplier = 1;
-    
-    // Duyệt qua từng hệ của đối thủ (Ví dụ Charizard là Fire/Flying)
-    targetTypes.forEach(defType => {
-        if (TYPE_CHART[moveType]) {
-            // Kiểm tra xem moveType đánh vào defType có hệ số đặc biệt không
-            let mod = TYPE_CHART[moveType][defType];
-            
-            // Nếu có trong bảng thì nhân, nếu không thì mặc định là 1
-            if (mod !== undefined) {
-                multiplier *= mod;
-            }
-        }
-    });
-    
-    return multiplier;
-}
+    const TYPE_ADVANTAGE = { 
+        'normal': [],
+        'fire': ['grass', 'ice', 'bug', 'steel'], 
+        'water': ['fire', 'ground', 'rock'], 
+        'grass': ['water', 'ground', 'rock'], 
+        'electric': ['water', 'flying'], 
+        'ice': ['grass', 'ground', 'flying', 'dragon'], 
+        'fighting': ['normal', 'ice', 'rock', 'dark', 'steel'], 
+        'poison': ['grass', 'fairy'], 
+        'ground': ['fire', 'electric', 'poison', 'rock', 'steel'], 
+        'flying': ['grass', 'fighting', 'bug'], 
+        'psychic': ['fighting', 'poison'], 
+        'bug': ['grass', 'psychic', 'dark'], 
+        'rock': ['fire', 'ice', 'flying', 'bug'], 
+        'ghost': ['psychic', 'ghost'], 
+        'dragon': ['dragon'], 
+        'steel': ['ice', 'rock', 'fairy'], 
+        'fairy': ['fighting', 'dragon', 'dark'] 
+    };
     const SPECIAL_TYPES = ['fire', 'water', 'grass', 'electric', 'psychic', 'ice', 'dragon', 'fairy'];
     
     const TYPE_COLORS = {
@@ -2056,15 +2005,15 @@ async function register() {
     // (Ở đây mình ép về viết hoa hết cho đồng bộ)
     u = u; 
 
-    if (!u || !p) return showToast("Thiếu thông tin!", "error");
-    if (u.length < 3) return showToast("Tên quá ngắn!", "warning");
+    if (!u || !p) return alert("Thiếu thông tin!");
+    if (u.length < 3) return alert("Tên quá ngắn!");
 
     // 1. Kiểm tra xem tên đã tồn tại chưa
     const snapshot = await firebase.database().ref('users/' + u).once('value');
     
     if (snapshot.exists()) {
         // NẾU ĐÃ CÓ -> BÁO LỖI NGAY
-        showToast("Tên này đã có người dùng!", "error");
+        alert("❌ Tên này đã có người dùng! Vui lòng chọn tên khác.");
     } else {
         // NẾU CHƯA CÓ -> TẠO MỚI
         // Tạo account với mật khẩu
@@ -2080,7 +2029,7 @@ async function register() {
             // ... các chỉ số khởi đầu khác
         });
         
-        showToast("Đăng ký thành công!", "success");
+        alert("✅ Đăng ký thành công! Hãy đăng nhập.");
     }
 }
     // Thay thế hàm login cũ bằng hàm này
@@ -2093,7 +2042,7 @@ async function login() {
     const p = document.getElementById('password-input').value.trim();
     const btn = document.querySelector('.btn-login');
 
-    if (!u || !p) return showToast("Vui lòng nhập tên và mật khẩu!");
+    if (!u || !p) return alert("Vui lòng nhập tên và mật khẩu!");
 
     // ❌ ĐÃ XÓA DÒNG u = u.toUpperCase(); 
     // Giờ đây bạn nhập "Nguyen" thì code sẽ tìm "Nguyen", nhập "admin" tìm "admin"
@@ -2111,18 +2060,18 @@ async function login() {
                 // Đăng nhập thành công -> Gọi hàm vào game
                 loginSuccess(u);
             } else {
-                showToast("Sai mật khẩu!", "error");
+                alert("❌ Sai mật khẩu!");
                 if(btn) btn.innerText = "ĐĂNG NHẬP";
             }
         } else {
             // Không tìm thấy tên chính xác -> Báo lỗi
-            showToast(`❌ Tài khoản "${u}" không tồn tại!`); 
+            alert(`❌ Tài khoản "${u}" không tồn tại!`); 
             if(btn) btn.innerText = "ĐĂNG NHẬP";
         }
 
     } catch (err) {
         console.error("Lỗi đăng nhập:", err);
-        showToast("Lỗi kết nối server!", "error");
+        alert("Lỗi kết nối: " + err.message);
         if(btn) btn.innerText = "ĐĂNG NHẬP";
     }
 }
@@ -2144,44 +2093,35 @@ async function loginSuccess(user) {
 }
     function logout() { saveGame(); location.reload(); }
 
-   // --- BIẾN TOÀN CỤC ---
-let saveTimeout = null;
-let isSaving = false;
-
-// --- HÀM LƯU GAME TỐI ƯU (DEBOUNCE) ---
-function saveGame() {
-    // 1. Cập nhật giao diện ngay lập tức (để người chơi thấy tiền nhảy số)
-    updateStats(); 
-
-    // 2. Nếu đang có lệnh lưu chờ chạy, hủy nó đi để đặt lệnh mới
-    if (saveTimeout) clearTimeout(saveTimeout);
-
-    // 3. Hiển thị trạng thái "Đang lưu..." (Optional)
-    const saveStatus = document.getElementById('save-status'); // Bạn có thể tạo 1 thẻ span nhỏ ở góc
-    if(saveStatus) saveStatus.innerText = "⏳ Saving...";
-
-    // 4. Đặt hẹn giờ: Sau 2 giây mới thực sự gửi lên Firebase
-    saveTimeout = setTimeout(() => {
-        if (!currentUser) return;
-        
-        const dataToSave = {
-            coins: coins,
-            myBag: myBag,
-            // ... (giữ nguyên các trường dữ liệu cũ của bạn) ...
-            inventory: inventory,
-            trainerData: trainerData,
-            // ... copy hết các dòng trong hàm cũ vào đây ...
-            dailyQuests: dailyQuests
-        };
-
-        firebase.database().ref('users/' + currentUser).update(dataToSave)
-            .then(() => {
-                console.log("🔥 Auto-Saved to Cloud!");
-                if(saveStatus) saveStatus.innerText = "✅ Saved";
-            })
-            .catch((e) => console.error("Save error:", e));
-            
-    }, 2000); // 2000ms = 2 giây
+   function saveGame() {
+    if (!currentUser) return;
+    const dataToSave = {
+        coins: coins,
+        myBag: myBag,
+        usedCodes: usedCodes,
+        towerData: towerData,
+        limitedShopHistory: limitedShopHistory,
+        pokedex: Array.from(pokedex),
+        inventory: inventory,
+        lastDailyDate: lastDailyDate,
+        trainerData: trainerData,
+        currentZone: currentZone,
+        dailyQuizStatus: dailyQuizStatus,
+        userStats: userStats,
+        stamina: stamina,
+        lastStaminaTime: lastStaminaTime,
+        bossTeamIndices: bossTeamIndices,
+        completedAchievements: completedAchievements,
+        daycare: daycare,
+        gymProgress: gymProgress,
+        maxBagSize: maxBagSize,
+        pickaxe: pickaxe,
+        dailyRepairs: dailyRepairs,
+        dailyQuests: dailyQuests
+    };
+    firebase.database().ref('users/' + currentUser).set(dataToSave)
+        .then(() => console.log("Saved to Firebase"))
+        .catch((e) => console.error("Save error:", e));
 }
     
    async function loadGame() {
@@ -2326,7 +2266,7 @@ function saveGame() {
             // 4. Nếu dữ liệu lấy từ Local (Migration), thì LƯU NGAY lên Server
             if (source === "local") {
                 saveGame(); // Đẩy lên Firebase
-                showToast("Đã chuyển dữ liệu cũ lên Online thành công!");
+                alert("Đã chuyển dữ liệu cũ lên Online thành công!");
             }
 
         } else {
@@ -2347,7 +2287,7 @@ function saveGame() {
 
     } catch (error) {
         console.error("Lỗi tải game:", error);
-        showToast("Lỗi kết nối! Vui lòng kiểm tra mạng hoặc F12 xem console.");
+        alert("Lỗi kết nối! Vui lòng kiểm tra mạng hoặc F12 xem console.");
         // Nếu lỗi mạng, cố gắng load tạm từ local để chơi offline (tùy chọn)
         showMenu();
     }
@@ -2472,9 +2412,9 @@ function switchMenu(tabName) {
         saveGame(); updateStats();
         if(count > 0) {
             log(`<span style="color:#ff7675; font-weight:bold">🏥 Nurse Joy: Đã hồi phục cho ${count} Pokemon của bạn!</span>`);
-            showToast("Đã hồi phục toàn bộ team!", "success");
+            alert("Nurse Joy: Chào mừng tới Pokemon Center! Team của bạn đã khỏe mạnh.");
         } else {
-            showToast("Pokemon vẫn khỏe mạnh!", "info");
+            alert("Nurse Joy: Pokemon của bạn vẫn rất khỏe mạnh!");
         }
     }
     
@@ -2804,27 +2744,27 @@ function submitBuy() {
     const qtyInput = document.getElementById('buy-qty');
     
     // Kiểm tra lỗi
-    if (!id) return showToast("Lỗi: Không xác định được vật phẩm!");
-    if (!qtyInput) return showToast("Lỗi: Không tìm thấy ô nhập số lượng!");
+    if (!id) return alert("Lỗi: Không xác định được vật phẩm!");
+    if (!qtyInput) return alert("Lỗi: Không tìm thấy ô nhập số lượng!");
 
     const qty = parseInt(qtyInput.value);
-    if (qty <= 0 || isNaN(qty)) return showToast("Số lượng không hợp lệ", "warning");
+    if (qty <= 0 || isNaN(qty)) return alert("Số lượng phải lớn hơn 0!");
 
     const item = SHOP_DB.find(i => i.id === id);
-    if (!item) return showToast("Vật phẩm lỗi!", "error");
+    if (!item) return alert("Vật phẩm không tồn tại!");
 
     // --- LOGIC GIỚI HẠN (Cho Old Map) ---
     if (item.uniqueKey) {
         if (limitedShopHistory && limitedShopHistory[id] === item.uniqueKey) {
             closeBuy();
-            return showToast("✋ Bạn đã mua vật phẩm này rồi! Hãy kiểm tra lại trong túi.");
+            return alert("✋ Bạn đã mua vật phẩm này rồi! Hãy kiểm tra lại trong túi.");
         }
-        if (qty > 1) return showToast("Vật phẩm đặc biệt này chỉ được mua 1 cái!");
+        if (qty > 1) return alert("Vật phẩm đặc biệt này chỉ được mua 1 cái!");
     }
 
     // Tính tiền
     let cost = item.price * qty;
-    if (coins < cost) return showToast("Bạn không đủ tiền!", "error");
+    if (coins < cost) return alert("Không đủ tiền!");
 
     // Trừ tiền & Cộng đồ
     coins -= cost;
@@ -2856,7 +2796,7 @@ function submitBuy() {
             <i>"${item.desc}"</i>
         </div>`);
     } else {
-        showToast("Mua thành công!", "success");
+        alert(`Đã mua ${qty}x ${item.name} thành công!`);
     }
 }
     function incrementEggSteps() { let hatched = false; myBag.forEach(p => { if(p.isEgg && p.steps < p.maxSteps) { p.steps++; if(p.steps >= p.maxSteps) hatched = true; } }); if(hatched) log(`<span style="color:#f1c40f">🥚 Có trứng đã sẵn sàng nở! Vào túi kiểm tra ngay.</span>`); saveGame(); }
@@ -3124,7 +3064,7 @@ async function forceSpawnPokemon(id, forceShiny, forceShadow, forceRainbow) {
 
     } catch (e) {
         console.error(e);
-        showToast("Lỗi ID Pokemon không tồn tại!");
+        alert("Lỗi ID Pokemon không tồn tại!");
     }
 }
 // Hàm phụ lấy tên Zone (tránh lỗi nếu chưa khai báo)
@@ -3190,7 +3130,7 @@ function renderBattleControls() {
 let originalEnemyImg = ""; 
 
 function catchAttempt(ballType) {
-    if ((inventory[ballType] || 0) <= 0) return showToast("Hết bóng loại này rồi!", "error");
+    if ((inventory[ballType] || 0) <= 0) return alert("Hết bóng loại này!");
     
     inventory[ballType]--; 
     saveGame();
@@ -3420,7 +3360,7 @@ function useItem(id) {
     // 4. Xử lý hiệu ứng khác (Lucky Egg, Incense...)
     if (id === 'lucky-egg') {
         activeBuffs.egg = true;
-        showToast("Đã dùng Lucky Egg! x2 Vàng nhận được.");
+        alert("Đã dùng Lucky Egg! x2 Vàng nhận được.");
     }
     
     if (id === 'incense') {
@@ -3508,7 +3448,7 @@ function useItem(id) {
     async function startBattle(difficulty) {
         let p = myBag[selectedBattleIdx];
         ensureDataIntegrity(p); 
-        if(p.hp <= 0 && !isNaN(p.hp)) return showToast("Pokemon này đã ngất! Hãy hồi máu tại Center.");
+        if(p.hp <= 0 && !isNaN(p.hp)) return alert("Pokemon này đã ngất! Hãy hồi máu tại Center.");
         
         document.getElementById('battle-select-screen').style.display = 'none';
         document.getElementById('battle-combat-screen').style.display = 'flex';
@@ -3707,7 +3647,7 @@ function useItem(id) {
         // Lưu ý: Hàm executeTurn giờ là async, nhưng ở đây ta gọi không cần await
         executeTurn('attack', moveIdx).catch(err => {
             console.error("Lỗi Battle:", err);
-            showToast("Đã xảy ra lỗi trong trận đấu! Xem console (F12) để biết chi tiết.");
+            alert("Đã xảy ra lỗi trong trận đấu! Xem console (F12) để biết chi tiết.");
             // Hiện lại menu nếu lỗi để không bị kẹt
             document.getElementById('battle-main-menu').style.display = 'grid';
             document.getElementById('battle-main-menu').style.opacity = '1';
@@ -4132,6 +4072,16 @@ function applyStatus(target, status) {
         if(result.isCrit) logBattle(`<span style="color:#e74c3c;font-weight:bold">Địch đánh chí mạng!</span>`);
         applyDamage(p, result.damage, 'player');
     }
+
+    function getEffectiveness(atkType, defTypes) {
+        let mod = 1;
+        defTypes.forEach(dT => {
+            if(TYPE_ADVANTAGE[atkType] && TYPE_ADVANTAGE[atkType].includes(dT)) mod *= 2;
+            if(TYPE_ADVANTAGE[dT] && TYPE_ADVANTAGE[dT].includes(atkType)) mod *= 0.5;
+        });
+        return mod;
+    }
+
     function applyDamage(target, dmg, who) {
         if(isNaN(target.hp)) target.hp = target.maxHp; 
         target.hp -= dmg;
@@ -4251,7 +4201,7 @@ function handleTowerWin() {
         document.getElementById('battle-modal').style.display = 'none'; // Tắt bảng đánh nhau
         document.getElementById('tower-modal').style.display = 'flex';  // Mở lại bảng tháp
         updateTowerUI(); // Cập nhật số tầng mới
-        showToast(`🏆 CHIẾN THẮNG TẦNG ${towerData.floor - 1}!\n${healMsg}${rewardMsg}`);
+        alert(`🏆 CHIẾN THẮNG TẦNG ${towerData.floor - 1}!\n${healMsg}${rewardMsg}`);
     }, 1000);
 }
 
@@ -4293,15 +4243,15 @@ else dailyQuests.push({
         }
     }
     function checkDailyQuestUI() { const container = document.getElementById('daily-quests-container'); container.innerHTML = dailyQuests.map((q, i) => { let pct = Math.min(100, Math.floor((q.progress / q.target) * 100)); let diffClass = q.difficulty === 0 ? 'diff-0' : (q.difficulty === 1 ? 'diff-1' : 'diff-2'); let diffName = q.difficulty === 0 ? 'EASY' : (q.difficulty === 1 ? 'MEDIUM' : 'HARD'); let btn = ''; if(q.claimed) btn = `<button class="btn-auth" style="background:#555; font-size:0.7em; padding:5px" disabled>Đã nhận</button>`; else if(q.progress >= q.target) btn = `<button class="btn-auth" style="background:#3ba55c; font-size:0.7em; padding:5px" onclick="claimQuest(${i})">NHẬN</button>`; else btn = `<button class="btn-auth" style="background:#555; font-size:0.7em; padding:5px" disabled>${q.progress}/${q.target}</button>`; return `<div class="quest-item"><div class="quest-header"><span class="difficulty-tag ${diffClass}">${diffName}</span><span style="font-size:0.9em; font-weight:bold">${q.text}</span></div><div class="quest-progress-bar"><div class="quest-progress-fill" style="width:${pct}%"></div></div><div style="display:flex; justify-content:flex-end; margin-top:5px">${btn}</div></div>`; }).join(''); }
-    function claimDailyReward() { const today = new Date().toDateString(); if(lastDailyDate===today) return; coins+=5000; lastDailyDate=today; saveGame(); updateStats(); openDaily(); showToast("Đã nhận 5000 Coins điểm danh!"); }
-    function claimQuest(index) { let q = dailyQuests[index]; if(q.claimed || q.progress < q.target) return; q.claimed = true; let r = q.reward; if(r.type === 'item') { if(!inventory[r.id]) inventory[r.id]=0; inventory[r.id]+=r.qty; showToast(`Hoàn thành nhiệm vụ! Nhận ${r.qty}x ${r.id.toUpperCase()}`); } saveGame(); updateStats(); openDaily(); }
+    function claimDailyReward() { const today = new Date().toDateString(); if(lastDailyDate===today) return; coins+=5000; lastDailyDate=today; saveGame(); updateStats(); openDaily(); alert("Đã nhận 5000 Coins điểm danh!"); }
+    function claimQuest(index) { let q = dailyQuests[index]; if(q.claimed || q.progress < q.target) return; q.claimed = true; let r = q.reward; if(r.type === 'item') { if(!inventory[r.id]) inventory[r.id]=0; inventory[r.id]+=r.qty; alert(`Hoàn thành nhiệm vụ! Nhận ${r.qty}x ${r.id.toUpperCase()}`); } saveGame(); updateStats(); openDaily(); }
     function updateQuestProgress(type, amount) { let changed = false; dailyQuests.forEach(q => { if(!q.claimed && q.type === type) { q.progress += amount; changed = true; } }); if(changed) saveGame(); }
     function openDaycare() { if(currentWild) return; updateDaycareUI(); document.getElementById('daycare-modal').style.display = 'flex'; }
     function closeDaycare() { document.getElementById('daycare-modal').style.display = 'none'; }
     function updateDaycareUI() { const listDiv = document.getElementById('daycare-list'); listDiv.innerHTML = ''; daycare.slots.forEach((slot, index) => { let content = ''; if(slot.pokemon) { let now = Date.now(); let diffMins = Math.floor((now - slot.depositTime) / 60000); let pendingXP = diffMins * 50; content = `<div style="flex:1"><div style="font-weight:bold">${slot.pokemon.name} <span style="font-size:0.8em;color:#aaa">Lv.${slot.pokemon.level}</span></div><div style="font-size:0.8em; color:#3ba55c">+${pendingXP} XP (${diffMins}m)</div></div><button class="btn-auth" style="width:auto; padding:5px 10px; font-size:0.8em; background:#ed4245" onclick="withdrawPokemon(${index})">Rút</button>`; } else { let validMons = myBag.map((p, i) => ({...p, originalIdx: i})).filter(p => !p.isEgg); if(validMons.length > 0) { let opts = validMons.map(p => `<option value="${p.originalIdx}">${p.name} (Lv.${p.level})</option>`).join(''); content = `<div style="flex:1"><select id="daycare-select-${index}" class="login-input" style="margin:0; padding:5px; width:100%; font-size:0.9em">${opts}</select></div><button class="btn-auth" style="width:auto; padding:5px 10px; font-size:0.8em; background:#3ba55c; margin-left:5px" onclick="depositPokemon(${index})">Gửi</button>`; } else { content = `<div style="color:#aaa; font-size:0.9em">Không có Pokemon để gửi</div>`; } } listDiv.innerHTML += `<div class="daycare-row"><div style="width:20px; font-weight:bold; color:#7289da">#${index+1}</div>${content}</div>`; }); const btnBuy = document.getElementById('btn-buy-slot'); if(daycare.unlocked < 5) { let price = DAYCARE_PRICES[daycare.unlocked]; btnBuy.style.display = 'block'; btnBuy.innerText = `Mở Slot ${daycare.unlocked + 1} (${price.toLocaleString()}💰)`; } else { btnBuy.style.display = 'none'; } }
     function depositPokemon(slotIndex) { let select = document.getElementById(`daycare-select-${slotIndex}`); if(!select) return; let bagIdx = select.value; daycare.slots[slotIndex].pokemon = myBag[bagIdx]; daycare.slots[slotIndex].depositTime = Date.now(); myBag.splice(bagIdx, 1); saveGame(); updateDaycareUI(); }
-    function withdrawPokemon(slotIndex) { let slot = daycare.slots[slotIndex]; if(!slot.pokemon) return; let p = slot.pokemon; let now = Date.now(); let diffMins = Math.floor((now - slot.depositTime) / 60000); let earnedXP = diffMins * 50; if(earnedXP > 0) { p.xp += earnedXP; while(p.xp >= p.maxXp) { p.level++; p.xp -= p.maxXp; p.maxXp = Math.floor(p.maxXp * 1.2); recalcStats(p); } showToast(`Rút ${p.name} về! Nhận được ${earnedXP} XP!`); } else { showToast(`Chưa đủ 1 phút, chưa có XP.`); } myBag.push(p); slot.pokemon = null; slot.depositTime = 0; saveGame(); updateDaycareUI(); }
-    function buyDaycareSlot() { if(daycare.unlocked >= 5) return; let price = DAYCARE_PRICES[daycare.unlocked]; if(coins >= price) { coins -= price; daycare.unlocked++; daycare.slots.push({pokemon: null, depositTime: 0}); saveGame(); updateStats(); updateDaycareUI(); showToast("Đã mở rộng Daycare thành công!"); } else { showToast("Không đủ tiền!"); } }
+    function withdrawPokemon(slotIndex) { let slot = daycare.slots[slotIndex]; if(!slot.pokemon) return; let p = slot.pokemon; let now = Date.now(); let diffMins = Math.floor((now - slot.depositTime) / 60000); let earnedXP = diffMins * 50; if(earnedXP > 0) { p.xp += earnedXP; while(p.xp >= p.maxXp) { p.level++; p.xp -= p.maxXp; p.maxXp = Math.floor(p.maxXp * 1.2); recalcStats(p); } alert(`Rút ${p.name} về! Nhận được ${earnedXP} XP!`); } else { alert(`Chưa đủ 1 phút, chưa có XP.`); } myBag.push(p); slot.pokemon = null; slot.depositTime = 0; saveGame(); updateDaycareUI(); }
+    function buyDaycareSlot() { if(daycare.unlocked >= 5) return; let price = DAYCARE_PRICES[daycare.unlocked]; if(coins >= price) { coins -= price; daycare.unlocked++; daycare.slots.push({pokemon: null, depositTime: 0}); saveGame(); updateStats(); updateDaycareUI(); alert("Đã mở rộng Daycare thành công!"); } else { alert("Không đủ tiền!"); } }
     function openJobs() { if(currentWild) return; updateMiningUI(); let totalBalls = (inventory['poke-ball']||0); let povertyLine = coins < 200 && totalBalls < 5; const aidBtn = document.getElementById('emergency-aid'); if(povertyLine) { aidBtn.style.display = 'block'; } else { aidBtn.style.display = 'none'; } document.getElementById('job-modal').style.display = 'flex'; document.getElementById('job-menu').style.display = 'block'; document.getElementById('quiz-ui').style.display = 'none'; }
     function closeJobs() { document.getElementById('job-modal').style.display = 'none'; }
     // --- HỆ THỐNG THÀNH TỰU (ĐÃ SỬA LỖI HỒI LẠI) ---
@@ -4360,7 +4310,7 @@ function previewAchieve(id) { 
         if(a.reward.type === 'item') rewardText = `${a.reward.qty}x ${a.reward.id.toUpperCase()}`;
         // Nếu bạn có thêm loại reward khác (ví dụ coin) thì thêm vào đây
         
-        showToast(`🎁 Phần thưởng: ${rewardText}`); 
+        alert(`🎁 Phần thưởng: ${rewardText}`); 
     }
 }
 
@@ -4377,7 +4327,7 @@ function claimAchieve(id) { 
         if(a.reward.type === 'item') { 
             if(!inventory[a.reward.id]) inventory[a.reward.id]=0; 
             inventory[a.reward.id]+=a.reward.qty; 
-            showToast(`🎉 Chúc mừng! Bạn nhận được ${a.reward.qty}x ${a.reward.id.toUpperCase()}`);
+            alert(`🎉 Chúc mừng! Bạn nhận được ${a.reward.qty}x ${a.reward.id.toUpperCase()}`);
         } 
 
         // 4. LƯU GAME NGAY LẬP TỨC (Quan trọng để không bị mất khi F5)
@@ -4388,8 +4338,8 @@ function claimAchieve(id) { 
         openAchieve(); 
     } 
 }
-    function openRepairModal() { document.getElementById('job-modal').style.display = 'none'; const today = new Date().toDateString(); if(dailyRepairs.date !== today) { dailyRepairs = {date: today, count: 0}; saveGame(); } if(dailyRepairs.count >= 10) { showToast("Hôm nay bạn đã sửa 10 lần! Hãy quay lại vào ngày mai."); openJobs(); return; } document.getElementById('repair-limit-text').innerText = `Lượt sửa hôm nay: ${dailyRepairs.count}/10`; let a = Math.floor(Math.random() * 10) + 1; let b = Math.floor(Math.random() * 10) + 1; repairAnswer = a + b; document.getElementById('repair-question').innerText = `${a} + ${b} = ?`; let opts = [repairAnswer]; while(opts.length < 4) { let fake = Math.floor(Math.random() * 20) + 1; if(!opts.includes(fake)) opts.push(fake); } opts.sort(() => Math.random() - 0.5); document.getElementById('repair-options').innerHTML = opts.map(n => `<button class="btn-auth" onclick="submitRepair(${n})">${n}</button>`).join(''); document.getElementById('repair-modal').style.display = 'flex'; }
-    function submitRepair(ans) { document.getElementById('repair-modal').style.display = 'none'; if(ans === repairAnswer) { pickaxe.durability = pickaxe.max; dailyRepairs.count++; showToast("Sửa thành công!"); saveGame(); openJobs(); } else { showToast("Sai rồi! Cúp vẫn gãy. Thử lại sau."); setTimeout(() => openJobs(), 2000); } }
+    function openRepairModal() { document.getElementById('job-modal').style.display = 'none'; const today = new Date().toDateString(); if(dailyRepairs.date !== today) { dailyRepairs = {date: today, count: 0}; saveGame(); } if(dailyRepairs.count >= 10) { alert("Hôm nay bạn đã sửa 10 lần! Hãy quay lại vào ngày mai."); openJobs(); return; } document.getElementById('repair-limit-text').innerText = `Lượt sửa hôm nay: ${dailyRepairs.count}/10`; let a = Math.floor(Math.random() * 10) + 1; let b = Math.floor(Math.random() * 10) + 1; repairAnswer = a + b; document.getElementById('repair-question').innerText = `${a} + ${b} = ?`; let opts = [repairAnswer]; while(opts.length < 4) { let fake = Math.floor(Math.random() * 20) + 1; if(!opts.includes(fake)) opts.push(fake); } opts.sort(() => Math.random() - 0.5); document.getElementById('repair-options').innerHTML = opts.map(n => `<button class="btn-auth" onclick="submitRepair(${n})">${n}</button>`).join(''); document.getElementById('repair-modal').style.display = 'flex'; }
+    function submitRepair(ans) { document.getElementById('repair-modal').style.display = 'none'; if(ans === repairAnswer) { pickaxe.durability = pickaxe.max; dailyRepairs.count++; alert("Sửa thành công!"); saveGame(); openJobs(); } else { alert("Sai rồi! Cúp vẫn gãy. Thử lại sau."); setTimeout(() => openJobs(), 2000); } }
     // --- HỆ THỐNG QUIZ NÂNG CẤP (STREAK REWARDS) ---
 
 function startQuiz() {
@@ -4436,7 +4386,7 @@ function startQuiz() {
             
         } catch(e) {
             console.error(e);
-            showToast("Lỗi tải Quiz, thử lại sau!");
+            alert("Lỗi tải Quiz, thử lại sau!");
             openJobs();
         }
     })();
@@ -4599,7 +4549,7 @@ function startMining() {
         updateMiningUI(); // Cập nhật lại thanh độ bền lần nữa cho chắc
     }, 800);
 }
-    function claimEmergency() { if(confirm("Nhận trợ cấp?")) { coins += 200; inventory['poke-ball'] += 5; saveGame(); updateStats(); openJobs(); showToast("Đã nhận 200 Coins & 5 Poke Balls."); } }
+    function claimEmergency() { if(confirm("Nhận trợ cấp?")) { coins += 200; inventory['poke-ball'] += 5; saveGame(); updateStats(); openJobs(); alert("Đã nhận 200 Coins & 5 Poke Balls."); } }
     function closePokedex() { document.getElementById('dex-modal').style.display = 'none'; }
     // --- CẢI TIẾN: VISUAL POKEDEX ---
 
@@ -4704,7 +4654,7 @@ function speakDex(id, isCaught) {
     p.baseSpd = d2.stats.find(s=>s.stat.name==='speed').base_stat; 
     recalcStats(p); 
     assignMoves(p); 
-    saveGame(); openBag(); log(`<div class="embed" style="border-left-color:#9b59b6"><div class="embed-header"><div><span class="embed-title">TIẾN HÓA!</span><div class="embed-desc"><b>${p.name}</b><br>HP: ${p.maxHp} | ATK: ${p.atk}</div></div><img class="poke-sprite" src="${p.img}"></div></div>`); } else { btn.innerHTML = "Evo"; btn.classList.remove('loading'); let reqText = reqType === 'use-item' ? 'Cần Evo Stone' : `Cần Level ${(details && details.min_level) || 25}`; showToast(`Chưa đủ điều kiện!\n${reqText}`); } } catch(e) { console.log(e); btn.innerHTML="Err"; btn.classList.remove('loading'); } })(); }
+    saveGame(); openBag(); log(`<div class="embed" style="border-left-color:#9b59b6"><div class="embed-header"><div><span class="embed-title">TIẾN HÓA!</span><div class="embed-desc"><b>${p.name}</b><br>HP: ${p.maxHp} | ATK: ${p.atk}</div></div><img class="poke-sprite" src="${p.img}"></div></div>`); } else { btn.innerHTML = "Evo"; btn.classList.remove('loading'); let reqText = reqType === 'use-item' ? 'Cần Evo Stone' : `Cần Level ${(details && details.min_level) || 25}`; alert(`Chưa đủ điều kiện!\n${reqText}`); } } catch(e) { console.log(e); btn.innerHTML="Err"; btn.classList.remove('loading'); } })(); }
     function findNodeInChain(node, name) { if (node.species.name === name) return node; for (let child of node.evolves_to) { let f = findNodeInChain(child, name); if (f) return f; } return null; }
     // --- HỆ THỐNG LEADERBOARD ---
 // --- SỬA LOGIC BXH: ẨN ADMIN ---
@@ -4774,7 +4724,7 @@ function closeLeaderboard() {
 }
     // --- HỆ THỐNG GÓP Ý (FEEDBACK) ---
 function openFeedback() {
-    if(!currentUser) return showToast("Bạn cần đăng nhập để góp ý!");
+    if(!currentUser) return alert("Bạn cần đăng nhập để góp ý!");
     document.getElementById('feedback-modal').style.display = 'flex';
     document.getElementById('feedback-text').value = ""; // Xóa nội dung cũ
 }
@@ -4785,7 +4735,7 @@ function closeFeedback() {
 
 function submitFeedback() {
     const content = document.getElementById('feedback-text').value.trim();
-    if(content.length < 5) return showToast("Nội dung quá ngắn! Hãy viết chi tiết hơn.");
+    if(content.length < 5) return alert("Nội dung quá ngắn! Hãy viết chi tiết hơn.");
 
     // Gửi lên Firebase vào mục 'feedback'
     firebase.database().ref('feedback').push({
@@ -4794,19 +4744,19 @@ function submitFeedback() {
         time: new Date().toLocaleString()
     })
     .then(() => {
-        showToast("✅ Đã gửi thành công! Cảm ơn ý kiến của bạn.");
+        alert("✅ Đã gửi thành công! Cảm ơn ý kiến của bạn.");
         closeFeedback();
     })
     .catch((err) => {
         console.error(err);
-        showToast("Lỗi gửi tin! Vui lòng thử lại.");
+        alert("Lỗi gửi tin! Vui lòng thử lại.");
     });
 }
     // --- LOGIC SỬA CÚP ---
 let currentRepairQ = null;
 
 function openRepairModal() {
-    if(coins < 500) return showToast("Cần 500 Coins để mua dụng cụ sửa!");
+    if(coins < 500) return alert("Cần 500 Coins để mua dụng cụ sửa!");
     
     // Chọn câu hỏi ngẫu nhiên
     currentRepairQ = REPAIR_QUESTIONS[Math.floor(Math.random() * REPAIR_QUESTIONS.length)];
@@ -4835,7 +4785,7 @@ function openRepairModal() {
         if(coins >= 500) {
             coins -= 500;
             pickaxe.durability = 30; // Hồi phục độ bền
-            showToast("✅ Chính xác! Cúp đã được sửa đầy.");
+            alert("✅ Chính xác! Cúp đã được sửa đầy.");
             
             saveGame();
             updateMiningUI();
@@ -4844,11 +4794,11 @@ function openRepairModal() {
             document.getElementById('repair-modal').style.display = 'none';
             openJobs(); 
         } else {
-            showToast("Không đủ tiền (Cần 500 coin)!");
+            alert("Không đủ tiền (Cần 500 coin)!");
         }
     } else {
         // Sai
-        showToast("❌ Sai rồi! Bạn bị điện giật tê người. Thử lại nhé!");
+        alert("❌ Sai rồi! Bạn bị điện giật tê người. Thử lại nhé!");
     }
 }
 // --- BIẾN TOÀN CỤC LƯU TRẠNG THÁI HỌC CHIÊU ---
@@ -4903,7 +4853,7 @@ async function processLearningMove(pokemon, newMove) {
         // Trường hợp 1: Còn slot trống -> Học luôn
         if (pokemon.moves.length < 4) {
             pokemon.moves.push(newMove);
-            showToast(`💡 ${pokemon.name} đã học được ${newMove.name}!`);
+            alert(`💡 ${pokemon.name} đã học được ${newMove.name}!`);
             logBattle(`<span style="color:#2ecc71">${pokemon.name} học được <b>${newMove.name}</b>!</span>`);
             saveGame();
             resolve();
@@ -4921,7 +4871,7 @@ function attemptLearnMove(pokemon, newMove) {
     // TRƯỜNG HỢP 1: Chưa đủ 4 chiêu -> Học luôn
     if (pokemon.moves.length < 4) {
         pokemon.moves.push(newMove);
-        showToast(`💡 ${pokemon.name} đã học được ${newMove.name}!`);
+        alert(`💡 ${pokemon.name} đã học được ${newMove.name}!`);
         logBattle(`<span style="color:#2ecc71">${pokemon.name} học được <b>${newMove.name}</b>!</span>`);
         saveGame();
     } 
@@ -4972,7 +4922,7 @@ function confirmForgetMove(index) {
     p.moves[index] = newM;
 
     // Thông báo & Lưu
-    showToast(`1.. 2.. 3.. Poof! 💨\n${p.name} đã quên ${oldM.name} và học được ${newM.name}!`);
+    alert(`1.. 2.. 3.. Poof! 💨\n${p.name} đã quên ${oldM.name} và học được ${newM.name}!`);
     logBattle(`${p.name} quên <b>${oldM.name}</b> để học <b>${newM.name}</b>.`);
     
     saveGame();
@@ -5018,7 +4968,7 @@ function toggleSelection(index) {
 
 // 3. Thực hiện bán các Pokemon đã chọn
 function sellSelectedItems() {
-    if(selectedIndices.size === 0) return showToast("Chưa chọn Pokemon nào!");
+    if(selectedIndices.size === 0) return alert("Chưa chọn Pokemon nào!");
 
     // Tính tổng tiền
     let totalPrice = 0;
@@ -5062,7 +5012,7 @@ function sellSelectedItems() {
         updateStats();
         renderBag();
         
-      showToast("Đã bán thành công!", "success")
+        log(`<span style="color:#f1c40f; font-weight:bold">💰 Đã bán ${count} Pokemon thu được ${totalPrice.toLocaleString()} Coins!</span>`);
     }
 }
     // --- HỆ THỐNG WORLD BOSS (REALTIME FIREBASE) ---
@@ -5073,7 +5023,7 @@ let lastBossAttackTime = 0;
 
 // 1. Mở giao diện và tải dữ liệu Boss
 function openWorldBoss() {
-    if(!currentUser) return showToast("Cần đăng nhập!");
+    if(!currentUser) return alert("Cần đăng nhập!");
     document.getElementById('boss-modal').style.display = 'flex';
     updateStaminaUI();
     loadBossData();
@@ -5197,7 +5147,7 @@ function attackWorldBoss() {
     const now = Date.now();
     if(now - lastBossAttackTime < 10000) {
         let wait = Math.ceil((10000 - (now - lastBossAttackTime))/1000);
-        return showToast(`Chờ ${wait}s để hồi sức!`);
+        return alert(`Chờ ${wait}s để hồi sức!`);
     }
     lastBossAttackTime = now;
 
@@ -5206,7 +5156,7 @@ function attackWorldBoss() {
     let totalAtk = 0;
     let count = 0;
     
-    if(myBag.length === 0) return showToast("Team rỗng, không thể đánh!", "error");
+    if(myBag.length === 0) return alert("Bạn cần có Pokemon để đánh Boss!");
     
     // Lấy 6 con đầu
     for(let i=0; i<Math.min(6, myBag.length); i++) {
@@ -5372,7 +5322,7 @@ function toggleTeamMember(idx) {
         tempTeamIndices = tempTeamIndices.filter(i => i !== idx);
     } else {
         // Chọn mới (Kiểm tra max 6)
-        if(tempTeamIndices.length >= 6) return showToast("Chỉ được chọn tối đa 6 Pokemon!","warming");
+        if(tempTeamIndices.length >= 6) return alert("Chỉ được chọn tối đa 6 Pokemon!");
         tempTeamIndices.push(idx);
     }
     renderTeamGrid();
@@ -5387,18 +5337,18 @@ function saveBossTeam() {
 
 // --- CẬP NHẬT HÀM ĐÁNH BOSS (Sử dụng Stamina & Team thật) ---
 function attackWorldBoss() {
-    if(!currentBossData || currentBossData.hp <= 0) return showToast("Boss không khả dụng!", "error");
+    if(!currentBossData || currentBossData.hp <= 0) return alert("Boss chưa xuất hiện hoặc đã chết!");
     
     // 1. Kiểm tra Stamina
     calculateOfflineStamina(); // Cập nhật mới nhất
-    if(stamina < 10) return showToast("Không đủ Stamina!", "warning");
+    if(stamina < 10) return alert(`Không đủ năng lượng! Cần 10, bạn có ${stamina}. (Hồi 1 điểm/phút)`);
 
     // 2. Kiểm tra Đội hình
     // Lọc bỏ các index không còn tồn tại (do bán Pokemon)
     bossTeamIndices = bossTeamIndices.filter(idx => myBag[idx]);
     
     if(bossTeamIndices.length === 0) {
-        return showToast("Bạn chưa chọn đội hình! Hãy bấm vào nút 'Chỉnh Team'.","warming");
+        return alert("Bạn chưa chọn đội hình! Hãy bấm vào nút 'Chỉnh Team'.");
     }
 
     // 3. Trừ Stamina
@@ -5541,7 +5491,7 @@ function openGiftCodeModal() {
 
 function submitGiftCodeUI() {
     let val = document.getElementById('input-giftcode').value;
-    if(!val) return showToast("Vui lòng nhập mã!","warming");
+    if(!val) return alert("Vui lòng nhập mã!");
     
     document.getElementById('gift-modal').style.display = 'none';
     redeemCode(val.trim());
@@ -5553,12 +5503,12 @@ function redeemCode(code) {
 
     // Kiểm tra code có tồn tại không
     if (!GIFT_CODES[code]) {
-        return showToast("Code không đúng hoặc hết hạn!", "error");
+        return alert("❌ Mã code không tồn tại hoặc đã hết hạn!");
     }
 
     // Kiểm tra đã dùng chưa
     if (usedCodes.includes(code)) {
-        return showToast(" Bạn đã sử dụng mã code này rồi!","error");
+        return alert("⚠️ Bạn đã sử dụng mã code này rồi!");
     }
 
     // --- PHÁT QUÀ ---
@@ -5715,7 +5665,7 @@ function sendChat() {
 let pendingMoney = 0;
 
 function openMarket() {
-    if(!currentUser) return showToast("Cần đăng nhập!","warming");
+    if(!currentUser) return alert("Cần đăng nhập!");
     document.getElementById('market-modal').style.display = 'flex';
     document.getElementById('market-coin').innerText = coins.toLocaleString();
     switchMarketTab('buy'); // Mặc định vào tab mua
@@ -5835,17 +5785,17 @@ function loadMarketListings() {
 function cancelMarketListing(key) {
     // 1. Kiểm tra túi có đầy không
     if(myBag.length >= maxBagSize) {
-        return showToast("Túi đã đầy! Hãy dọn bớt.", "error");
+        return alert("Túi Pokemon đã đầy! Không thể rút về. Hãy dọn túi trước.");
     }
 
     // 2. Lấy thông tin item để chắc chắn là của mình
     firebase.database().ref('market/' + key).once('value').then(snap => {
         const item = snap.val();
-        if(!item) return showToast("Vật phẩm không tồn tại (Có thể đã bị ai đó mua rồi)!","warming");
+        if(!item) return alert("Vật phẩm không tồn tại (Có thể đã bị ai đó mua rồi)!");
 
         // Bảo mật: Chỉ chủ sở hữu mới được rút
         if(item.seller !== currentUser) {
-            return showToast("Không thể rút vật phẩm không phải của bạn!","error");
+            return alert("Không thể rút vật phẩm không phải của bạn!");
         }
 
         if(confirm(`Bạn muốn gỡ bán ${item.data.name} và đưa về túi?`)) {
@@ -5860,7 +5810,7 @@ function cancelMarketListing(key) {
                 alert(`Đã rút ${item.data.name} về túi thành công!`);
                 loadMarketListings(); // Tải lại giao diện chợ
             })
-            .catch(err => showToast("Lỗi khi rút: " + err));
+            .catch(err => alert("Lỗi khi rút: " + err));
         }
     });
 }
@@ -5947,9 +5897,9 @@ function buyMarketItem(key) {
         if(!item) return alert("Vật phẩm này không còn tồn tại (Đã bị mua hoặc gỡ)!");
         
         // 2. Kiểm tra tiền
-        if(coins < item.price) return showToast("Bạn không đủ tiền!","warming");
+        if(coins < item.price) return alert("Bạn không đủ tiền!");
 
-        if(myBag.length >= maxBagSize) return showToast("Túi Pokemon đã đầy!","warming");
+        if(myBag.length >= maxBagSize) return alert("Túi Pokemon đã đầy!");
 
         // 3. Thực hiện giao dịch
         // A. Trừ tiền người mua
@@ -6137,7 +6087,7 @@ function saveTowerTeam() {
     saveGame();
     
     document.getElementById('boss-team-modal').style.display = 'none';
-    showToast("Đã lưu đội hình leo tháp!","info");
+    alert("Đã lưu đội hình leo tháp!");
     updateTowerUI();
 }
     // ======================================================
@@ -6170,7 +6120,7 @@ async function startTowerBattle() {
     if (!towerData.teamIndices) towerData.teamIndices = [];
     towerData.teamIndices = towerData.teamIndices.filter(idx => myBag[idx]);
 
-    if(towerData.teamIndices.length === 0) return showToast("Chưa chọn đội hình!", "warning");
+    if(towerData.teamIndices.length === 0) return alert("Chưa chọn đội hình leo tháp!");
 
     // 2. Tìm Pokemon đầu tiên còn sống trong đội hình
     let alivePokemonIdx = towerData.teamIndices.find(idx => myBag[idx].hp > 0);
@@ -6271,7 +6221,7 @@ function openTowerShop() {
 
 function buyTowerItem(itemId) {
     const item = TOWER_SHOP.find(i => i.id === itemId);
-    if(towerData.tokens < item.price) return showToast("Không đủ Tower Token!","warming");
+    if(towerData.tokens < item.price) return alert("Không đủ Tower Token!");
     
     if(confirm(`Đổi ${item.price} Token lấy ${item.name}?`)) {
         towerData.tokens -= item.price;
@@ -6285,7 +6235,7 @@ function buyTowerItem(itemId) {
         saveGame();
         openTowerShop(); // Reload UI
         document.getElementById('tower-token-display').innerText = towerData.tokens;
-        showToast("Đổi quà thành công!","success");
+        alert("Đổi quà thành công!");
     }
 }
     // --- HỆ THỐNG ĐỔI POKEMON KHI CHẾT (BATTLE TOWER) ---
@@ -6679,17 +6629,17 @@ function dragElement(elmnt) {
 function adminAddCoins() {
     coins += 1000000000;
     saveGame(); updateStats();
-    showToast("Đã hack 1 Tỷ Vàng!", "success");
+    alert("✅ Đã hack 1 Tỷ Vàng!");
 }
 function adminAddBalls() {
     inventory['master-ball'] = (inventory['master-ball'] || 0) + 100;
     saveGame();
-    showToast(" Đã lấy 100 Master Ball!","success");
+    alert("✅ Đã lấy 100 Master Ball!");
 }
 function adminFullStamina() {
     stamina = 100;
     updateStaminaUI();
-    showToast(" Full Stamina!","success");
+    alert("✅ Full Stamina!");
 }
 
 // [SPAWN] Triệu Hồi Pokemon (Hỗ trợ từ xa)
@@ -6722,7 +6672,7 @@ async function adminForceSpawn() {
     } 
     // CASE 2: Spawn cho chính mình (Test)
     else {
-        // showToast(`Đang triệu hồi Pokemon ID: ${id} tại đây...`);
+        // alert(`Đang triệu hồi Pokemon ID: ${id} tại đây...`);
         await forceSpawnPokemon(id, isShiny, isShadow, isRainbow);
         // Không đóng panel nữa để tiện spawn liên tục
     }
@@ -6775,7 +6725,7 @@ function adminBroadcast() {
         text: "📢 THÔNG BÁO: " + msg,
         timestamp: firebase.database.ServerValue.TIMESTAMP
     });
-    showToast(" Đã phát thông báo toàn server!","success");
+    alert("✅ Đã phát thông báo toàn server!");
     document.getElementById('adm-broadcast-msg').value = ""; // Xóa ô nhập sau khi gửi
 }
     // --- HÀM XÁC ĐỊNH ĐỘ HIẾM (COMMON/RARE/LEGENDARY) ---
@@ -7114,47 +7064,13 @@ function onReplaceMove(slotIndex) {
         
         // Reset và vẽ lại
         selectedMoveToLearn = null;
-        showToast("Học chiêu thành công!","success");
+        alert("Học chiêu thành công!");
         
         // Vẽ lại 2 cột
         renderCurrentMoves();
         loadRelearnableMoves(p); // Load lại để trừ chiêu vừa học ra
     }
 }
-    // Thay thế showToast bằng hàm này
-// --- HÀM SHOW TOAST (THAY THẾ ALERT) ---
-function showToast(msg, type = 'success') {
-    const container = document.getElementById('toast-container');
-    const toast = document.createElement('div');
-    toast.className = 'toast-msg';
-    
-    // Icon tùy loại
-    let icon = '✅';
-    let color = '#3ba55c'; // Xanh lá
-
-    if (type === 'error') { 
-        icon = '❌'; 
-        color = '#ed4245'; // Đỏ
-    } else if (type === 'warning') { 
-        icon = '⚠️'; 
-        color = '#f1c40f'; // Vàng
-    } else if (type === 'info') { 
-        icon = 'ℹ️'; 
-        color = '#3498db'; // Xanh dương
-    }
-
-    toast.style.borderLeftColor = color;
-    toast.innerHTML = `<span>${icon} ${msg}</span>`;
-
-    container.appendChild(toast);
-
-    // Tự động xóa sau 3 giây
-    setTimeout(() => {
-        toast.style.animation = 'fadeOut 0.5s forwards';
-        setTimeout(() => toast.remove(), 500);
-    }, 3000);
-}
 </script>
 </body>
 </html>
-
