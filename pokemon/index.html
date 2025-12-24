@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <title>PokeStay - Game Pokemon Online | Săn Bắt, Đấu Boss & Leo Tháp</title>
@@ -1412,24 +1411,6 @@ header {
             </div>
         </div>
     </div>
-
-    <div id="learn-move-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; justify-content:center; align-items:center;">
-    <div class="box-style" style="border-color:#3498db; max-width:400px;">
-        <h3 style="color:#f1c40f; margin-bottom:10px;">💡 Học Chiêu Mới!</h3>
-        <div id="learn-move-msg" style="margin-bottom:15px;">
-            Bulbasaur muốn học <b style="color:#3498db">Vine Whip</b>.<br>
-            Nhưng Bulbasaur đã biết 4 chiêu!
-        </div>
-        
-        <div style="display:grid; grid-template-columns:1fr; gap:5px; width:100%; margin-bottom:10px;">
-            <div id="move-forget-list"></div>
-        </div>
-
-        <div style="border-top:1px solid #555; padding-top:10px; margin-top:5px;">
-            <button class="btn-auth" style="background:#ed4245" onclick="cancelLearnMove()">Bỏ qua chiêu mới</button>
-        </div>
-    </div>
-</div>
     
     <div id="leaderboard-modal">
         <div class="box-style">
@@ -1464,21 +1445,6 @@ header {
         </div>
     </div>
     </div>
-    <div id="shop-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:5000; justify-content:center; align-items:center;">
-    <div class="box-style" style="border-color:#f1c40f; width:300px; text-align:center; background:#222">
-        <h3 id="shop-buy-title" style="color:#f1c40f; margin:0 0 10px 0">Xác nhận mua</h3>
-        
-        <div style="margin-bottom:15px; color: white">
-            Số lượng: 
-            <input type="number" id="shop-buy-qty" value="1" min="1" style="width:60px; padding:5px; text-align:center; font-weight:bold; border-radius:5px; border:1px solid #555">
-        </div>
-
-        <div style="display:flex; justify-content:center; gap:10px">
-            <button class="btn-auth" style="background:#2ecc71" onclick="submitBuy()">✅ MUA NGAY</button>
-            <button class="btn-auth" style="background:#e74c3c" onclick="closeShopModal()">❌ HỦY</button>
-        </div>
-    </div>
-</div>
     <div id="tower-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3200; justify-content:center; align-items:center;">
     <div class="box-style" style="border-color:#a29bfe; width:95%; max-width:500px; background:linear-gradient(135deg, #2d3436, #000)">
         <h2 style="color:#a29bfe; margin:0">🗼 THÁP VÔ TẬN</h2>
@@ -7071,6 +7037,35 @@ function onReplaceMove(slotIndex) {
         loadRelearnableMoves(p); // Load lại để trừ chiêu vừa học ra
     }
 }
+  // --- HÀM THÔNG BÁO TOAST (Dán cái này vào để game không bị lỗi khi thông báo) ---
+function showToast(msg, type = 'success') {
+    // Tạo container nếu chưa có
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.style.cssText = "position:fixed; top:20px; right:20px; z-index:10000; display:flex; flex-direction:column; gap:10px;";
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.style.cssText = "background:rgba(0,0,0,0.9); color:white; padding:12px 20px; border-radius:5px; border-left:5px solid #3ba55c; box-shadow:0 5px 15px rgba(0,0,0,0.5); font-weight:bold; min-width:250px; animation: fadeIn 0.3s forwards;";
+    
+    let color = '#3ba55c'; // Xanh
+    if (type === 'error') color = '#ed4245'; // Đỏ
+    if (type === 'warning') color = '#f1c40f'; // Vàng
+
+    toast.style.borderLeftColor = color;
+    toast.innerHTML = msg;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 500);
+    }, 3000);
+}
 </script>
 </body>
 </html>
+
