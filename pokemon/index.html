@@ -985,9 +985,108 @@ header {
     border-bottom: none !important; /* Xóa viền dưới nếu có */
     background: #18191c !important;
 }
+        /* Style cho Item chiêu thức */
+.move-item {
+    background: #2f3136;
+    border: 1px solid #444;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.move-item:hover {
+    background: #40444b;
+    border-color: white;
+}
+/* Hiệu ứng khi đang chọn chiêu để học */
+.move-item.selected-learn {
+    border-color: #2ecc71;
+    background: rgba(46, 204, 113, 0.2);
+    animation: pulse 1s infinite;
+}
+/* Tag hiển thị hệ */
+.type-tag {
+    font-size: 0.7em;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-weight: bold;
+    color: black;
+    text-transform: uppercase;
+}
     </style>
 </head>
 <body>
+    <div id="learn-move-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; justify-content:center; align-items:center; flex-direction:column;">
+    
+    <div style="color:white; margin-bottom:10px; font-size:1.2em; text-align:center">
+        <b id="learner-name" style="color:#f1c40f">POKEMON</b> muốn học chiêu mới!<br>
+        Nhưng giới hạn là 4 chiêu.
+    </div>
+
+    <div style="display:flex; gap:10px; width:100%; max-width:600px; justify-content:center; align-items:stretch;">
+        
+        <div style="width:40%; background:#2c3e50; border:2px solid #3498db; border-radius:10px; padding:15px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+            <div style="color:#bbb; font-size:0.8em; margin-bottom:5px">CHIÊU MỚI</div>
+            <div id="new-move-name" style="font-size:1.3em; font-weight:bold; color:#3498db; margin-bottom:10px">TACKLE</div>
+            
+            <div style="width:100%; text-align:left; font-size:0.9em; color:#ddd; border-top:1px solid #555; padding-top:10px;">
+                <div>Hệ: <span id="new-move-type" style="font-weight:bold">NORMAL</span></div>
+                <div>Sức mạnh: <span id="new-move-pwr" style="color:#e74c3c">40</span></div>
+                <div>Chính xác: <span id="new-move-acc">100</span>%</div>
+                <div style="margin-top:5px; font-style:italic; font-size:0.8em; color:#aaa" id="new-move-desc">
+                    Gây sát thương thường.
+                </div>
+            </div>
+
+            <button class="btn-auth" style="background:#ed4245; margin-top:20px;" onclick="giveUpMove()">
+                ❌ BỎ QUA
+            </button>
+        </div>
+
+        <div style="width:60%; background:#222; border:2px solid #555; border-radius:10px; padding:10px;">
+            <div style="color:#bbb; font-size:0.8em; margin-bottom:5px; text-align:center">CHỌN CHIÊU ĐỂ QUÊN:</div>
+            <div id="old-moves-list" style="display:flex; flex-direction:column; gap:5px;">
+                </div>
+        </div>
+    </div>
+</div>
+    <div id="move-manager-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; justify-content:center; align-items:center;">
+    <div class="box-style" style="width:95%; max-width:700px; height:80vh; border-color:#9b59b6; display:flex; flex-direction:column;">
+        
+        <div style="display:flex; align-items:center; gap:10px; border-bottom:1px solid #555; padding-bottom:10px; margin-bottom:10px">
+            <img id="mm-poke-img" src="" width="60">
+            <div>
+                <h3 id="mm-poke-name" style="margin:0; color:#f1c40f">POKEMON</h3>
+                <div style="font-size:0.8em; color:#bbb">Quản Lý & Hồi Tưởng Chiêu Thức</div>
+            </div>
+            <button class="btn-close" style="margin-left:auto; width:auto" onclick="closeMoveManager()">Đóng</button>
+        </div>
+
+        <div style="display:flex; flex:1; gap:10px; overflow:hidden;">
+            
+            <div style="width:40%; background:rgba(0,0,0,0.3); border:1px solid #3498db; border-radius:5px; padding:5px; display:flex; flex-direction:column;">
+                <div style="text-align:center; color:#3498db; font-weight:bold; margin-bottom:5px">ĐANG SỬ DỤNG (4/4)</div>
+                <div id="mm-current-list" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:5px;">
+                    </div>
+            </div>
+
+            <div style="width:60%; background:rgba(0,0,0,0.3); border:1px solid #9b59b6; border-radius:5px; padding:5px; display:flex; flex-direction:column;">
+                <div style="text-align:center; color:#9b59b6; font-weight:bold; margin-bottom:5px">KHO TÀNG KÝ ỨC (Có thể học)</div>
+                <div id="mm-pool-list" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:5px;">
+                    <div style="text-align:center; color:yellow; margin-top:20px">⏳ Đang tải dữ liệu Move Pool...</div>
+                </div>
+            </div>
+
+        </div>
+        
+        <div style="margin-top:10px; font-size:0.9em; color:#bbb; text-align:center">
+            <i>*Bấm vào chiêu bên phải để học, sau đó chọn chiêu bên trái để quên.*</i>
+        </div>
+    </div>
+</div>
     <div id="login-screen">
         <div class="box-style">
             <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto">
@@ -1820,10 +1919,23 @@ function recalcStats(p) {
     p.moves = moves;
 }
     function ensureDataIntegrity(p) {
-        if(!p.spA || !p.spD) { p.baseSpA = p.baseAtk || 50; p.baseSpD = p.baseDef || 50; recalcStats(p); }
-        if(!p.moves || p.moves.length === 0) { assignMoves(p); }
+    // 1. Fix chỉ số cũ
+    if(!p.spA || !p.spD) { 
+        p.baseSpA = p.baseAtk || 50; 
+        p.baseSpD = p.baseDef || 50; 
+        recalcStats(p); 
     }
 
+    // 2. Khởi tạo mảng moves
+    if (!p.moves) p.moves = [];
+
+    // 3. LOGIC MỚI: Nếu thiếu chiêu -> Gọi hàm chạy ngầm để điền chiêu chuẩn
+    if (p.moves.length < 4) {
+        // Gọi hàm async nhưng KHÔNG dùng await để tránh làm đơ giao diện túi đồ
+        // Nó sẽ tự động cập nhật ngầm và lưu lại sau vài giây
+        backfillMovesForOldPokemon(p);
+    }
+}
     function handleEnter(e) { if(e.key === 'Enter') login(); }
     // --- HÀM ĐĂNG KÝ (ĐÃ CÓ CHECK TRÙNG TÊN) ---
 async function register() {
@@ -2263,7 +2375,6 @@ function renderBag() {
     <div class="embed" style="border-left-color:#3498db">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px">
             <span class="embed-title">💻 PC Box 1 (${myBag.length}/${maxBagSize})</span>
-            
             <button class="btn-small" style="background:${isSelectMode ? '#ed4245' : '#f1c40f'}; color:black; font-weight:bold" onclick="toggleSelectMode()">
                 ${isSelectMode ? '❌ Hủy chọn' : '✅ Chọn nhiều'}
             </button>
@@ -2367,7 +2478,8 @@ function renderBag() {
                     </div>
                 </div>
                 <div class="bag-actions">
-                    <button class="btn-small btn-battle" onclick="openBattleModal(${realIdx})">ĐẤU</button> 
+                    <button class="btn-small btn-battle" onclick="openBattleModal(${realIdx})">ĐẤU</button>
+                    <button class="btn-small" style="background:#9b59b6; color:white" onclick="openMoveManager(${realIdx})">SKILL</button>
                     ${candyBtn} ${evoBtn}
                     <button class="btn-small btn-sell" onclick="sell(${realIdx},${pr})">Bán</button>
                 </div>
@@ -3507,20 +3619,26 @@ function useItem(id) {
 
     // Hàm phụ trợ giúp vẽ icon đẹp hơn
     function renderStatusIcon(pokemon, elementId) {
-        let el = document.getElementById(elementId);
-        let statusHtml = "";
-        
-        if (pokemon.status === 'brn') {
-            statusHtml = `<span style="background:#e74c3c; color:white; font-size:0.7em; padding:1px 4px; border-radius:3px; margin-left:5px">🔥 BRN</span>`;
-        } else if (pokemon.status === 'par') {
-            statusHtml = `<span style="background:#f1c40f; color:black; font-size:0.7em; padding:1px 4px; border-radius:3px; margin-left:5px">⚡ PAR</span>`;
-        } else if (pokemon.status === 'slp') {
-            statusHtml = `<span style="background:#34495e; color:white; font-size:0.7em; padding:1px 4px; border-radius:3px; margin-left:5px">💤 SLP</span>`;
-        }
-        
-        // Gán lại tên + icon (Nếu status là null thì icon biến mất)
-        el.innerHTML = `${pokemon.name} ${statusHtml}`;
+    let el = document.getElementById(elementId);
+    if (!el) return;
+
+    let statusHtml = "";
+    
+    // Chỉ render nếu status tồn tại (khác null/undefined)
+    if (pokemon.status) {
+        let color = 'gray';
+        let text = pokemon.status.toUpperCase();
+
+        if (pokemon.status === 'brn') { text = 'BRN'; color = '#e74c3c'; }
+        if (pokemon.status === 'par') { text = 'PAR'; color = '#f1c40f'; }
+        if (pokemon.status === 'slp') { text = 'SLP'; color = '#34495e'; }
+        if (pokemon.status === 'psn') { text = 'PSN'; color = '#9b59b6'; }
+
+        statusHtml = `<span style="background:${color}; color:white; font-size:0.7em; padding:1px 4px; border-radius:3px; margin-left:5px">${text}</span>`;
     }
+    
+    el.innerHTML = `${pokemon.name} ${statusHtml}`;
+}
 
     function logBattle(msg) {
         let box = document.getElementById('battle-log');
@@ -3611,147 +3729,190 @@ function useItem(id) {
         checkWinCondition();
     }
 
-    async function runMove(attacker, defender, move, isPlayer) {
-        if(attacker.hp <= 0) return;
-        
-        // A. Check Status đầu lượt (Sleep / Freeze / Paralyze)
-        if(attacker.status === 'slp') {
-            logBattle(`${attacker.name} đang ngủ... 💤`);
-            if(Math.random() < 0.33) { // 33% dậy
-                attacker.status = null;
-                logBattle(`${attacker.name} đã tỉnh dậy!`);
-                updateBattleUI(); // <--- THÊM DÒNG NÀY: Để xóa icon ZZZ ngay lập tức
-            } else {
-                await sleep(500); return; // Mất lượt
-            }
-        }
-        if(attacker.status === 'par') {
-            if(Math.random() < 0.25) { // 25% bị tê
-                logBattle(`${attacker.name} bị tê liệt không thể di chuyển! ⚡`);
-                await sleep(500); return; // Mất lượt
-            }
-        }
+    // --- HÀM XỬ LÝ RA CHIÊU (ĐÃ SỬA LỖI TARGET) ---
+async function runMove(attacker, defender, move) {
+    // 1. Thông báo ra chiêu
+    logBattle(`<b>${attacker.name}</b> dùng <b>${move.name}</b>!`);
 
-        // B. Xử lý Hành động (Item / Attack / Status / Stat)
-        // B. Xử lý Hành động (Item / Attack / Status / Stat)
-        if(move.isItem) {
-            // Kiểm tra lại lần nữa cho chắc
-            if((inventory['potion'] || 0) > 0) {
-                // 1. Trừ trong kho
-                inventory['potion']--;
-                saveGame(); // Lưu lại ngay để tránh F5 hack đồ
-                
-                // 2. Cập nhật số hiển thị trên nút ngay lập tức
-                document.getElementById('potion-count').innerText = inventory['potion'];
-
-                // 3. Hồi máu
-                let heal = 50;
-                attacker.hp = Math.min(attacker.maxHp, attacker.hp + heal);
-                logBattle(`<span style="color:#2ecc71">💊 ${attacker.name} dùng Potion hồi ${heal} HP.</span>`);
-                updateBattleUI();
-            } else {
-                logBattle("Không còn Potion để dùng!");
-            }
-            
-            await sleep(500);
+    // 2. Kiểm tra độ chính xác (Accuracy)
+    // Nếu move.acc = 0 hoặc null thì là chiêu tất trúng (như Aerial Ace)
+    if (move.acc && move.acc < 100) {
+        if (Math.random() * 100 > move.acc) {
+            logBattle("❌ Nhưng chiêu thức bị trượt!");
             return;
-        }
-        if(move.isSkip) {
-            logBattle(`${attacker.name} đang chờ đợi...`);
-            await sleep(500);
-            return;
-        }
-
-        // C. Tấn công
-        logBattle(`<b>${attacker.name}</b> dùng ${move.name}!`);
-        
-        // Hiệu ứng hình ảnh
-        let spriteId = isPlayer ? 'player-sprite' : 'enemy-sprite';
-        let moveDir = isPlayer ? 20 : -20;
-        document.getElementById(spriteId).style.transform = `translateX(${moveDir}px)`;
-        setTimeout(()=>document.getElementById(spriteId).style.transform="translateX(0)", 200);
-        await sleep(500);
-
-        // -- LOGIC CHIÊU THỨC --
-        // 1. Chiêu gây sát thương (Damage)
-        if(move.pwr > 0) {
-            // Check Accuracy (chưa làm chi tiết, tạm thời 95% trúng)
-            if(Math.random() > 0.95) {
-                logBattle("Đòn đánh bị trượt!");
-                return;
-            }
-
-            let typeMod = getEffectiveness(move.type, defender.types);
-            
-            // Tính Stage (Buff/Debuff)
-            let atkStage = move.cat === 'spe' ? attacker.stages.spA : attacker.stages.atk;
-            let defStage = move.cat === 'spe' ? defender.stages.spD : defender.stages.def;
-            
-            // Burn giảm 50% Atk vật lý
-            let burnMod = (attacker.status === 'brn' && move.cat === 'phy') ? 0.5 : 1;
-
-            let atkStat = (move.cat === 'spe' ? attacker.spA : attacker.atk) * getStageMulti(atkStage) * burnMod;
-            let defStat = (move.cat === 'spe' ? defender.spD : defender.def) * getStageMulti(defStage);
-
-            // Công thức Damage chuẩn
-            let levelFactor = ((2 * attacker.level) / 5) + 2;
-            let baseDamage = ((levelFactor * move.pwr * (atkStat / defStat)) / 50) + 2;
-            
-            let isCrit = Math.random() < 0.0625;
-            let stab = attacker.types.includes(move.type) ? 1.5 : 1.0;
-            let finalDamage = Math.floor(baseDamage * typeMod * stab * (isCrit?1.5:1) * ((Math.random()*16+85)/100));
-
-            if(isCrit) logBattle(`<span style="color:#e74c3c">Chí mạng!</span>`);
-            if(typeMod > 1) logBattle("Siêu hiệu quả!");
-            if(typeMod < 1) logBattle("Không hiệu quả lắm...");
-
-            applyDamage(defender, Math.max(1, finalDamage), isPlayer ? 'enemy' : 'player');
-            
-            // Hiệu ứng phụ (Ember gây Burn, v.v.)
-            if(move.effect && !defender.status && defender.hp > 0) {
-                 if(Math.random() < (move.chance || 0.1)) {
-                     applyStatus(defender, move.effect);
-                 }
-            }
-        }
-        
-        // 2. Chiêu Status thuần (Will-O-Wisp, Thunder Wave)
-        else if(move.cat === 'status') {
-            if(defender.status) {
-                logBattle("Nhưng nó thất bại!");
-            } else {
-                applyStatus(defender, move.status);
-            }
-        }
-        
-        // 3. Chiêu Stat (Growl, Swords Dance)
-        else if(move.cat === 'stat') {
-            let target = move.target === 'self' ? attacker : defender;
-            let statName = move.stat; // atk, def...
-            
-            // Giới hạn stage -6 đến +6
-            if(target.stages[statName] >= 6 && move.stage > 0) logBattle("Chỉ số không thể tăng thêm!");
-            else if(target.stages[statName] <= -6 && move.stage < 0) logBattle("Chỉ số không thể giảm thêm!");
-            else {
-                target.stages[statName] += move.stage;
-                let text = move.stage > 0 ? "tăng mạnh!" : "giảm mạnh!";
-                logBattle(`${statName.toUpperCase()} của ${target.name} ${text}`);
-            }
         }
     }
 
-    function applyStatus(target, status) {
-        target.status = status;
-        let icon = "";
-        if(status === 'brn') icon = "🔥 BỊ BỎNG";
-        if(status === 'par') icon = "⚡ TÊ LIỆT";
-        if(status === 'slp') icon = "💤 ĐANG NGỦ";
-        logBattle(`<b>${target.name}</b> đã bị ${icon}!`);
+    // ====================================================
+    // TRƯỜNG HỢP 1: CHIÊU GÂY SÁT THƯƠNG (Vật lý / Phép)
+    // ====================================================
+    if (move.cat === 'phy' || move.cat === 'spe') {
         
-        // Cập nhật UI tên để hiện trạng thái
-        let idName = target === battleState.player ? 'player-name' : 'enemy-name';
-        document.getElementById(idName).innerHTML = `${target.name} <span style='background:red;color:white;font-size:0.7em;padding:1px 3px'>${status.toUpperCase()}</span>`;
+        // A. Xác định chỉ số Tấn công vs Phòng thủ
+        let atkStat = (move.cat === 'phy') ? attacker.atk : attacker.spA;
+        let defStat = (move.cat === 'phy') ? defender.def : defender.spD;
+
+        // B. Tính Damage cơ bản (Công thức Pokemon giản lược)
+        // Damage = (((2 * Level / 5 + 2) * Power * A / D) / 50 + 2)
+        let damage = Math.floor(((2 * attacker.level / 5 + 2) * move.pwr * (atkStat / defStat)) / 50 + 2);
+
+        // C. Tính khắc hệ (Type Effectiveness)
+        // Giả sử bạn có hàm getTypeEffectiveness, nếu không thì mặc định là 1
+        let multiplier = 1;
+        if (typeof getMultiplier === 'function') {
+            multiplier = getMultiplier(move.type, defender.types[0]);
+            if (defender.types[1]) {
+                multiplier *= getMultiplier(move.type, defender.types[1]);
+            }
+        }
+
+        // D. Tính Critical Hit (Chí mạng - Tỉ lệ 1/16)
+        let isCrit = Math.random() < 0.0625;
+        if (isCrit) {
+            damage *= 1.5;
+            multiplier *= 1; // Crit thường bỏ qua giảm thủ, ở đây làm đơn giản
+        }
+
+        // E. Áp dụng Multiplier vào Damage
+        damage = Math.floor(damage * multiplier);
+        if (damage < 1) damage = 1; // Sát thương tối thiểu là 1
+
+        // F. Trừ máu
+        defender.hp -= damage;
+        if (defender.hp < 0) defender.hp = 0;
+
+        // G. Hiển thị thông báo
+        if (isCrit) logBattle("🎯 CHÍ MẠNG! (Critical Hit)");
+        if (multiplier > 1) logBattle("🔥 Siêu hiệu quả! (Super Effective)");
+        if (multiplier < 1 && multiplier > 0) logBattle("🛡️ Không hiệu quả lắm...");
+        if (multiplier === 0) logBattle("🚫 Không có tác dụng!");
+
+        logBattle(`Mất <b style="color:red">${damage} HP</b>!`);
+        
+        // Rung màn hình nếu damage to
+        if(damage > defender.maxHp / 4) {
+            let spriteId = defender === battleState.player ? 'player-sprite' : 'enemy-sprite';
+            let el = document.getElementById(spriteId);
+            if(el) {
+                el.classList.add('shake');
+                setTimeout(()=>el.classList.remove('shake'), 500);
+            }
+        }
+    } 
+
+    // ====================================================
+    // TRƯỜNG HỢP 2: CHIÊU TRẠNG THÁI (STATUS / HEAL)
+    // ====================================================
+    else if (move.cat === 'status') {
+        
+        // A. NHÓM HỒI MÁU (Target = Attacker)
+        // Danh sách các chiêu hồi máu phổ biến
+        const healingMoves = ['Recover', 'Roost', 'Soft-Boiled', 'Synthesis', 'Moonlight', 'Morning Sun', 'Slack Off'];
+        
+        if (healingMoves.includes(move.name)) {
+            // Target là CHÍNH MÌNH (Attacker) chứ không phải Defender
+            let healAmount = Math.floor(attacker.maxHp / 2);
+            attacker.hp += healAmount;
+            if (attacker.hp > attacker.maxHp) attacker.hp = attacker.maxHp;
+            
+            logBattle(`💚 <b>${attacker.name}</b> tự hồi phục sức khỏe! (+${healAmount} HP)`);
+        } 
+        
+        // B. NHÓM GÂY HIỆU ỨNG XẤU (Target = Defender)
+        else if (move.status) {
+            if (defender.status) {
+                logBattle("Nhưng đối thủ đang bị hiệu ứng rồi!");
+            } else {
+                // Gọi hàm applyStatus (đảm bảo hàm này đã fix như hướng dẫn trước)
+                if (typeof applyStatus === 'function') {
+                    applyStatus(defender, move.status);
+                }
+            }
+        } 
+        
+        // C. CÁC CHIÊU STATUS KHÁC (Splash, Teleport...)
+        else {
+            logBattle("Nhưng không có gì xảy ra!");
+        }
     }
+
+    // ====================================================
+    // TRƯỜNG HỢP 3: CHIÊU TĂNG/GIẢM CHỈ SỐ (STAT)
+    // ====================================================
+    else if (move.cat === 'stat' || move.stat) { // Hỗ trợ cả 2 kiểu dữ liệu
+        // Xác định mục tiêu: 
+        // Nếu API trả về target là 'user' hoặc 'selected-pokemon-me' -> Buff cho bản thân
+        // Nếu không thì mặc định là Debuff đối thủ
+        
+        let target = defender; // Mặc định nhắm vào địch (như Growl, Tail Whip)
+        let isSelf = false;
+
+        // Kiểm tra danh sách các chiêu Buff bản thân phổ biến
+        const selfBuffMoves = ['Swords Dance', 'Dragon Dance', 'Calm Mind', 'Bulk Up', 'Agility', 'Nasty Plot', 'Growth', 'Harden', 'Defense Curl'];
+        
+        if (move.target === 'user' || selfBuffMoves.includes(move.name)) {
+            target = attacker;
+            isSelf = true;
+        }
+
+        let statName = move.stat; // atk, def, spA...
+        let stageChange = move.stage || 1;
+
+        // Logic tăng/giảm stage (Tối đa +6, Tối thiểu -6)
+        if (!target.stages) target.stages = { atk:0, def:0, spA:0, spD:0, spe:0 }; // Khởi tạo nếu chưa có
+        
+        if (!target.stages[statName]) target.stages[statName] = 0;
+
+        let currentStage = target.stages[statName];
+
+        if (currentStage >= 6 && stageChange > 0) {
+            logBattle(`${statName.toUpperCase()} của ${target.name} không thể tăng thêm!`);
+        } else if (currentStage <= -6 && stageChange < 0) {
+            logBattle(`${statName.toUpperCase()} của ${target.name} không thể giảm thêm!`);
+        } else {
+            target.stages[statName] += stageChange;
+            
+            let text = "";
+            if (stageChange >= 2) text = "tăng rất mạnh!";
+            else if (stageChange === 1) text = "tăng lên!";
+            else if (stageChange === -1) text = "giảm xuống!";
+            else if (stageChange <= -2) text = "giảm rất mạnh!";
+            
+            logBattle(`${statName.toUpperCase()} của <b>${target.name}</b> đã ${text}`);
+        }
+    }
+
+    // 3. Cập nhật giao diện thanh máu ngay lập tức
+    updateBattleUI();
+}
+
+   // --- FIX LỖI CRASH KHI GẶP CHIÊU KHÔNG CÓ TRẠNG THÁI ---
+function applyStatus(target, status) {
+    // 👇 KIỂM TRA QUAN TRỌNG: Nếu không có status thì dừng ngay
+    if (!status) return; 
+
+    target.status = status;
+    let icon = "";
+    
+    // Kiểm tra từng loại
+    if(status === 'brn') icon = "🔥 BỊ BỎNG";
+    else if(status === 'par') icon = "⚡ TÊ LIỆT";
+    else if(status === 'slp') icon = "💤 ĐANG NGỦ";
+    else if(status === 'psn') icon = "☠️ TRÚNG ĐỘC";
+    else if(status === 'frz') icon = "❄️ ĐÓNG BĂNG";
+    else icon = status.toUpperCase(); // Fallback
+
+    logBattle(`<b>${target.name}</b> đã bị ${icon}!`);
+    
+    // Cập nhật giao diện
+    let idName = target === battleState.player ? 'player-name' : 'enemy-name';
+    let el = document.getElementById(idName);
+    
+    if (el) {
+        // Chỉ viết hoa khi status chắc chắn tồn tại
+        el.innerHTML = `${target.name} <span style='background:red;color:white;font-size:0.7em;padding:1px 3px'>${status.toUpperCase()}</span>`;
+    }
+}
 
     async function applyStatusDamage(p) {
         if(p.hp <= 0) return;
@@ -3910,7 +4071,7 @@ function checkWinCondition() {
 }
 
     // --- SỬA LỖI LOGIC CHIẾN THẮNG (FIX LỖI THÁP) ---
-function processWin() {
+async function processWin() {
     let r = battleState.rewards;
     let p = battleState.player;
     
@@ -3939,7 +4100,7 @@ function processWin() {
         p.level++; p.xp -= p.maxXp; p.maxXp = Math.floor(p.maxXp * 1.2);
         recalcStats(p);
         logBattle(`🆙 Lên cấp ${p.level}! Stats tăng!`);
-        checkNewMoves(p);
+        await checkLevelUpMoves(p);
     }
     
     updateQuestProgress('win', 1);
@@ -4586,20 +4747,68 @@ function openRepairModal() {
 let pendingLearnMove = null; // Biến tạm lưu thông tin học chiêu
 
 // 1. Kiểm tra xem Level này có chiêu gì không
-function checkNewMoves(pokemon) {
-    let type = pokemon.types[0]; // Lấy hệ chính
-    let learnset = getLearnsetForType(type);
-    
-    // Kiểm tra xem level hiện tại có trong learnset không
-    if (learnset[pokemon.level]) {
-        let moveName = learnset[pokemon.level];
-        
-        // Kiểm tra xem đã học chưa
-        if (pokemon.moves.some(m => m.name === moveName)) return;
+// Biến tạm để lưu trạng thái học chiêu
+let pendingLearning = {
+    pokemon: null,
+    newMoveData: null,
+    moveIndex: -1 // Dùng khi học nhiều chiêu 1 lúc
+};
 
-        let newMove = getMoveData(moveName);
-        attemptLearnMove(pokemon, newMove);
+// --- HÀM KIỂM TRA LEVEL UP CHUẨN GAME GỐC ---
+async function checkLevelUpMoves(pokemon) {
+    // Hiển thị thông báo nhỏ để người chơi biết đang tải
+    logBattle(`Checking moves for ${pokemon.name}...`);
+
+    try {
+        // 1. Lấy dữ liệu Pokemon từ API
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon.id}`);
+        const data = await res.json();
+
+        // 2. Lọc ra các chiêu học được ở Level hiện tại (move_learn_method = level-up)
+        // Lưu ý: Phiên bản 'yellow' hoặc 'red-blue' cho Gen 1 chuẩn nhất, nhưng mặc định lấy bản mới nhất cũng ok
+        const potentialMoves = data.moves.filter(m => {
+            const details = m.version_group_details[m.version_group_details.length - 1]; // Lấy bản mới nhất
+            return details.move_learn_method.name === 'level-up' && details.level_learned_at === pokemon.level;
+        });
+
+        if (potentialMoves.length === 0) return; // Không có chiêu nào ở level này
+
+        // 3. Duyệt qua từng chiêu tìm được
+        for (let m of potentialMoves) {
+            let moveName = m.move.name;
+            
+            // Kiểm tra xem đã học chưa
+            if (pokemon.moves.some(known => known.id === moveName || known.name.toLowerCase() === moveName.replace(/-/g,' '))) continue;
+
+            // Lấy chi tiết sức mạnh chiêu
+            let moveDetails = await fetchMoveDetails(moveName);
+            if (moveDetails) {
+                await processLearningMove(pokemon, moveDetails);
+            }
+        }
+
+    } catch (e) {
+        console.error("Lỗi check move:", e);
     }
+}
+
+// --- HÀM XỬ LÝ QUY TRÌNH HỌC ---
+async function processLearningMove(pokemon, newMove) {
+    return new Promise(resolve => {
+        // Trường hợp 1: Còn slot trống -> Học luôn
+        if (pokemon.moves.length < 4) {
+            pokemon.moves.push(newMove);
+            alert(`💡 ${pokemon.name} đã học được ${newMove.name}!`);
+            logBattle(`<span style="color:#2ecc71">${pokemon.name} học được <b>${newMove.name}</b>!</span>`);
+            saveGame();
+            resolve();
+        } 
+        // Trường hợp 2: Full 4 chiêu -> Mở bảng chọn
+        else {
+            // Mở UI và chờ người chơi chọn (Async UI)
+            openMoveRelearner(pokemon, newMove, resolve);
+        }
+    });
 }
 
 // 2. Thử học chiêu
@@ -5156,34 +5365,46 @@ function showDamageText(amount, isCrit) {
     }, 1000);
 }
     // --- UPDATE LOG (v2.4.2) ---
-function showUpdateLog() {
-    const logContent = `
-    <div style="text-align:left; max-height:300px; overflow-y:auto; padding-right:5px">
-        <h3 style="color:#f1c40f; margin-top:0">🌟 PHIÊN BẢN v2.4.2: SHADOW & LIGHT</h3>
-        
-        <p style="color:#ed4245; font-weight:bold">🔥 TÍNH NĂNG MỚI:</p>
-        <ul style="padding-left:20px; margin:5px 0">
-            <li><b>🗼 Tháp Vô Tận (Endless Tower):</b> Chế độ leo tháp cực khó. Hồi 20% HP sau mỗi tầng. Chết là về tầng 1. Leo càng cao quà càng khủng (Token đổi đồ hiếm).</li>
-            <li><b>⚖️ Chợ Đen (Black Market):</b> Mua bán Pokemon tự do với người chơi khác trên toàn server.</li>
-            <li><b>👿 Shadow Pokemon (Mới):</b> Tỉ lệ 1/1.000. Sức tấn công tăng 30% nhưng máu giấy. Có hào quang tím.</li>
-            <li><b>🌈 Rainbow Pokemon (Mới):</b> Tỉ lệ siêu hiếm 1/10.000. Toàn bộ chỉ số +15%. Đổi màu liên tục cực đẹp.</li>
-            <li><b>💬 Global Chat:</b> Kênh chat thế giới thời gian thực (nút chat kéo thả được).</li>
-        </ul>
+// --- CẤU HÌNH PHIÊN BẢN (DÁN CÁI NÀY LÊN ĐẦU FILE JS) ---
+const GAME_VERSION = "v2.5.0"; // <-- Đây là cái biến bị thiếu
+const VERSION_NAME = "Reawakened Power";
 
-        <p style="color:#3498db; font-weight:bold">🛠️ CẢI TIẾN & SỬA LỖI:</p>
-        <ul style="padding-left:20px; margin:5px 0">
-            <li><b>Giao diện mới:</b> Menu được gom gọn thành 4 Tab (Battle, City, Me, Social) giúp màn hình thoáng hơn.</li>
-            <li><b>Săn bắt:</b> Các nút ném bóng được xếp hàng ngang, dễ thao tác hơn.</li>
-            <li><b>Visual:</b> Sửa lỗi bóng Poke Ball bị méo khi ném. Thêm hiệu ứng phát sáng khi dùng Berry.</li>
-            <li><b>Cân bằng:</b> Tăng giá Token trong Shop Tháp để game thử thách hơn.</li>
-            <li><b>Fix lỗi:</b> Sửa lỗi mất Slot Daycare, lỗi hiển thị tiền thưởng hàng ngày, và lỗi kẹt khi đánh xong tầng tháp.</li>
-        </ul>
+const UPDATE_LOG_CONTENT = `
+<div style="text-align:left; font-size:0.9em; color:#ddd; line-height:1.5;">
+    <p style="color:#f1c40f; font-weight:bold; font-size:1.1em; text-align:center; margin-bottom:10px">
+        🚀 CHÀO MỪNG ĐẾN VỚI V2.5.0 🚀<br>
+        "SỨC MẠNH THỨC TỈNH"
+    </p>
+    <ul style="padding-left:20px;">
+        <li><b>✨ Move Relearner:</b> Đã thêm tính năng Hồi Tưởng Chiêu Thức trong Túi Đồ.</li>
+        <li><b>🤖 Auto-Fill:</b> Tự động cập nhật chiêu chuẩn cho Pokemon cũ.</li>
+        <li><b>🔥 Battle Fix:</b> Sửa lỗi Recover hồi máu cho địch và các lỗi Status.</li>
+        <li><b>🎁 Quà:</b> Tăng vàng khởi đầu lên 5,000.</li>
+    </ul>
+    <div style="text-align:center; margin-top:10px; color:#777;">~ Dev Team ~</div>
+</div>
+`;
+
+// --- HÀM HIỂN THỊ LOG ---
+function showUpdateLog() {
+    // Bây giờ nó đã tìm thấy GAME_VERSION ở ngay bên trên rồi!
+    const lastReadVersion = localStorage.getItem('last_read_version');
+    
+    if (lastReadVersion !== GAME_VERSION) {
+        let modal = document.createElement('div');
+        modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; display:flex; justify-content:center; align-items:center;";
         
-        <div style="margin-top:15px; border-top:1px solid #444; padding-top:10px; font-style:italic; font-size:0.9em; color:#bbb">
-            "Chúc các Trainer săn được Rainbow Pokemon đầu tiên!" - Dev Team
-        </div>
-    </div>
-    `;
+        modal.innerHTML = `
+            <div class="box-style" style="width:90%; max-width:500px; background:#222; border-color:#f1c40f; max-height:80vh; overflow-y:auto; padding:20px;">
+                ${UPDATE_LOG_CONTENT}
+                <button class="btn-auth" style="margin-top:20px; width:100%" onclick="this.parentElement.parentElement.remove(); localStorage.setItem('last_read_version', '${GAME_VERSION}')">
+                    ĐÃ HIỂU, VÀO GAME!
+                </button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+}
 
     // Hiển thị Modal
     // (Tự tạo modal đơn giản để hiện log)
@@ -6490,7 +6711,334 @@ function getRarity(pokemon) {
     // 3. Còn lại là Epic/Mythic
     return { label: "EPIC", class: "rarity-epic", color: "#9b59b6" }; // Tím
 }
+    // --- BIẾN TOÀN CỤC QUẢN LÝ MOVE ---
+let currentMmPokemonIdx = -1; // Index của Pokemon đang chỉnh
+let selectedMoveToLearn = null; // Chiêu đang chọn để học
+
+// 1. MỞ GIAO DIỆN
+function openMoveManager(bagIndex) {
+    currentMmPokemonIdx = bagIndex;
+    selectedMoveToLearn = null;
+    let p = myBag[bagIndex];
+
+    if(!p) return;
+
+    // Hiển thị Modal
+    document.getElementById('move-manager-modal').style.display = 'flex';
+    document.getElementById('mm-poke-img').src = p.img;
+    document.getElementById('mm-poke-name').innerText = p.name;
+
+    // Render danh sách hiện tại
+    renderCurrentMoves();
+
+    // Tải danh sách có thể học (Async)
+    loadRelearnableMoves(p);
+}
+
+function closeMoveManager() {
+    document.getElementById('move-manager-modal').style.display = 'none';
+}
+
+// 2. HIỂN THỊ CHIÊU HIỆN TẠI (Cột Trái)
+function renderCurrentMoves() {
+    let p = myBag[currentMmPokemonIdx];
+    const list = document.getElementById('mm-current-list');
+    list.innerHTML = '';
+
+    p.moves.forEach((m, idx) => {
+        let typeColor = TYPE_COLORS[m.type] || '#ccc';
+        
+        list.innerHTML += `
+        <div class="move-item" onclick="onReplaceMove(${idx})">
+            <div>
+                <div style="font-weight:bold; color:${typeColor}">${m.name}</div>
+                <div style="font-size:0.7em; color:#aaa">Pwr: ${m.pwr||'-'} | Acc: ${m.acc||'-'}</div>
+            </div>
+            <span class="type-tag" style="background:${typeColor}">${m.type.substring(0,3)}</span>
+        </div>`;
+    });
+
+    // Nếu chưa đủ 4 chiêu, hiện ô trống
+    for(let i = p.moves.length; i < 4; i++) {
+        list.innerHTML += `
+        <div class="move-item" onclick="onReplaceMove(${i})" style="border:1px dashed #555; justify-content:center; color:#555">
+            (Trống)
+        </div>`;
+    }
+}
+
+// 3. TẢI CHIÊU CÓ THỂ HỌC (Cột Phải) - Dùng API
+async function loadRelearnableMoves(pokemon) {
+    const list = document.getElementById('mm-pool-list');
+    list.innerHTML = '<div style="text-align:center; color:yellow; padding:20px">⏳ Đang đọc ký ức...</div>';
+
+    try {
+        // Gọi API lấy toàn bộ chiêu
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon.id}`);
+        const data = await res.json();
+
+        // Lọc chiêu:
+        // 1. Phải là learn method 'level-up'
+        // 2. Level học phải <= Level hiện tại của Pokemon
+        // 3. Không nằm trong danh sách chiêu hiện tại
+        let pool = data.moves.filter(m => {
+            const details = m.version_group_details[m.version_group_details.length - 1]; // Lấy bản mới nhất
+            const isLevelUp = details.move_learn_method.name === 'level-up';
+            const isLevelOk = details.level_learned_at <= pokemon.level;
+            
+            // Check trùng
+            const isKnown = pokemon.moves.some(known => known.id === m.move.name);
+
+            return isLevelUp && isLevelOk && !isKnown;
+        });
+
+        // Sắp xếp: Level cao lên đầu (Chiêu mạnh thường ở lv cao)
+        pool.sort((a, b) => {
+            const lvA = a.version_group_details[a.version_group_details.length - 1].level_learned_at;
+            const lvB = b.version_group_details[b.version_group_details.length - 1].level_learned_at;
+            return lvB - lvA;
+        });
+
+        // Render ra list
+        list.innerHTML = '';
+        if(pool.length === 0) {
+            list.innerHTML = '<div style="text-align:center; color:#777">Không có chiêu nào để học lại.</div>';
+            return;
+        }
+
+        // Tạo nút cho từng chiêu (Chưa fetch chi tiết, chỉ hiện tên để nhẹ)
+        // Khi bấm vào mới fetch chi tiết để học
+        pool.forEach(m => {
+            let moveNameRaw = m.move.name;
+            let moveNameNice = moveNameRaw.split('-').map(w => w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+            let lv = m.version_group_details[m.version_group_details.length - 1].level_learned_at;
+
+            list.innerHTML += `
+            <div id="pool-btn-${moveNameRaw}" class="move-item" onclick="onSelectMoveToLearn('${moveNameRaw}')">
+                <div>
+                    <div style="font-weight:bold; color:white">${moveNameNice}</div>
+                    <div style="font-size:0.7em; color:#aaa">Học tại Lv.${lv}</div>
+                </div>
+                <button class="btn-small" style="background:#9b59b6">HỌC</button>
+            </div>`;
+        });
+
+    } catch (e) {
+        console.error(e);
+        list.innerHTML = '<div style="color:red">Lỗi kết nối Move Relearner.</div>';
+    }
+}
+
+// 4. XỬ LÝ CHỌN CHIÊU ĐỂ HỌC
+async function onSelectMoveToLearn(moveId) {
+    // Highlight nút đang chọn
+    const allBtns = document.querySelectorAll('#mm-pool-list .move-item');
+    allBtns.forEach(b => b.classList.remove('selected-learn'));
+    
+    const btn = document.getElementById(`pool-btn-${moveId}`);
+    if(btn) btn.classList.add('selected-learn');
+
+    // Fetch chi tiết chiêu này (Power, Type...) để chuẩn bị gán
+    btn.innerHTML = `<div>Đang tải dữ liệu...</div>`; // Hiệu ứng loading nhẹ
+    
+    const moveDetails = await fetchMoveDetails(moveId);
+    
+    if(!moveDetails) {
+        alert("Lỗi tải chiêu này!");
+        return;
+    }
+
+    selectedMoveToLearn = moveDetails;
+    
+    // Khôi phục lại giao diện nút
+    let moveNameNice = moveDetails.name;
+    btn.innerHTML = `
+        <div>
+            <div style="font-weight:bold; color:${TYPE_COLORS[moveDetails.type]}">${moveNameNice}</div>
+            <div style="font-size:0.7em; color:#aaa">Pwr: ${moveDetails.pwr} | Acc: ${moveDetails.acc}</div>
+        </div>
+        <div style="font-size:0.7em; color:#2ecc71; font-weight:bold">ĐANG CHỌN</div>
+    `;
+
+    alert(`Đã chọn [${moveNameNice}].\nBây giờ hãy bấm vào 1 chiêu ở cột TRÁI để thay thế!`);
+}
+
+// 5. XỬ LÝ THAY THẾ (Bấm vào cột trái)
+function onReplaceMove(slotIndex) {
+    if(!selectedMoveToLearn) {
+        return alert("Hãy chọn một chiêu bên PHẢI để học trước!");
+    }
+
+    let p = myBag[currentMmPokemonIdx];
+    let oldMoveName = p.moves[slotIndex] ? p.moves[slotIndex].name : "(Ô Trống)";
+
+    if(confirm(`Bạn muốn ${p.name} quên [${oldMoveName}] để học [${selectedMoveToLearn.name}]?`)) {
+        // Thực hiện đổi
+        p.moves[slotIndex] = selectedMoveToLearn;
+        
+        saveGame();
+        
+        // Reset và vẽ lại
+        selectedMoveToLearn = null;
+        alert("Học chiêu thành công!");
+        
+        // Vẽ lại 2 cột
+        renderCurrentMoves();
+        loadRelearnableMoves(p); // Load lại để trừ chiêu vừa học ra
+    }
+}
+    // --- HÀM TỰ ĐỘNG CẬP NHẬT CHIÊU CHO POKEMON CŨ (DÙNG API) ---
+async function backfillMovesForOldPokemon(pokemon) {
+    // Chỉ chạy nếu Pokemon có ít hơn 4 chiêu
+    if (pokemon.moves.length >= 4) return;
+
+    console.log(`Đang cập nhật chiêu cho ${pokemon.name}...`);
+
+    try {
+        // 1. Lấy dữ liệu chuẩn từ API
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon.id}`);
+        const data = await res.json();
+
+        // 2. Lấy tất cả các chiêu có thể học bằng cách Lên Cấp (Level-up)
+        // Điều kiện: Level học được phải nhỏ hơn hoặc bằng Level hiện tại của Pokemon
+        let possibleMoves = data.moves.filter(m => {
+            const details = m.version_group_details[m.version_group_details.length - 1];
+            return details.move_learn_method.name === 'level-up' && 
+                   details.level_learned_at <= pokemon.level;
+        });
+
+        // 3. Sắp xếp chiêu: Ưu tiên chiêu học ở Level cao nhất (Chiêu mạnh/mới nhất)
+        possibleMoves.sort((a, b) => {
+            const getLv = (m) => m.version_group_details[m.version_group_details.length - 1].level_learned_at;
+            return getLv(b) - getLv(a); // Giảm dần
+        });
+
+        // 4. Điền vào các ô trống
+        for (let m of possibleMoves) {
+            // Nếu đã đầy 4 chiêu thì dừng
+            if (pokemon.moves.length >= 4) break;
+
+            let moveName = m.move.name;
+
+            // Kiểm tra trùng: Không học lại chiêu đã biết
+            // (So sánh cả ID và Tên để chắc chắn)
+            let isKnown = pokemon.moves.some(known => 
+                known.id === moveName || 
+                known.name.toUpperCase() === moveName.replace(/-/g, ' ').toUpperCase()
+            );
+
+            if (!isKnown) {
+                // Lấy chi tiết và thêm vào
+                let moveDetails = await fetchMoveDetails(moveName);
+                if (moveDetails) {
+                    pokemon.moves.push(moveDetails);
+                    console.log(`-> Đã dạy ${moveName} cho ${pokemon.name}`);
+                }
+            }
+        }
+
+        // 5. Lưu lại game sau khi cập nhật xong con này
+        saveGame();
+
+    } catch (e) {
+        console.error(`Lỗi cập nhật move cho ${pokemon.name}:`, e);
+    }
+}
+    let learnResolve = null; // Biến để báo hiệu khi nào học xong
+
+function openMoveRelearner(pokemon, newMove, resolveCallback) {
+    pendingLearning.pokemon = pokemon;
+    pendingLearning.newMoveData = newMove;
+    learnResolve = resolveCallback; // Lưu callback để gọi sau khi chọn xong
+
+    // 1. Điền thông tin chiêu MỚI
+    document.getElementById('learner-name').innerText = pokemon.name;
+    document.getElementById('new-move-name').innerText = newMove.name;
+    document.getElementById('new-move-type').innerText = newMove.type.toUpperCase();
+    document.getElementById('new-move-type').style.color = TYPE_COLORS[newMove.type] || 'white';
+    document.getElementById('new-move-pwr').innerText = newMove.pwr > 0 ? newMove.pwr : '-';
+    document.getElementById('new-move-acc').innerText = newMove.acc || '-';
+    document.getElementById('new-move-desc').innerText = newMove.desc;
+
+    // 2. Điền danh sách 4 chiêu CŨ
+    const list = document.getElementById('old-moves-list');
+    list.innerHTML = pokemon.moves.map((m, idx) => `
+        <div onclick="forgetAndLearn(${idx})" style="background:#333; padding:10px; border:1px solid #555; border-radius:5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:0.2s">
+            <div>
+                <div style="font-weight:bold; color:${TYPE_COLORS[m.type] || 'white'}">${m.name}</div>
+                <div style="font-size:0.8em; color:#aaa">PP: 10/10 | Pwr: ${m.pwr||'-'}</div>
+            </div>
+            <div style="background:#ed4245; color:white; font-size:0.7em; padding:2px 5px; border-radius:3px">QUÊN</div>
+        </div>
+    `).join('');
+
+    // 3. Hiện Modal
+    document.getElementById('learn-move-modal').style.display = 'flex';
+}
+
+// --- NGƯỜI CHƠI CHỌN QUÊN CHIÊU CŨ ---
+function forgetAndLearn(slotIdx) {
+    let p = pendingLearning.pokemon;
+    let oldMove = p.moves[slotIdx];
+    let newMove = pendingLearning.newMoveData;
+
+    // Thay thế
+    p.moves[slotIdx] = newMove;
+
+    alert(`1, 2, 3... Poof! 💨\n${p.name} đã quên [${oldMove.name}] và học được [${newMove.name}]!`);
+    logBattle(`${p.name} học <b>${newMove.name}</b> (thay ${oldMove.name}).`);
+    
+    saveGame();
+    closeRelearner();
+}
+
+// --- NGƯỜI CHƠI BỎ QUA ---
+function giveUpMove() {
+    let p = pendingLearning.pokemon;
+    let m = pendingLearning.newMoveData;
+    
+    if(confirm(`${p.name} sẽ không học ${m.name}. Bạn chắc chứ?`)) {
+        logBattle(`${p.name} đã từ bỏ việc học ${m.name}.`);
+        closeRelearner();
+    }
+}
+
+function closeRelearner() {
+    document.getElementById('learn-move-modal').style.display = 'none';
+    if(learnResolve) {
+        learnResolve(); // Báo hiệu đã xong để code chạy tiếp (nếu có chiêu thứ 2)
+        learnResolve = null;
+    }
+}
+    // --- HÀM LẤY CHI TIẾT CHIÊU TỪ API ---
+async function fetchMoveDetails(moveNameOrId) {
+    try {
+        // 1. Gọi API lấy thông tin chiêu
+        const res = await fetch(`https://pokeapi.co/api/v2/move/${moveNameOrId}`);
+        const data = await res.json();
+
+        // 2. Lấy mô tả tiếng Anh
+        const descEntry = data.effect_entries.find(e => e.language.name === 'en');
+        const desc = descEntry ? descEntry.short_effect : "No description.";
+
+        // 3. Chuẩn hóa về format game của bạn
+        return {
+            name: data.name.split('-').map(w => w.charAt(0).toUpperCase()+w.slice(1)).join(' '), // Format tên đẹp
+            id: data.name, // ID gốc để lưu
+            type: data.type.name,
+            pwr: data.power || 0, // Nếu null (chiêu status) thì cho bằng 0
+            acc: data.accuracy || 100,
+            cat: data.damage_class.name === 'special' ? 'spe' : (data.damage_class.name === 'physical' ? 'phy' : 'status'),
+            desc: desc,
+            priority: data.priority || 0
+        };
+    } catch (e) {
+        console.error("Lỗi lấy move:", e);
+        return null;
+    }
+}
 </script>
 </body>
 </html>
+
 
