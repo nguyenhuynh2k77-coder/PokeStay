@@ -19,7 +19,7 @@
     <link rel="canonical" href="https://nguyenhuynh2k77-coder.github.io/PokeStay/pokemon/" />
 
     </head>
-    <title>PokeStay v2.4.2: Shadow & Light</title>
+    <title>PokeStay v2.5.0: REAWAKENED POWER</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png">
     
     <style>
@@ -1090,8 +1090,8 @@ header {
     <div id="login-screen">
         <div class="box-style">
             <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto">
-            <h2 style="color: white; margin: 10px 0;">POKESTAY v2.4.1</h2>
-            <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;"> Shadow & Light</div>
+            <h2 style="color: white; margin: 10px 0;">POKESTAY v2.5.0</h2>
+            <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;"> REAWAKENED POWER</div>
             <div style="width:100%">
                 <input type="text" id="username-input" class="login-input" placeholder="Tên đăng nhập..." onkeypress="handleEnter(event)">
                 <input type="password" id="password-input" class="login-input" placeholder="Mật khẩu..." onkeypress="handleEnter(event)">
@@ -5428,11 +5428,7 @@ function showUpdateLog() {
 }
 
 // Gọi hàm này 1 lần khi người chơi mới vào game (Check version)
-const CURRENT_VERSION = '2.4.2';
-if(localStorage.getItem('gameVersion') !== CURRENT_VERSION) {
-    setTimeout(showUpdateLog, 2000); // Hiện sau 2s khi vào game
-    localStorage.setItem('gameVersion', CURRENT_VERSION);
-}
+
     // --- HỆ THỐNG GIFTCODE ---
 
 // 1. Cấu hình danh sách Code và Quà
@@ -7040,6 +7036,7 @@ async function fetchMoveDetails(moveNameOrId) {
 </script>
 </body>
 </html>
+
 
 
 
