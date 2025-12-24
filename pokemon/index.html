@@ -5391,25 +5391,26 @@ const UPDATE_LOG_CONTENT = `
 
 // Dán đè đoạn này vào chỗ showUpdateLog cũ
 // --- HÀM HIỂN THỊ LOG (Đã đổi màu nút thành Đỏ) ---
+// Dán đè đoạn này vào chỗ showUpdateLog cũ
 function showUpdateLog() {
-    const lastReadVersion = localStorage.getItem('last_read_version');
-    
-    // Nếu bạn muốn test lại bảng này, hãy bỏ dòng if bên dưới đi
-    if (lastReadVersion !== GAME_VERSION) {
-        let modal = document.createElement('div');
-        modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; display:flex; justify-content:center; align-items:center;";
+    // Xóa dòng kiểm tra localStorage để nó LUÔN LUÔN hiện (Test xong nhớ thêm lại if)
+    // const lastReadVersion = localStorage.getItem('last_read_version');
+    // if (lastReadVersion !== GAME_VERSION) { 
         
-        modal.innerHTML = `
-            <div class="box-style" style="width:90%; max-width:500px; background:#222; border-color:#f1c40f; max-height:80vh; overflow-y:auto; padding:20px;">
-                ${UPDATE_LOG_CONTENT}
-                
-                <button class="btn-auth" style="margin-top:20px; width:100%; background: #ed4245;" onclick="this.parentElement.parentElement.remove(); localStorage.setItem('last_read_version', '${GAME_VERSION}')">
-                    ĐÃ HIỂU, VÀO GAME!
-                </button>
-            </div>
-        `;
-        document.body.appendChild(modal);
-    }
+    let modal = document.createElement('div');
+    modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; display:flex; justify-content:center; align-items:center;";
+    
+    modal.innerHTML = `
+        <div class="box-style" style="width:90%; max-width:500px; background:#222; border-color:#f1c40f; max-height:80vh; overflow-y:auto; padding:20px;">
+            ${UPDATE_LOG_CONTENT}
+            <button class="btn-auth" style="margin-top:20px; background: #ed4245; width:100% " onclick="this.parentElement.parentElement.remove();">
+                ĐÓNG LẠI 
+            </button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    // }
 }
 
 // Gọi hàm này 1 lần khi người chơi mới vào game (Check version)
@@ -7014,6 +7015,7 @@ async function fetchMoveDetails(moveNameOrId) {
 </script>
 </body>
 </html>
+
 
 
 
