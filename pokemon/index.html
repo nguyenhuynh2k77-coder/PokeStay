@@ -1099,7 +1099,7 @@ header {
                 <button class="btn-auth btn-register" onclick="register()">ĐĂNG KÝ</button>
                 <div style="font-size:0.8em; color:#777; margin-top:20px; max-width:600px">
                     Chào mừng đến với <b>PokeStay</b> - Webgame Pokemon nhập vai trực tuyến. 
-                    Trải nghiệm phiên bản mới nhất <b>v2.4.2 Shadow & Light</b> với tính năng Chợ Đen và Tháp Vô Tận.
+                    Trải nghiệm phiên bản mới nhất <b>v2.5.0 REAWAKENED POWER</b> với tính năng Chợ Đen và Tháp Vô Tận.
                 </div>
             </div>
         </div>
@@ -5383,31 +5383,33 @@ const UPDATE_LOG_CONTENT = `
         <li><b>🤖 Auto-Fill:</b> Tự động cập nhật chiêu chuẩn cho Pokemon cũ.</li>
         <li><b>🔥 Battle Fix:</b> Sửa lỗi Recover hồi máu cho địch và các lỗi Status.</li>
         <li><b>🎁 Quà:</b> Tăng vàng khởi đầu lên 5,000.</li>
+         <li><b>🎁 Code:</b> UPDATE250</li>
     </ul>
     <div style="text-align:center; margin-top:10px; color:#777;">~ Dev Team ~</div>
 </div>
 `;
 
 // Dán đè đoạn này vào chỗ showUpdateLog cũ
+// --- HÀM HIỂN THỊ LOG (Đã đổi màu nút thành Đỏ) ---
 function showUpdateLog() {
-    // Xóa dòng kiểm tra localStorage để nó LUÔN LUÔN hiện (Test xong nhớ thêm lại if)
-    // const lastReadVersion = localStorage.getItem('last_read_version');
-    // if (lastReadVersion !== GAME_VERSION) { 
+    const lastReadVersion = localStorage.getItem('last_read_version');
+    
+    // Nếu bạn muốn test lại bảng này, hãy bỏ dòng if bên dưới đi
+    if (lastReadVersion !== GAME_VERSION) {
+        let modal = document.createElement('div');
+        modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; display:flex; justify-content:center; align-items:center;";
         
-    let modal = document.createElement('div');
-    modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; display:flex; justify-content:center; align-items:center;";
-    
-    modal.innerHTML = `
-        <div class="box-style" style="width:90%; max-width:500px; background:#222; border-color:#f1c40f; max-height:80vh; overflow-y:auto; padding:20px;">
-            ${UPDATE_LOG_CONTENT}
-            <button class="btn-auth" style="margin-top:20px; width:100%" onclick="this.parentElement.parentElement.remove();">
-                ĐÓNG LẠI (Test Mode)
-            </button>
-        </div>
-    `;
-    document.body.appendChild(modal);
-    
-    // }
+        modal.innerHTML = `
+            <div class="box-style" style="width:90%; max-width:500px; background:#222; border-color:#f1c40f; max-height:80vh; overflow-y:auto; padding:20px;">
+                ${UPDATE_LOG_CONTENT}
+                
+                <button class="btn-auth" style="margin-top:20px; width:100%; background: #ed4245;" onclick="this.parentElement.parentElement.remove(); localStorage.setItem('last_read_version', '${GAME_VERSION}')">
+                    ĐÃ HIỂU, VÀO GAME!
+                </button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
 }
 
 // Gọi hàm này 1 lần khi người chơi mới vào game (Check version)
@@ -5417,10 +5419,10 @@ function showUpdateLog() {
 
 // 1. Cấu hình danh sách Code và Quà
 const GIFT_CODES = {
-    "UPDATE241": { 
+    "UPDATE250": { 
         coins: 10000, 
-        items: { 'master-ball': 1, 'rare-candy': 5 },
-        msg: "Mừng bản cập nhật 2.4.1! Tặng bạn 1 Master Ball & 5 Kẹo."
+        items: { 'ultra-ball': 20, 'rare-candy': 5 },
+        msg: "Mừng bản cập nhật 2.5.0! Tặng bạn 20 Ultra Ball & 5 Kẹo."
     },
     "POKESTAY": {
         coins: 5000,
@@ -7012,6 +7014,7 @@ async function fetchMoveDetails(moveNameOrId) {
 </script>
 </body>
 </html>
+
 
 
 
