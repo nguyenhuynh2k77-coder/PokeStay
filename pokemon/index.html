@@ -2789,15 +2789,6 @@ function submitBuy() {
     
     // Hiệu ứng & Thông báo
     if(typeof playSFX === 'function') playSFX('levelup'); 
-
-    if(item.uniqueKey) {
-        log(`<div style="color:#f1c40f; border:1px dashed #f1c40f; padding:10px; background:rgba(241, 196, 15, 0.1)">
-            🗺️ <b>ĐÃ MUA ${item.name.toUpperCase()}!</b><br>
-            <i>"${item.desc}"</i>
-        </div>`);
-    } else {
-        alert(`Đã mua ${qty}x ${item.name} thành công!`);
-    }
 }
     function incrementEggSteps() { let hatched = false; myBag.forEach(p => { if(p.isEgg && p.steps < p.maxSteps) { p.steps++; if(p.steps >= p.maxSteps) hatched = true; } }); if(hatched) log(`<span style="color:#f1c40f">🥚 Có trứng đã sẵn sàng nở! Vào túi kiểm tra ngay.</span>`); saveGame(); }
     
@@ -2827,12 +2818,9 @@ function submitBuy() {
 
     async function hunt() { controls.innerHTML=`<div style="color:#faa61a">Đang tìm...</div>`; streakBonus=0; activeBuffs.berry=false; updateStats(); await spawnPokemon(); }
     
-    // --- HỆ THỐNG SPAWN POKEMON (HARDCORE MODE) ---
-let originalEnemyImgSrc = ""; 
+    let originalEnemyImgSrc = ""; 
 
-// --- HÀM SPAWN POKEMON (UPDATE: HIỂN THỊ ICON ĐỘC LẬP) ---
-async function spawnPokemon() {
-    // 1. Reset UI
+    async function spawnPokemon() {
     const controlsDiv = document.getElementById('controls');
     if(controlsDiv) controlsDiv.innerHTML = `<div style="color:#faa61a; padding:10px">Đang tìm kiếm... <span class="loading-spinner">🌀</span></div>`;
     
@@ -2868,20 +2856,15 @@ async function spawnPokemon() {
             }
         }
 
-        // 3. LOGIC BIẾN THỂ
         let hasCharm = (inventory['shiny-charm'] || 0) > 0;
         let rand = Math.random();
         let isShiny = false, isShadow = false, isRainbow = false;
-
-        // Logic cũ: Shadow/Rainbow loại trừ nhau. 
-        // Admin Tool có thể force cả 3 là true, nên ta cứ xử lý hiển thị cho trường hợp đó.
         if (rand < 1/20000) isRainbow = true; 
         else if (rand < 1/5000) isShadow = true; 
         
         let shinyRate = hasCharm ? (3/4096) : (1/4096);
         if (Math.random() < shinyRate) isShiny = true;
 
-        // 4. FETCH API
         const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); 
         const data = await res.json();
 
@@ -2938,7 +2921,7 @@ async function spawnPokemon() {
         recalcStats(p); 
         assignMoves(p);
 
-        // 5. HIỂN THỊ (RENDER) - LOGIC MỚI TẠI ĐÂY
+        // 5. HIỂN THỊ (RENDER)
         currentWild = p;
         playCry(p.id);
 
@@ -2948,8 +2931,8 @@ async function spawnPokemon() {
 
         // B. Xây dựng chuỗi Icons (Icons string)
         let variantIcons = "";
-        let visualClass = ""; // Class CSS để đổi màu ảnh
-        let borderSideColor = r.color; // Mặc định viền theo độ hiếm
+        let visualClass = "";
+        let borderSideColor = r.color; 
 
         // Logic cộng dồn icon: Có cái nào hiện cái đó
         if (isShiny) {
@@ -2957,12 +2940,12 @@ async function spawnPokemon() {
         }
         if (isShadow) {
             variantIcons += `<span title="Shadow">👿</span> `;
-            visualClass = "variant-shadow"; // Ưu tiên hiệu ứng Shadow
+            visualClass = "variant-shadow"; 
             borderSideColor = "#9b59b6";
         }
         if (isRainbow) {
             variantIcons += `<span title="Rainbow">🌈</span> `;
-            visualClass = "variant-rainbow"; // Rainbow đè hiệu ứng Shadow nếu có
+            visualClass = "variant-rainbow"; 
             borderSideColor = "gold";
         }
         const oldSprite = document.getElementById('active-wild-sprite');
@@ -2991,10 +2974,10 @@ async function spawnPokemon() {
     } catch (e) {
         console.error("Lỗi spawn:", e);
         setTimeout(() => spawnPokemon(), 1000);
+        }
     }
-}
     // --- HÀM SPAWN CƯỠNG CHẾ (DÙNG CHO ADMIN) ---
-async function forceSpawnPokemon(id, forceShiny, forceShadow, forceRainbow) {
+    async function forceSpawnPokemon(id, forceShiny, forceShadow, forceRainbow) {
     // 1. Reset UI
     const controlsDiv = document.getElementById('controls');
     if(controlsDiv) controlsDiv.innerHTML = `<div style="color:red">ADMIN SPAWN...</div>`;
@@ -3065,21 +3048,21 @@ async function forceSpawnPokemon(id, forceShiny, forceShadow, forceRainbow) {
     } catch (e) {
         console.error(e);
         alert("Lỗi ID Pokemon không tồn tại!");
+        }
     }
-}
-// Hàm phụ lấy tên Zone (tránh lỗi nếu chưa khai báo)
-function getCurrentZoneName() {
-    if(typeof ZONES !== 'undefined' && typeof currentZone !== 'undefined') {
-        let z = ZONES.find(x => x.id === currentZone);
-        return z ? z.name : 'Vùng hoang dã';
+
+    function getCurrentZoneName() {
+        if(typeof ZONES !== 'undefined' && typeof currentZone !== 'undefined') {
+            let z = ZONES.find(x => x.id === currentZone);
+            return z ? z.name : 'Vùng hoang dã';
+        }
+        return 'Vùng hoang dã';
     }
-    return 'Vùng hoang dã';
-}
-function renderBattleControls() {
-    const balls = SHOP_DB.filter(i => i.type === 'ball');
+    function renderBattleControls() {
+        const balls = SHOP_DB.filter(i => i.type === 'ball');
     
-    // 1. Tạo HTML cho các nút Bóng
-    let ballsHtml = balls.map(b => {
+        //  Tạo HTML cho các nút Bóng
+        let ballsHtml = balls.map(b => {
         const count = inventory[b.id] || 0;
         const cls = count > 0 ? '' : 'disabled';
         
@@ -7074,6 +7057,7 @@ function onReplaceMove(slotIndex) {
 </script>
 </body>
 </html>
+
 
 
 
