@@ -5365,6 +5365,10 @@ function showDamageText(amount, isCrit) {
     }, 1000);
 }
   // --- CẤU HÌNH PHIÊN BẢN ---
+// ======================================================
+// HỆ THỐNG CẬP NHẬT & LOG (FIXED FINAL)
+// ======================================================
+
 const GAME_VERSION = "v2.5.0"; 
 const VERSION_NAME = "Reawakened Power";
 
@@ -5384,15 +5388,14 @@ const UPDATE_LOG_CONTENT = `
 </div>
 `;
 
-// --- HÀM HIỂN THỊ LOG (ĐÃ SỬA LỖI) ---
 function showUpdateLog() {
     const lastReadVersion = localStorage.getItem('last_read_version');
     
     if (lastReadVersion !== GAME_VERSION) {
+        // Tạo modal hiển thị log
         let modal = document.createElement('div');
         modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; display:flex; justify-content:center; align-items:center;";
         
-        // Sử dụng đúng biến UPDATE_LOG_CONTENT thay vì logContent
         modal.innerHTML = `
             <div class="box-style" style="width:90%; max-width:500px; background:#222; border-color:#f1c40f; max-height:80vh; overflow-y:auto; padding:20px;">
                 ${UPDATE_LOG_CONTENT}
@@ -5405,30 +5408,10 @@ function showUpdateLog() {
     }
 }
 
-    // Hiển thị Modal
-    // (Tự tạo modal đơn giản để hiện log)
-    const modalId = 'update-log-modal';
-    let modal = document.getElementById(modalId);
-    
-    if(!modal) {
-        modal = document.createElement('div');
-        modal.id = modalId;
-        modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:4000; display:flex; justify-content:center; align-items:center;";
-        document.body.appendChild(modal);
-    }
-    
-    modal.innerHTML = `
-        <div class="box-style" style="width:90%; max-width:500px; border-color:#00b894">
-            ${logContent}
-            <button class="btn-auth" style="margin-top:15px; background:#00b894" onclick="document.getElementById('${modalId}').style.display='none'">Đã hiểu!</button>
-        </div>
-    `;
-    modal.style.display = 'flex';
-}
-
 // Gọi hàm này 1 lần khi người chơi mới vào game (Check version)
+// (Lưu ý: Hàm này được gọi trong loadGame(), không cần gọi ở đây để tránh lỗi chưa load user)
 
-    // --- HỆ THỐNG GIFTCODE ---
+// --- HỆ THỐNG GIFTCODE (FINAL) ---
 
 // 1. Cấu hình danh sách Code và Quà
 const GIFT_CODES = {
@@ -5441,12 +5424,12 @@ const GIFT_CODES = {
         coins: 5000,
         items: { 'great-ball': 10 },
         msg: "Code tân thủ: 5000 Xu + 10 Great Ball."
-    },
-    // Thêm code mới vào đây (Viết HOA hết cho dễ quản lý)
+    }
 };
+
 function openGiftCodeModal() {
     document.getElementById('gift-modal').style.display = 'flex';
-    document.getElementById('input-giftcode').value = ''; // Reset ô nhập
+    document.getElementById('input-giftcode').value = ''; 
     document.getElementById('input-giftcode').focus();
 }
 
@@ -5458,61 +5441,53 @@ function submitGiftCodeUI() {
     redeemCode(val.trim());
 }
 
-// 3. Hàm xử lý nhận quà
 function redeemCode(code) {
-    code = code.toUpperCase(); // Chuyển về chữ hoa hết
+    code = code.toUpperCase(); 
 
-    // Kiểm tra code có tồn tại không
     if (!GIFT_CODES[code]) {
         return alert("❌ Mã code không tồn tại hoặc đã hết hạn!");
     }
 
-    // Kiểm tra đã dùng chưa
     if (usedCodes.includes(code)) {
         return alert("⚠️ Bạn đã sử dụng mã code này rồi!");
     }
 
-    // --- PHÁT QUÀ ---
     const gift = GIFT_CODES[code];
     let rewardText = [];
 
-    // 1. Cộng tiền
     if (gift.coins) {
         coins += gift.coins;
         rewardText.push(`+${gift.coins.toLocaleString()} Coins`);
     }
 
-    // 2. Cộng vật phẩm
     if (gift.items) {
         for (let itemId in gift.items) {
             let qty = gift.items[itemId];
             if (!inventory[itemId]) inventory[itemId] = 0;
             inventory[itemId] += qty;
             
-            // Lấy tên vật phẩm cho đẹp
-            let itemName = itemId;
             let itemData = SHOP_DB.find(i => i.id === itemId);
-            if(itemData) itemName = itemData.name;
+            let itemName = itemData ? itemData.name : itemId;
             
             rewardText.push(`+${qty} ${itemName}`);
         }
     }
 
-    // 3. Lưu lại là đã dùng
     usedCodes.push(code);
     saveGame();
     updateStats();
 
-    // 4. Thông báo & Hiệu ứng
-    playSFX('levelup'); // Dùng tiếng lên cấp nghe cho sướng
+    if(typeof playSFX === 'function') playSFX('levelup'); 
     
-    // Log ra màn hình chat cho đẹp
-    log(`<div class="embed" style="border-left-color:#e91e63">
-        <h3 style="color:#e91e63; margin:0">🎁 NHẬP CODE THÀNH CÔNG!</h3>
-        <div style="margin:5px 0">Code: <b>${code}</b></div>
-        <div style="color:#f1c40f">${rewardText.join(', ')}</div>
-        <div style="font-size:0.8em; color:#bbb">"${gift.msg}"</div>
-    </div>`);
+    // Log ra chat
+    if(typeof log === 'function') {
+        log(`<div class="embed" style="border-left-color:#e91e63">
+            <h3 style="color:#e91e63; margin:0">🎁 NHẬP CODE THÀNH CÔNG!</h3>
+            <div style="margin:5px 0">Code: <b>${code}</b></div>
+            <div style="color:#f1c40f">${rewardText.join(', ')}</div>
+            <div style="font-size:0.8em; color:#bbb">"${gift.msg}"</div>
+        </div>`);
+    }
 
     alert(`🎉 Chúc mừng! Bạn nhận được:\n${rewardText.join('\n')}`);
 }
@@ -7035,6 +7010,7 @@ async function fetchMoveDetails(moveNameOrId) {
 </script>
 </body>
 </html>
+
 
 
 
