@@ -1964,48 +1964,84 @@ function autoLearnMovesForOldPokemon(p) {
     function handleEnter(e) { if(e.key === 'Enter') login(); }
     // --- HÀM ĐĂNG KÝ (ĐÃ CÓ CHECK TRÙNG TÊN) ---
 async function register() {
-    let u = document.getElementById('username-input').value.trim();
-    const p = document.getElementById('password-input').value.trim();
-    if (!u || !p) return showToast("Thiếu thông tin!", "error");
-    if (u.length < 3) return showToast("Tên quá ngắn!", "warning");
+    let u = document.getElementById('username-input').value.trim();
+    const p = document.getElementById('password-input').value.trim();
+    
+    // Ép về chữ hoa/thường thống nhất để tránh trùng kiểu "Admin" và "admin"
+    // (Ở đây mình ép về viết hoa hết cho đồng bộ)
+    u = u; 
 
-    const snapshot = await firebase.database().ref('users/' + u).once('value');
-    if (snapshot.exists()) {
-        showToast("Tên này đã có người dùng!", "error");
-    } else {
-        await firebase.database().ref('accounts/' + u).set({ password: p, createdAt: Date.now() });
-        await firebase.database().ref('users/' + u).set({ coins: 5000, level: 1 });
-        showToast("Đăng ký thành công!", "success");
-    }
+    if (!u || !p) return alert("Thiếu thông tin!");
+    if (u.length < 3) return alert("Tên quá ngắn!");
+
+    // 1. Kiểm tra xem tên đã tồn tại chưa
+    const snapshot = await firebase.database().ref('users/' + u).once('value');
+    
+    if (snapshot.exists()) {
+        // NẾU ĐÃ CÓ -> BÁO LỖI NGAY
+        alert("❌ Tên này đã có người dùng! Vui lòng chọn tên khác.");
+    } else {
+        // NẾU CHƯA CÓ -> TẠO MỚI
+        // Tạo account với mật khẩu
+        await firebase.database().ref('accounts/' + u).set({
+            password: p,
+            createdAt: Date.now()
+        });
+        
+        // Tạo dữ liệu game khởi đầu
+        await firebase.database().ref('users/' + u).set({
+            coins: 5000,
+            level: 1,
+            // ... các chỉ số khởi đầu khác
+        });
+        
+        alert("✅ Đăng ký thành công! Hãy đăng nhập.");
+    }
 }
-
+    // Thay thế hàm login cũ bằng hàm này
+// --- CẬP NHẬT HÀM LOGIN ĐỂ CHỜ DỮ LIỆU ---
+// --- CẬP NHẬT HÀM LOGIN (SỬA LỖI KHÔNG ĐĂNG NHẬP ĐƯỢC) ---
+// --- HÀM ĐĂNG NHẬP (ĐÃ SỬA LỖI) ---
 async function login() {
-    let u = document.getElementById('username-input').value.trim();
-    const p = document.getElementById('password-input').value.trim();
-    const btn = document.querySelector('.btn-login');
-    if (!u || !p) return showToast("Vui lòng nhập đủ thông tin!", "warning");
+    // 1. Lấy dữ liệu người dùng nhập (chỉ cắt khoảng trắng thừa 2 đầu)
+    let u = document.getElementById('username-input').value.trim();
+    const p = document.getElementById('password-input').value.trim();
+    const btn = document.querySelector('.btn-login');
 
-    if(btn) btn.innerText = "Đang kiểm tra...";
-    try {
-        const snapshot = await firebase.database().ref('accounts/' + u).once('value');
-        const acc = snapshot.val();
-        if (acc) {
-            if (acc.password === p) {
-                loginSuccess(u);
-                showToast(`Chào mừng ${u} trở lại!`, "success");
-            } else {
-                showToast("Sai mật khẩu!", "error");
-                if(btn) btn.innerText = "ĐĂNG NHẬP";
-            }
-        } else {
-            showToast("Tài khoản không tồn tại!", "error");
-            if(btn) btn.innerText = "ĐĂNG NHẬP";
-        }
-    } catch (err) {
-        showToast("Lỗi kết nối server!", "error");
-        if(btn) btn.innerText = "ĐĂNG NHẬP";
-    }
+    if (!u || !p) return alert("Vui lòng nhập tên và mật khẩu!");
+
+    // ❌ ĐÃ XÓA DÒNG u = u.toUpperCase(); 
+    // Giờ đây bạn nhập "Nguyen" thì code sẽ tìm "Nguyen", nhập "admin" tìm "admin"
+
+    if(btn) btn.innerText = "Đang kiểm tra...";
+
+    try {
+        // 2. Tìm tài khoản trên Firebase
+        const snapshot = await firebase.database().ref('accounts/' + u).once('value');
+        const acc = snapshot.val();
+
+        // 3. Kiểm tra kết quả
+        if (acc) {
+            if (acc.password === p) {
+                // Đăng nhập thành công -> Gọi hàm vào game
+                loginSuccess(u);
+            } else {
+                alert("❌ Sai mật khẩu!");
+                if(btn) btn.innerText = "ĐĂNG NHẬP";
+            }
+        } else {
+            // Không tìm thấy tên chính xác -> Báo lỗi
+            alert(`❌ Tài khoản "${u}" không tồn tại!`); 
+            if(btn) btn.innerText = "ĐĂNG NHẬP";
+        }
+
+    } catch (err) {
+        console.error("Lỗi đăng nhập:", err);
+        alert("Lỗi kết nối: " + err.message);
+        if(btn) btn.innerText = "ĐĂNG NHẬP";
+    }
 }
+
 // Hàm phụ để vào game (cho gọn)
 async function loginSuccess(user) {
     currentUser = user;
@@ -2667,45 +2703,67 @@ function closeBuy() {
 
 // 5. HÀM XỬ LÝ MUA (FIX LỖI CHÍNH TẠI ĐÂY)
 function submitBuy() {
-    const id = currentBuyItem;
-    const qtyInput = document.getElementById('buy-qty');
-    if (!id || !qtyInput) return;
+    // Lấy ID từ biến đã lưu
+    const id = currentBuyItem;
+    
+    // Lấy số lượng từ bảng #buy-modal (ID là 'buy-qty')
+    const qtyInput = document.getElementById('buy-qty');
+    
+    // Kiểm tra lỗi
+    if (!id) return alert("Lỗi: Không xác định được vật phẩm!");
+    if (!qtyInput) return alert("Lỗi: Không tìm thấy ô nhập số lượng!");
 
-    const qty = parseInt(qtyInput.value);
-    if (qty <= 0 || isNaN(qty)) return showToast("Số lượng không hợp lệ!", "warning");
+    const qty = parseInt(qtyInput.value);
+    if (qty <= 0 || isNaN(qty)) return alert("Số lượng phải lớn hơn 0!");
 
-    const item = SHOP_DB.find(i => i.id === id);
-    if (!item) return;
+    const item = SHOP_DB.find(i => i.id === id);
+    if (!item) return alert("Vật phẩm không tồn tại!");
 
-    if (item.uniqueKey) {
-        if (limitedShopHistory && limitedShopHistory[id] === item.uniqueKey) {
-            closeBuy();
-            return showToast("Bạn đã mua vật phẩm này rồi!", "warning");
-        }
-        if (qty > 1) return showToast("Chỉ được mua 1 cái!", "warning");
-    }
+    // --- LOGIC GIỚI HẠN (Cho Old Map) ---
+    if (item.uniqueKey) {
+        if (limitedShopHistory && limitedShopHistory[id] === item.uniqueKey) {
+            closeBuy();
+            return alert("✋ Bạn đã mua vật phẩm này rồi! Hãy kiểm tra lại trong túi.");
+        }
+        if (qty > 1) return alert("Vật phẩm đặc biệt này chỉ được mua 1 cái!");
+    }
 
-    let cost = item.price * qty;
-    if (coins < cost) return showToast("Không đủ tiền!", "error");
+    // Tính tiền
+    let cost = item.price * qty;
+    if (coins < cost) return alert("Không đủ tiền!");
 
-    coins -= cost;
-    if (!inventory[id]) inventory[id] = 0;
-    inventory[id] += qty;
+    // Trừ tiền & Cộng đồ
+    coins -= cost;
+    if (!inventory[id]) inventory[id] = 0;
+    inventory[id] += qty;
 
-    if (item.uniqueKey) {
-        if(!limitedShopHistory) limitedShopHistory = {};
-        limitedShopHistory[id] = item.uniqueKey;
-    }
+    // Lưu lịch sử giới hạn
+    if (item.uniqueKey) {
+        if(!limitedShopHistory) limitedShopHistory = {};
+        limitedShopHistory[id] = item.uniqueKey;
+    }
 
-    saveGame();
-    updateStats();
-    
-    const coinDisplay = document.getElementById('shop-coin-display');
-    if(coinDisplay) coinDisplay.innerText = coins.toLocaleString();
+    // Lưu game
+    saveGame();
+    updateStats();
+    
+    // Cập nhật số dư ở Shop
+    const coinDisplay = document.getElementById('shop-coin-display');
+    if(coinDisplay) coinDisplay.innerText = coins.toLocaleString();
 
-    closeBuy();
-    if(typeof playSFX === 'function') playSFX('levelup'); 
-    showToast(`Đã mua ${qty}x ${item.name}!`, "success");
+    closeBuy(); // Đóng bảng
+    
+    // Hiệu ứng & Thông báo
+    if(typeof playSFX === 'function') playSFX('levelup'); 
+
+    if(item.uniqueKey) {
+        log(`<div style="color:#f1c40f; border:1px dashed #f1c40f; padding:10px; background:rgba(241, 196, 15, 0.1)">
+            🗺️ <b>ĐÃ MUA ${item.name.toUpperCase()}!</b><br>
+            <i>"${item.desc}"</i>
+        </div>`);
+    } else {
+        alert(`Đã mua ${qty}x ${item.name} thành công!`);
+    }
 }
     function incrementEggSteps() { let hatched = false; myBag.forEach(p => { if(p.isEgg && p.steps < p.maxSteps) { p.steps++; if(p.steps >= p.maxSteps) hatched = true; } }); if(hatched) log(`<span style="color:#f1c40f">🥚 Có trứng đã sẵn sàng nở! Vào túi kiểm tra ngay.</span>`); saveGame(); }
     
@@ -3038,40 +3096,50 @@ function renderBattleControls() {
 let originalEnemyImg = ""; 
 
 function catchAttempt(ballType) {
-    if ((inventory[ballType] || 0) <= 0) return showToast("Hết bóng loại này!", "error");
-    
-    inventory[ballType]--; 
-    saveGame();
-    renderBattleControls();
+    if ((inventory[ballType] || 0) <= 0) return alert("Hết bóng loại này!");
+    
+    inventory[ballType]--; 
+    saveGame();
+    renderBattleControls();
 
-    let p = currentWild;
-    let rate = p.catchRate || 255; 
+    let p = currentWild;
+    let rate = p.catchRate || 255; 
 
-    const enemyImg = document.getElementById('active-wild-sprite');
-    if (enemyImg) {
-        if(!originalEnemyImgSrc) originalEnemyImgSrc = enemyImg.src; 
-        let ballItem = SHOP_DB.find(i => i.id === ballType);
-        let ballImgSrc = URL_ITEMS + (ballItem ? ballItem.img : 'poke-ball.png');
-        enemyImg.src = ballImgSrc;
-        enemyImg.style.width = "60px"; 
-        enemyImg.style.marginTop = "20px"; 
-    }
+    // A. TÌM ẢNH ĐANG HIỂN THỊ
+    const enemyImg = document.getElementById('active-wild-sprite');
+    
+    if (enemyImg) {
+        // Lưu ảnh gốc
+        if(!originalEnemyImgSrc) originalEnemyImgSrc = enemyImg.src; 
+        
+        // Tìm ảnh quả bóng tương ứng
+        let ballItem = SHOP_DB.find(i => i.id === ballType);
+        let ballImgSrc = URL_ITEMS + (ballItem ? ballItem.img : 'poke-ball.png');
+        
+        // Đổi ảnh
+        enemyImg.src = ballImgSrc;
+        enemyImg.style.width = "60px"; 
+        enemyImg.style.marginTop = "20px"; 
+    }
 
-    let ballMult = 1;
-    if (ballType === 'great-ball') ballMult = 1.5;
-    if (ballType === 'ultra-ball') ballMult = 2.0;
-    if (ballType === 'master-ball') ballMult = 255;
+    // B. TÍNH TỶ LỆ
+    let ballMult = 1;
+    if (ballType === 'great-ball') ballMult = 1.5;
+    if (ballType === 'ultra-ball') ballMult = 2.0;
+    if (ballType === 'master-ball') ballMult = 255;
 
-    let buffMult = activeBuffs.berry ? 1.5 : 1.0;
-    let chance = (rate * ballMult * buffMult) / 255;
-    if(streakBonus) chance += (streakBonus * 0.05);
+    let buffMult = activeBuffs.berry ? 1.5 : 1.0;
+    let chance = (rate * ballMult * buffMult) / 255;
+    if(streakBonus) chance += (streakBonus * 0.05);
 
-    log(`<i>Bạn ném ${ballType.replace('-', ' ')}...</i>`);
-    let isCaught = (chance >= 1 || Math.random() < chance);
+    log(`<i>Bạn ném ${ballType.replace('-', ' ')}...</i>`);
 
-    setTimeout(() => {
-        processVisualShake(isCaught, 1);
-    }, 500);
+    let isCaught = (chance >= 1 || Math.random() < chance);
+
+    // C. GỌI HIỆU ỨNG LẮC
+    setTimeout(() => {
+        processVisualShake(isCaught, 1);
+    }, 500);
 }
 function captureSuccess() {
     if (!currentWild) return;
@@ -7000,5 +7068,3 @@ function showToast(msg, type = 'success') {
 </script>
 </body>
 </html>
-
-
