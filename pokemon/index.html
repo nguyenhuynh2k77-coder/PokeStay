@@ -1036,9 +1036,38 @@ header {
     color: black;
     text-transform: uppercase;
 }
+        /* Toast Container */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Toast Item */
+.toast-msg {
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    border-left: 4px solid #3ba55c; /* Màu xanh mặc định */
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    font-size: 0.9em;
+    animation: slideIn 0.3s ease-out forwards;
+    min-width: 200px;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
     </style>
 </head>
 <body>
+    <div id="toast-container"></div>
     <div id="move-manager-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; justify-content:center; align-items:center;">
     <div class="box-style" style="width:95%; max-width:700px; height:80vh; border-color:#9b59b6; display:flex; flex-direction:column;">
         
@@ -1656,25 +1685,47 @@ header {
     const URL_ITEMS = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/";
     const LEGENDARY_IDS = [144,145,146,150,151,243,244,245,249,250,251,377,378,379,380,381,382,383,384,385,386,480,481,482,483,484,485,486,487,488,489,490,491,492,493,494,638,639,640,641,642,643,644,645,646];
     
-    const TYPE_ADVANTAGE = { 
-        'normal': [],
-        'fire': ['grass', 'ice', 'bug', 'steel'], 
-        'water': ['fire', 'ground', 'rock'], 
-        'grass': ['water', 'ground', 'rock'], 
-        'electric': ['water', 'flying'], 
-        'ice': ['grass', 'ground', 'flying', 'dragon'], 
-        'fighting': ['normal', 'ice', 'rock', 'dark', 'steel'], 
-        'poison': ['grass', 'fairy'], 
-        'ground': ['fire', 'electric', 'poison', 'rock', 'steel'], 
-        'flying': ['grass', 'fighting', 'bug'], 
-        'psychic': ['fighting', 'poison'], 
-        'bug': ['grass', 'psychic', 'dark'], 
-        'rock': ['fire', 'ice', 'flying', 'bug'], 
-        'ghost': ['psychic', 'ghost'], 
-        'dragon': ['dragon'], 
-        'steel': ['ice', 'rock', 'fairy'], 
-        'fairy': ['fighting', 'dragon', 'dark'] 
-    };
+    // BẢNG KHẮC HỆ CHUẨN (Gen 6+)
+const TYPE_CHART = {
+    normal:   { rock: 0.5, ghost: 0, steel: 0.5 },
+    fire:     { fire: 0.5, water: 0.5, grass: 2, ice: 2, bug: 2, rock: 0.5, dragon: 0.5, steel: 2 },
+    water:    { fire: 2, water: 0.5, grass: 0.5, ground: 2, rock: 2, dragon: 0.5 },
+    electric: { water: 2, electric: 0.5, grass: 0.5, ground: 0, flying: 2, dragon: 0.5 },
+    grass:    { fire: 0.5, water: 2, grass: 0.5, poison: 0.5, ground: 2, flying: 0.5, bug: 0.5, rock: 2, dragon: 0.5, steel: 0.5 },
+    ice:      { fire: 0.5, water: 0.5, grass: 2, ice: 0.5, ground: 2, flying: 2, dragon: 2, steel: 0.5 },
+    fighting: { normal: 2, ice: 2, rock: 2, dark: 2, steel: 2, poison: 0.5, flying: 0.5, psychic: 0.5, bug: 0.5, ghost: 0, fairy: 0.5 },
+    poison:   { grass: 2, poison: 0.5, ground: 0.5, rock: 0.5, ghost: 0.5, steel: 0, fairy: 2 },
+    ground:   { fire: 2, electric: 2, grass: 0.5, poison: 2, flying: 0, bug: 0.5, rock: 2, steel: 2 },
+    flying:   { electric: 0.5, grass: 2, fighting: 2, bug: 2, rock: 0.5, steel: 0.5 },
+    psychic:  { fighting: 2, poison: 2, psychic: 0.5, dark: 0, steel: 0.5 },
+    bug:      { fire: 0.5, grass: 2, fighting: 0.5, poison: 0.5, flying: 0.5, psychic: 2, ghost: 0.5, dark: 2, steel: 0.5, fairy: 0.5 },
+    rock:     { fire: 2, ice: 2, fighting: 0.5, ground: 0.5, flying: 2, bug: 2, steel: 0.5 },
+    ghost:    { normal: 0, psychic: 2, ghost: 2, dark: 0.5 },
+    dragon:   { dragon: 2, steel: 0.5, fairy: 0 },
+    dark:     { fighting: 0.5, psychic: 2, ghost: 2, dark: 0.5, fairy: 0.5 },
+    steel:    { fire: 0.5, water: 0.5, electric: 0.5, ice: 2, rock: 2, steel: 0.5, fairy: 2 },
+    fairy:    { fire: 0.5, fighting: 2, poison: 0.5, dragon: 2, dark: 2, steel: 0.5 }
+};
+
+// Hàm tính khắc hệ mới (Thay thế hàm getEffectiveness cũ)
+function getEffectiveness(moveType, targetTypes) {
+    let multiplier = 1;
+    
+    // Duyệt qua từng hệ của đối thủ (Ví dụ Charizard là Fire/Flying)
+    targetTypes.forEach(defType => {
+        if (TYPE_CHART[moveType]) {
+            // Kiểm tra xem moveType đánh vào defType có hệ số đặc biệt không
+            let mod = TYPE_CHART[moveType][defType];
+            
+            // Nếu có trong bảng thì nhân, nếu không thì mặc định là 1
+            if (mod !== undefined) {
+                multiplier *= mod;
+            }
+        }
+    });
+    
+    return multiplier;
+}
     const SPECIAL_TYPES = ['fire', 'water', 'grass', 'electric', 'psychic', 'ice', 'dragon', 'fairy'];
     
     const TYPE_COLORS = {
@@ -2093,35 +2144,44 @@ async function loginSuccess(user) {
 }
     function logout() { saveGame(); location.reload(); }
 
-   function saveGame() {
-    if (!currentUser) return;
-    const dataToSave = {
-        coins: coins,
-        myBag: myBag,
-        usedCodes: usedCodes,
-        towerData: towerData,
-        limitedShopHistory: limitedShopHistory,
-        pokedex: Array.from(pokedex),
-        inventory: inventory,
-        lastDailyDate: lastDailyDate,
-        trainerData: trainerData,
-        currentZone: currentZone,
-        dailyQuizStatus: dailyQuizStatus,
-        userStats: userStats,
-        stamina: stamina,
-        lastStaminaTime: lastStaminaTime,
-        bossTeamIndices: bossTeamIndices,
-        completedAchievements: completedAchievements,
-        daycare: daycare,
-        gymProgress: gymProgress,
-        maxBagSize: maxBagSize,
-        pickaxe: pickaxe,
-        dailyRepairs: dailyRepairs,
-        dailyQuests: dailyQuests
-    };
-    firebase.database().ref('users/' + currentUser).set(dataToSave)
-        .then(() => console.log("Saved to Firebase"))
-        .catch((e) => console.error("Save error:", e));
+   // --- BIẾN TOÀN CỤC ---
+let saveTimeout = null;
+let isSaving = false;
+
+// --- HÀM LƯU GAME TỐI ƯU (DEBOUNCE) ---
+function saveGame() {
+    // 1. Cập nhật giao diện ngay lập tức (để người chơi thấy tiền nhảy số)
+    updateStats(); 
+
+    // 2. Nếu đang có lệnh lưu chờ chạy, hủy nó đi để đặt lệnh mới
+    if (saveTimeout) clearTimeout(saveTimeout);
+
+    // 3. Hiển thị trạng thái "Đang lưu..." (Optional)
+    const saveStatus = document.getElementById('save-status'); // Bạn có thể tạo 1 thẻ span nhỏ ở góc
+    if(saveStatus) saveStatus.innerText = "⏳ Saving...";
+
+    // 4. Đặt hẹn giờ: Sau 2 giây mới thực sự gửi lên Firebase
+    saveTimeout = setTimeout(() => {
+        if (!currentUser) return;
+        
+        const dataToSave = {
+            coins: coins,
+            myBag: myBag,
+            // ... (giữ nguyên các trường dữ liệu cũ của bạn) ...
+            inventory: inventory,
+            trainerData: trainerData,
+            // ... copy hết các dòng trong hàm cũ vào đây ...
+            dailyQuests: dailyQuests
+        };
+
+        firebase.database().ref('users/' + currentUser).update(dataToSave)
+            .then(() => {
+                console.log("🔥 Auto-Saved to Cloud!");
+                if(saveStatus) saveStatus.innerText = "✅ Saved";
+            })
+            .catch((e) => console.error("Save error:", e));
+            
+    }, 2000); // 2000ms = 2 giây
 }
     
    async function loadGame() {
@@ -4054,15 +4114,6 @@ function applyStatus(target, status) {
         await sleep(500);
         if(result.isCrit) logBattle(`<span style="color:#e74c3c;font-weight:bold">Địch đánh chí mạng!</span>`);
         applyDamage(p, result.damage, 'player');
-    }
-
-    function getEffectiveness(atkType, defTypes) {
-        let mod = 1;
-        defTypes.forEach(dT => {
-            if(TYPE_ADVANTAGE[atkType] && TYPE_ADVANTAGE[atkType].includes(dT)) mod *= 2;
-            if(TYPE_ADVANTAGE[dT] && TYPE_ADVANTAGE[dT].includes(atkType)) mod *= 0.5;
-        });
-        return mod;
     }
 
     function applyDamage(target, dmg, who) {
@@ -7054,9 +7105,30 @@ function onReplaceMove(slotIndex) {
         loadRelearnableMoves(p); // Load lại để trừ chiêu vừa học ra
     }
 }
+    // Thay thế alert bằng hàm này
+function showToast(msg, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = 'toast-msg';
+    toast.innerHTML = msg;
+
+    // Đổi màu viền tùy loại
+    if (type === 'error') toast.style.borderLeftColor = '#ed4245'; // Đỏ
+    if (type === 'info') toast.style.borderLeftColor = '#3498db';  // Xanh dương
+    if (type === 'warning') toast.style.borderLeftColor = '#f1c40f'; // Vàng
+
+    container.appendChild(toast);
+
+    // Tự động xóa sau 3 giây
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
 </script>
 </body>
 </html>
+
 
 
 
