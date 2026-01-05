@@ -5446,7 +5446,7 @@ function showUpdateLog() {
     const lastReadVersion = localStorage.getItem('last_read_version');
     
     // Kiểm tra phiên bản, nếu mới thì hiện bảng
-    if (lastReadVersion !== GAME_VERSION) {
+    //if (lastReadVersion !== GAME_VERSION) {
         let modal = document.createElement('div');
         // CSS cho màn nền tối
         modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; display:flex; justify-content:center; align-items:center; backdrop-filter:blur(5px);";
@@ -5462,7 +5462,7 @@ function showUpdateLog() {
             </div>
         `;
         document.body.appendChild(modal);
-    }
+   // }
 }
 const GIFT_CODES = {
     "TET2026": { 
@@ -7293,6 +7293,7 @@ window.openInventory = function() {
 </script>
 </body>
 </html>
+
 
 
 
