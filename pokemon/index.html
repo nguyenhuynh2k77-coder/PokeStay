@@ -7136,9 +7136,37 @@ window.useItem = function(id) {
     // (Các item khác như Incense, Lucky Egg bạn có thể thêm lại vào đây nếu cần)
 }
 }
+    // Hàm tạo hiệu ứng chạy ngay lập tức
+function forceTetEffect() {
+    console.log("🌸 Đang kích hoạt mưa hoa...");
+    setInterval(() => {
+        const flower = document.createElement('div');
+        flower.classList.add('falling-flower'); // Gọi class CSS ở trên
+        
+        // Random Hoa Mai (🌼) hoặc Hoa Đào (🌸)
+        const isMai = Math.random() < 0.5;
+        flower.innerText = isMai ? '🌼' : '🌸'; 
+        
+        flower.style.left = Math.random() * 100 + 'vw';
+        flower.style.animationDuration = Math.random() * 5 + 3 + 's'; 
+        flower.style.opacity = Math.random() * 0.7 + 0.3;
+        flower.style.fontSize = Math.random() * 15 + 10 + 'px';
+        
+        if(document.body) {
+            document.body.appendChild(flower);
+        }
+        
+        setTimeout(() => { flower.remove(); }, 8000);
+    }, 400); 
+}
+forceTetEffect();
+    window.addEventListener('load', function() {
+    startTetEffect(); 
+});
 </script>
 </body>
 </html>
+
 
 
 
