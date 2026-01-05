@@ -1181,7 +1181,17 @@ header {
     <div id="shop-modal"><div class="box-style" style="width:95%; max-width:500px"><h2 style="color: #faa61a; margin: 0 0 10px 0;">🛒 Poke Mart</h2><div style="text-align:right; width:100%; margin-bottom:5px">Số dư: <span id="shop-coin-display" style="color:#f1c40f; font-weight:bold">0</span>💰</div><div id="shop-list" class="shop-grid" style="overflow-y:auto; max-height:60vh"></div><button class="btn-close" onclick="closeShop()">Đóng</button></div></div>
     
     <div id="buy-modal"><div class="box-style"><div class="inner-box"><h3 style="color: #faa61a; margin: 5px 0;" id="buy-name">Item</h3><img id="buy-img" src="" width="60" style="margin: 10px auto; display:block"><div style="margin-bottom: 10px; color:#bbb">Giá: <span id="buy-price" style="color:white; font-weight:bold">0</span>💰</div><div style="display:flex; justify-content:center; align-items:center; gap:10px; margin: 10px 0;"><input type="number" id="buy-qty" class="login-input" style="width:60px; margin:0" value="1" min="1" oninput="calcTotal()"></div><div style="font-size: 1.1em; margin-bottom: 15px;">Tổng: <span id="buy-total" style="color:#3ba55c; font-weight:bold">0</span>💰</div><div style="display:flex; gap:10px; width:100%"><button class="btn-auth" style="background:#7f8c8d; margin:0" onclick="closeBuy()">HỦY</button><button class="btn-auth btn-login" style="margin:0" onclick="submitBuy()">MUA</button></div></div></div></div>
-    
+    <div id="inventory-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:2000; justify-content:center; align-items:center;">
+    <div class="box-style" style="width:95%; max-width:500px; height:80vh; border-color:#e67e22; background:#2d3436;">
+        <h2 style="color:#e67e22; margin:0 0 10px 0;">🎒 BALO VẬT PHẨM</h2>
+        <div style="font-size:0.9em; color:#bbb; margin-bottom:15px;">Quản lý vật phẩm & Dùng đồ sự kiện</div>
+        
+        <div id="inventory-list" class="shop-grid" style="overflow-y:auto; flex:1; align-content:start;">
+            </div>
+
+        <button class="btn-close" onclick="document.getElementById('inventory-modal').style.display='none'">Đóng Balo</button>
+    </div>
+</div>
     <div id="job-modal">
     <div class="box-style">
         <h2 style="color: #7289da; margin: 0 0 15px 0;">💼 Job Center</h2>
@@ -2316,6 +2326,7 @@ function showMenu() {
         ],
         'user': [
             { name: "PC BOX", icon: "💻", color: "#3498db", action: "openBag()" },
+            { name: "BALO", icon: "🎒", color: "#e67e22", action: "openInventory()" },
             { name: "TEAM", icon: "👥", color: "#00b894", action: "openTowerTeamSelect()" }, // Dùng chung giao diện chọn team
             { name: "POKEDEX", icon: "📖", color: "#0984e3", action: "showPokedex()" },
             { name: "CÚP", icon: "🏆", color: "#ffeaa7", action: "openAchieve()" }
@@ -7166,9 +7177,85 @@ function forceTetEffect() {
     }, 400); 
 }
 forceTetEffect();
+    // ======================================================
+// 🎒 HỆ THỐNG TÚI ĐỒ (INVENTORY SYSTEM)
+// ======================================================
+
+function openInventory() {
+    if(currentWild) return alert("Đang đánh nhau không được lục túi!");
+    document.getElementById('inventory-modal').style.display = 'flex';
+    renderInventory();
+}
+
+function renderInventory() {
+    const list = document.getElementById('inventory-list');
+    list.innerHTML = '';
+    
+    let hasItem = false;
+
+    // Duyệt qua tất cả item trong kho
+    // inventory là object dạng { 'li-xi': 10, 'poke-ball': 5 }
+    for (let itemId in inventory) {
+        let qty = inventory[itemId];
+        
+        // Chỉ hiện item có số lượng > 0
+        if (qty > 0) {
+            hasItem = true;
+            
+            // Tìm thông tin item trong SHOP_DB để lấy tên và ảnh
+            let itemData = SHOP_DB.find(i => i.id === itemId);
+            
+            // Nếu không tìm thấy trong Shop (item cũ hoặc lỗi), tạo data tạm
+            if (!itemData) {
+                itemData = { name: itemId.toUpperCase(), img: 'question-mark.png', desc: 'Vật phẩm không xác định' };
+            }
+
+            // Kiểm tra xem item này có dùng được không (Use)
+            // Các item dùng được: Hộp quà, Lì xì, Đá tiến hóa, Thuốc, Kẹo...
+            // Các item không dùng được (chỉ để bán/ném): Ball (chỉ dùng khi bắt), Nugget, Stardust
+            let canUse = ['li-xi', 'xmas-box', 'rare-candy', 'potion', 'super-potion', 'evo-stone', 'lucky-egg', 'razz-berry', 'mystery-egg'].includes(itemId);
+            
+            let actionBtn = '';
+            if (canUse) {
+                actionBtn = `<button class="btn-small" style="width:100%; margin-top:5px; background:#2ecc71; font-weight:bold" onclick="useItemFromBag('${itemId}')">DÙNG</button>`;
+            } else {
+                actionBtn = `<div style="font-size:0.7em; color:#777; margin-top:5px; text-align:center">(Không dùng được ở đây)</div>`;
+            }
+
+            // Render thẻ Item
+            list.innerHTML += `
+            <div class="shop-card" style="border-color:#555; position:relative">
+                <div style="position:absolute; top:5px; right:5px; background:#e67e22; color:white; font-size:0.8em; padding:2px 6px; border-radius:4px; font-weight:bold">x${qty}</div>
+                
+                <img src="${URL_ITEMS}${itemData.img}" width="50" style="margin-top:10px">
+                
+                <div style="font-weight:bold; color:white; margin:5px 0">${itemData.name}</div>
+                <div style="font-size:0.7em; color:#bbb; height:30px; overflow:hidden">${itemData.desc || ''}</div>
+                
+                ${actionBtn}
+            </div>`;
+        }
+    }
+
+    if (!hasItem) {
+        list.innerHTML = `<div style="grid-column:span 2; text-align:center; color:#777; padding:20px">Balo trống rỗng...<br>Hãy vào Shop mua đồ hoặc nhập Code!</div>`;
+    }
+}
+
+// Hàm trung gian để dùng item và vẽ lại túi ngay lập tức
+function useItemFromBag(id) {
+    // Gọi hàm useItem cũ (đã có logic mở lì xì)
+    if (typeof useItem === 'function') {
+        useItem(id);
+    }
+    
+    // Vẽ lại túi để cập nhật số lượng
+    renderInventory();
+}
 </script>
 </body>
 </html>
+
 
 
 
