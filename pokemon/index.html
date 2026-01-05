@@ -19,7 +19,7 @@
     <link rel="canonical" href="https://nguyenhuynh2k77-coder.github.io/PokeStay/pokemon/" />
 
     </head>
-    <title>PokeStay v2.5.0: REAWAKENED POWER</title>
+    <title>PokeStay v2.6.0: Happy New Year</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png">
     
     <style>
@@ -1108,8 +1108,8 @@ header {
     <div id="login-screen">
         <div class="box-style">
             <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" width="80" style="margin:0 auto">
-            <h2 style="color: white; margin: 10px 0;">POKESTAY v2.5.0</h2>
-            <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;"> REAWAKENED POWER</div>
+            <h2 style="color: white; margin: 10px 0;">POKESTAY v2.6.0</h2>
+            <div style="color: #b9bbbe; font-size: 0.9em; margin-bottom: 15px;"> Happy New Year</div>
             <div style="width:100%">
                 <input type="text" id="username-input" class="login-input" placeholder="Tên đăng nhập..." onkeypress="handleEnter(event)">
                 <input type="password" id="password-input" class="login-input" placeholder="Mật khẩu..." onkeypress="handleEnter(event)">
@@ -1117,7 +1117,7 @@ header {
                 <button class="btn-auth btn-register" onclick="register()">ĐĂNG KÝ</button>
                 <div style="font-size:0.8em; color:#777; margin-top:20px; max-width:600px">
                     Chào mừng đến với <b>PokeStay</b> - Webgame Pokemon nhập vai trực tuyến. 
-                    Trải nghiệm phiên bản mới nhất <b>v2.5.0 REAWAKENED POWER</b> với tính năng Chợ Đen và Tháp Vô Tận.
+                    Trải nghiệm phiên bản mới nhất <b>v2.6.0 Happy New Year</b> với tính năng Chợ Đen và Tháp Vô Tận.
                 </div>
             </div>
         </div>
@@ -5383,61 +5383,77 @@ function showDamageText(amount, isCrit) {
         dmgEl.remove();
     }, 1000);
 }
-  // --- CẤU HÌNH PHIÊN BẢN ---
 // ======================================================
-// HỆ THỐNG CẬP NHẬT & LOG (FIXED FINAL)
+// 📜 NHẬT KÝ CẬP NHẬT: GIAO DIỆN TẾT (FINAL)
 // ======================================================
 
-const GAME_VERSION = "v2.5.0"; 
-const VERSION_NAME = "Reawakened Power";
+const GAME_VERSION = "v2.6.0"; 
+const VERSION_NAME = "XUÂN PHÁT TÀI";
 
+// Nội dung HTML được trang trí đẹp mắt
 const UPDATE_LOG_CONTENT = `
-<div style="text-align:left; font-size:0.9em; color:#ddd; line-height:1.5;">
-    <p style="color:#f1c40f; font-weight:bold; font-size:1.1em; text-align:center; margin-bottom:10px">
-        🚀 CHÀO MỪNG ĐẾN VỚI V2.5.0 🚀<br>
-        "SỨC MẠNH THỨC TỈNH"
-    </p>
-    <ul style="padding-left:20px;">
-        <li><b>✨ Move Relearner:</b> Đã thêm tính năng Hồi Tưởng Chiêu Thức trong Túi Đồ.</li>
-        <li><b>🤖 Auto-Fill:</b> Tự động cập nhật chiêu chuẩn cho Pokemon cũ.</li>
-        <li><b>🔥 Battle Fix:</b> Sửa lỗi Recover hồi máu cho địch và các lỗi Status.</li>
-        <li><b>🎁 Quà:</b> Tăng vàng khởi đầu lên 5,000.</li>
-         <li><b>🎁 Code:</b> UPDATE250</li>
-    </ul>
-    <div style="text-align:center; margin-top:10px; color:#777;">~ Dev Team ~</div>
+<div style="text-align:center; font-family: sans-serif;">
+    <h2 style="color:#f1c40f; text-transform:uppercase; margin:0; text-shadow: 0 0 10px #d35400;">
+        🧨 CHÚC MỪNG NĂM MỚI 🧨
+    </h2>
+    <div style="color:#ddd; font-size:0.9em; margin-bottom:15px;">Phiên bản <b>${GAME_VERSION}</b>: ${VERSION_NAME}</div>
+
+    <div style="background:rgba(0,0,0,0.3); border:1px solid #c0392b; border-radius:8px; padding:15px; text-align:left;">
+        
+        <div style="margin-bottom:8px; display:flex; align-items:center; gap:10px;">
+            <span style="font-size:1.5em;">🌸</span>
+            <div>
+                <b style="color:#e74c3c;">Bản Đồ Mới: Chợ Hoa Tết</b><br>
+                <span style="font-size:0.85em; color:#bbb;">Săn tìm Pokemon hệ Tiên & Rồng hiếm.</span>
+            </div>
+        </div>
+
+        <div style="margin-bottom:8px; display:flex; align-items:center; gap:10px;">
+            <span style="font-size:1.5em;">🧧</span>
+            <div>
+                <b style="color:#e74c3c;">Vật Phẩm: Bao Lì Xì</b><br>
+                <span style="font-size:0.85em; color:#bbb;">Mở bao nhận tiền lớn hoặc Master Ball!</span>
+            </div>
+        </div>
+
+        <div style="margin-bottom:8px; display:flex; align-items:center; gap:10px;">
+            <span style="font-size:1.5em;">✨</span>
+            <div>
+                <b style="color:#e74c3c;">Hiệu Ứng Mùa Xuân</b><br>
+                <span style="font-size:0.85em; color:#bbb;">Mưa hoa mai/đào rơi khắp màn hình.</span>
+            </div>
+        </div>
+
+        <div style="margin-top:15px; border-top:1px dashed #555; padding-top:10px; font-size:0.9em; text-align:center; color:#f1c40f;">
+            <i>"Nhập code <b>TET2026</b> để nhận quà ngay!"</i>
+        </div>
+    </div>
 </div>
 `;
 
-// Dán đè đoạn này vào chỗ showUpdateLog cũ
-// --- HÀM HIỂN THỊ LOG (Đã đổi màu nút thành Đỏ) ---
-// Dán đè đoạn này vào chỗ showUpdateLog cũ
+// Hàm hiển thị Modal
 function showUpdateLog() {
-    // Xóa dòng kiểm tra localStorage để nó LUÔN LUÔN hiện (Test xong nhớ thêm lại if)
-    // const lastReadVersion = localStorage.getItem('last_read_version');
-    // if (lastReadVersion !== GAME_VERSION) { 
+    const lastReadVersion = localStorage.getItem('last_read_version');
+    
+    // Kiểm tra phiên bản, nếu mới thì hiện bảng
+    if (lastReadVersion !== GAME_VERSION) {
+        let modal = document.createElement('div');
+        // CSS cho màn nền tối
+        modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; display:flex; justify-content:center; align-items:center; backdrop-filter:blur(5px);";
         
-    let modal = document.createElement('div');
-    modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; display:flex; justify-content:center; align-items:center;";
-    
-    modal.innerHTML = `
-        <div class="box-style" style="width:90%; max-width:500px; background:#222; border-color:#f1c40f; max-height:80vh; overflow-y:auto; padding:20px;">
-            ${UPDATE_LOG_CONTENT}
-            <button class="btn-auth" style="margin-top:20px; background: #ed4245; width:100% " onclick="this.parentElement.parentElement.remove();">
-                ĐÓNG LẠI 
-            </button>
-        </div>
-    `;
-    document.body.appendChild(modal);
-    
-    // }
+        modal.innerHTML = `
+            <div class="box-style" style="width:95%; max-width:450px; background:#2c3e50; border:2px solid #e74c3c; box-shadow: 0 0 20px rgba(231, 76, 60, 0.6); max-height:80vh; overflow-y:auto; padding:20px; border-radius:12px;">
+                ${UPDATE_LOG_CONTENT}
+                
+                <button class="btn-auth" style="margin-top:20px; width:100%; background: #c0392b; border:1px solid #e74c3c; color:white; font-weight:bold; font-size:1.1em; padding:12px;" 
+                    onclick="this.parentElement.parentElement.remove(); localStorage.setItem('last_read_version', '${GAME_VERSION}')">
+                    🧧 NHẬN LỘC NGAY
+                </button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
 }
-
-// Gọi hàm này 1 lần khi người chơi mới vào game (Check version)
-// (Lưu ý: Hàm này được gọi trong loadGame(), không cần gọi ở đây để tránh lỗi chưa load user)
-
-// --- HỆ THỐNG GIFTCODE (FINAL) ---
-
-// 1. Cấu hình danh sách Code và Quà
 const GIFT_CODES = {
     "TET2026": { 
         coins: 68686, // Lộc Phát Lộc Phát
@@ -7124,6 +7140,7 @@ window.useItem = function(id) {
 </script>
 </body>
 </html>
+
 
 
 
