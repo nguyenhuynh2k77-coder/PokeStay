@@ -7050,30 +7050,36 @@ async function fetchMoveDetails(moveNameOrId) {
 // 🧧 HỆ THỐNG SỰ KIỆN TẾT NGUYÊN ĐÁN (MODULE)
 // ======================================================
 
-// 1. Hàm tạo mưa hoa Mai/Đào
 function startTetEffect() {
+    // Tạo vòng lặp sinh ra hoa liên tục
     setInterval(() => {
         const flower = document.createElement('div');
-        flower.classList.add('falling-flower');
+        flower.classList.add('falling-flower'); // Đảm bảo bạn đã có CSS .falling-flower
         
-        // Random Hoa Mai (Vàng) hoặc Hoa Đào (Hồng)
+        // Random Hoa Mai (🌼) hoặc Hoa Đào (🌸)
         const isMai = Math.random() < 0.5;
         flower.innerText = isMai ? '🌼' : '🌸'; 
         
+        // Vị trí ngẫu nhiên
         flower.style.left = Math.random() * 100 + 'vw';
-        flower.style.animationDuration = Math.random() * 5 + 3 + 's'; // Rơi chậm 3-8s
+        flower.style.animationDuration = Math.random() * 5 + 3 + 's'; // Tốc độ rơi 3s - 8s
         flower.style.opacity = Math.random() * 0.7 + 0.3;
         flower.style.fontSize = Math.random() * 15 + 10 + 'px';
         
-        document.body.appendChild(flower);
+        // Thêm vào trang web
+        if(document.body) {
+            document.body.appendChild(flower);
+        }
         
-        // Xóa sau khi rơi xong
+        // Xóa sau 8 giây để nhẹ máy
         setTimeout(() => { flower.remove(); }, 8000);
-    }, 400); // Mật độ vừa phải
+    }, 400); // Mật độ: 400ms rơi 1 bông
 }
 
-// Chạy hiệu ứng
-startTetEffect();
+// Kích hoạt ngay khi tải xong trang
+window.addEventListener('load', function() {
+    startTetEffect(); 
+});
 
 // 2. Logic Mở Bao Lì Xì
 // Ghi đè hàm useItem để xử lý item sự kiện
@@ -7136,36 +7142,11 @@ window.useItem = function(id) {
     // (Các item khác như Incense, Lucky Egg bạn có thể thêm lại vào đây nếu cần)
 }
 }
-    // Hàm tạo hiệu ứng chạy ngay lập tức
-function forceTetEffect() {
-    console.log("🌸 Đang kích hoạt mưa hoa...");
-    setInterval(() => {
-        const flower = document.createElement('div');
-        flower.classList.add('falling-flower'); // Gọi class CSS ở trên
-        
-        // Random Hoa Mai (🌼) hoặc Hoa Đào (🌸)
-        const isMai = Math.random() < 0.5;
-        flower.innerText = isMai ? '🌼' : '🌸'; 
-        
-        flower.style.left = Math.random() * 100 + 'vw';
-        flower.style.animationDuration = Math.random() * 5 + 3 + 's'; 
-        flower.style.opacity = Math.random() * 0.7 + 0.3;
-        flower.style.fontSize = Math.random() * 15 + 10 + 'px';
-        
-        if(document.body) {
-            document.body.appendChild(flower);
-        }
-        
-        setTimeout(() => { flower.remove(); }, 8000);
-    }, 400); 
-}
-forceTetEffect();
-    window.addEventListener('load', function() {
-    startTetEffect(); 
-});
+
 </script>
 </body>
 </html>
+
 
 
 
