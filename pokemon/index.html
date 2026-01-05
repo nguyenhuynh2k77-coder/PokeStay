@@ -7252,117 +7252,48 @@ function useItemFromBag(id) {
     // Vẽ lại túi để cập nhật số lượng
     renderInventory();
 }
-    // ======================================================
-// 🔧 SỬA LỖI & DỌN DẸP (FIX v2.6.1)
-// ======================================================
-
-// 1. Hàm dọn dẹp vật phẩm rác (Chạy 1 lần mỗi khi vào game)
+ 
 function cleanUpInventory() {
-    let trashItems = ['bag-upgrade', 'old-map', 'xmas-box']; // Danh sách đồ muốn xóa
+    // Danh sách các ID vật phẩm cần xóa bỏ
+    let trashItems = ['bag-upgrade', 'old-map', 'xmas-box']; 
     let changed = false;
 
     trashItems.forEach(id => {
+        // Nếu tìm thấy trong túi -> Xóa ngay lập tức
         if (inventory[id] !== undefined) {
-            delete inventory[id]; // Xóa khỏi túi
+            delete inventory[id]; 
             changed = true;
         }
     });
 
-    // Nếu có thay đổi thì lưu lại ngay
+    // Nếu có xóa gì đó thì lưu game lại luôn
     if (changed) {
         saveGame();
-        console.log("Đã dọn dẹp vật phẩm cũ!");
+        updateStats();
+        console.log("Đã dọn dẹp sạch sẽ vật phẩm cũ!");
     }
 }
 
-// Gọi hàm dọn dẹp ngay
-cleanUpInventory();
-
-
-// 2. Cài đặt lại hàm Dùng Item (Chuẩn xác 100%)
-window.useItem = function(id) {
+// 2. Cập nhật lại hàm Mở Túi (Kích hoạt dọn dẹp mỗi lần mở)
+window.openInventory = function() {
+    if(typeof currentWild !== 'undefined' && currentWild) {
+        return alert("Đang đánh nhau không được lục túi!");
+    }
     
-    // Kiểm tra số lượng
-    if (!inventory[id] || inventory[id] <= 0) {
-        alert("Bạn không còn vật phẩm này!");
-        renderInventory(); // Vẽ lại túi để xóa item hết số lượng
-        return;
+    // 👇 GỌI HÀM DỌN DẸP TẠI ĐÂY 👇
+    cleanUpInventory(); 
+    
+    document.getElementById('inventory-modal').style.display = 'flex';
+    
+    // Nếu chưa có hàm renderInventory thì báo lỗi, nếu có thì chạy
+    if (typeof renderInventory === 'function') {
+        renderInventory();
     }
-
-    // --- LOGIC BAO LÌ XÌ (TẾT) ---
-    if (id === 'li-xi') {
-        inventory[id]--; // Trừ số lượng
-        
-        let rand = Math.random();
-        let rewardText = "";
-        
-        if (rand < 0.02) { // 2% Jackpot
-            coins += 100000;
-            rewardText = "🎆 ĐỘC ĐẮC! 100,000 Coins!";
-            playSFX('levelup');
-        } else if (rand < 0.15) { // 13% Master Ball
-            inventory['master-ball'] = (inventory['master-ball'] || 0) + 1;
-            rewardText = "🎁 Lộc Item: 1x Master Ball!";
-        } else if (rand < 0.4) { // 25% Rare Candy
-            inventory['rare-candy'] = (inventory['rare-candy'] || 0) + 3;
-            rewardText = "🍬 Lộc Kẹo: 3x Rare Candy.";
-        } else if (rand < 0.7) { // 30% Tiền
-            let luckyMoney = [6800, 8800, 9999][Math.floor(Math.random()*3)];
-            coins += luckyMoney;
-            rewardText = `💰 Lì xì: ${luckyMoney.toLocaleString()} Coins!`;
-        } else { // 30% Bóng thường
-            inventory['great-ball'] = (inventory['great-ball'] || 0) + 5;
-            rewardText = "🧧 Quà nhỏ: 5x Great Ball.";
-        }
-
-        // Lưu & Cập nhật
-        saveGame();
-        updateStats();
-        
-        // Thông báo
-        alert(rewardText);
-    }
-
-    // --- LOGIC CÁC ITEM KHÁC ---
-    else if (id === 'rare-candy') {
-        // Kẹo này thường dùng trong màn hình Pokemon (nút Candy), 
-        // nhưng nếu bấm ở đây thì thông báo hướng dẫn
-        alert("Hãy vào Menu -> PC Box -> Chọn Pokemon -> Bấm nút [Candy] để dùng!");
-    }
-    else if (id === 'potion' || id === 'super-potion') {
-        alert("Thuốc chỉ dùng được trong trận đấu (Battle)!");
-    }
-    else if (id === 'evo-stone') {
-        alert("Đá tiến hóa dùng trong PC Box -> Chọn Pokemon -> Bấm [Evo]!");
-    }
-    else if (id === 'razz-berry') {
-        inventory[id]--;
-        activeBuffs.berry = true;
-        saveGame();
-        updateStats();
-        alert("Đã ăn Berry! Tăng tỉ lệ bắt cho lần gặp Pokemon tiếp theo.");
-    }
-    else if (id === 'lucky-egg') {
-        inventory[id]--;
-        activeBuffs.egg = true;
-        saveGame();
-        updateStats();
-        alert("Đã dùng Lucky Egg! Nhân đôi vàng nhận được.");
-    }
-    else if (id === 'mystery-egg') {
-        alert("Trứng này cần ấp trong PC Box! Không thể dùng ở đây.");
-    }
-    else {
-        // Các item không dùng được (Master Ball, Nugget...)
-        alert("Vật phẩm này không thể sử dụng trực tiếp!");
-    }
-
-    // Cuối cùng: Cập nhật lại giao diện Balo
-    renderInventory();
 };
 </script>
 </body>
 </html>
+
 
 
 
