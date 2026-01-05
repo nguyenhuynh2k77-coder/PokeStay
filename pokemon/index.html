@@ -23,7 +23,25 @@
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png">
     
     <style>
-        
+
+        /* --- HIỆU ỨNG TẾT (HOA MAI & ĐÀO RƠI) --- */
+.falling-flower {
+    position: fixed;
+    top: -10px;
+    z-index: 9999;
+    font-size: 1.2em;
+    user-select: none;
+    pointer-events: none;
+    animation: fall linear forwards, sway 3s ease-in-out infinite;
+}
+
+@keyframes fall {
+    to { transform: translateY(105vh); }
+}
+@keyframes sway {
+    0%, 100% { margin-left: 0; }
+    50% { margin-left: 20px; } /* Lắc lư nhẹ */
+}
         /* Style cho các thẻ độ hiếm */
 .rarity-tag {
     padding: 2px 6px;
@@ -1797,6 +1815,7 @@ function getLearnsetForType(type) {
         { id: 'amulet-coin', name: 'Amulet Coin', price: 5000, type: 'item', desc: '+5% Coin/Catch (Max 10)', img: 'amulet-coin.png' },
         { id: 'nugget', name: 'Nugget', price: 5000, type: 'sell', desc: 'Bán lấy tiền', img: 'nugget.png' },
         { id: 'shiny-charm', name: 'Shiny Charm', price: 1000000, type: 'item', desc: 'Tăng 3x tỉ lệ gặp Shiny (Vĩnh viễn)', img: 'shiny-charm.png' },
+        { id: 'li-xi', name: 'Bao Lì Xì', price: 2000, type: 'item', desc: 'Mở để nhận lộc đầu năm!', img: 'baolixi.png' },
         { id: 'stardust', name: 'Stardust', price: 1000, type: 'sell', desc: 'Bán lấy tiền', img: 'stardust.png' }
         
     ];
@@ -5420,10 +5439,10 @@ function showUpdateLog() {
 
 // 1. Cấu hình danh sách Code và Quà
 const GIFT_CODES = {
-    "UPDATE250": { 
-        coins: 10000, 
-        items: { 'ultra-ball': 20, 'rare-candy': 5 },
-        msg: "Mừng bản cập nhật 2.5.0! Tặng bạn 20 Ultra Ball & 5 Kẹo."
+    "TET2026": { 
+        coins: 68686, // Lộc Phát Lộc Phát
+        items: { 'li-xi': 10, 'rare-candy': 5 },
+        msg: "Chúc Mừng Năm Mới! Nhận ngay lộc vàng đầu xuân."
     },
     "POKESTAY": {
         coins: 5000,
@@ -6285,7 +6304,8 @@ const ZONES = [
     { id: 'sea', name: 'Biển Cả', icon: '🌊', desc: 'Hệ Nước, Băng', types: ['water', 'ice'], req: 15 },
     { id: 'power', name: 'Nhà Máy Điện', icon: '⚡', desc: 'Hệ Điện, Thép', types: ['electric', 'steel'], req: 20 },
     { id: 'haunted', name: 'Nghĩa Địa', icon: '👻', desc: 'Hệ Ma, Bóng Tối, Siêu Linh', types: ['ghost', 'dark', 'psychic'], req: 25 },
-    { id: 'dragon', name: 'Hang Rồng', icon: '🐉', desc: 'Hệ Rồng, Tiên (Hiếm)', types: ['dragon', 'fairy'], req: 40 }
+    { id: 'dragon', name: 'Hang Rồng', icon: '🐉', desc: 'Hệ Rồng, Tiên (Hiếm)', types: ['dragon', 'fairy'], req: 40 },
+    { id: 'tet-market', name: 'Chợ Hoa Tết', icon: '🌸', desc: 'Không khí xuân rộn ràng! (Fairy, Grass, Dragon)', types: ['fairy', 'grass', 'dragon'], req: 1 }
 ];
 
 // Các danh hiệu theo cấp độ
@@ -7011,10 +7031,100 @@ async function fetchMoveDetails(moveNameOrId) {
         console.error("Lỗi lấy move:", e);
         return null;
     }
+    // ======================================================
+// 🧧 HỆ THỐNG SỰ KIỆN TẾT NGUYÊN ĐÁN (MODULE)
+// ======================================================
+
+// 1. Hàm tạo mưa hoa Mai/Đào
+function startTetEffect() {
+    setInterval(() => {
+        const flower = document.createElement('div');
+        flower.classList.add('falling-flower');
+        
+        // Random Hoa Mai (Vàng) hoặc Hoa Đào (Hồng)
+        const isMai = Math.random() < 0.5;
+        flower.innerText = isMai ? '🌼' : '🌸'; 
+        
+        flower.style.left = Math.random() * 100 + 'vw';
+        flower.style.animationDuration = Math.random() * 5 + 3 + 's'; // Rơi chậm 3-8s
+        flower.style.opacity = Math.random() * 0.7 + 0.3;
+        flower.style.fontSize = Math.random() * 15 + 10 + 'px';
+        
+        document.body.appendChild(flower);
+        
+        // Xóa sau khi rơi xong
+        setTimeout(() => { flower.remove(); }, 8000);
+    }, 400); // Mật độ vừa phải
+}
+
+// Chạy hiệu ứng
+startTetEffect();
+
+// 2. Logic Mở Bao Lì Xì
+// Ghi đè hàm useItem để xử lý item sự kiện
+const originalUseItem = window.useItem; 
+
+window.useItem = function(id) {
+    // --- LOGIC LÌ XÌ ---
+    if (id === 'li-xi') {
+        if ((inventory[id] || 0) <= 0) return alert("Hết bao lì xì rồi!");
+        
+        inventory[id]--;
+        saveGame();
+        updateStats();
+
+        let rand = Math.random();
+        let rewardText = "";
+        
+        // Tỷ lệ may mắn ngày Tết
+        if (rand < 0.02) { // 2% Trúng Độc đắc
+            coins += 100000;
+            rewardText = "🎆 CHÚC MỪNG NĂM MỚI! Lì xì cực lớn: 100,000 Coins!";
+            playSFX('levelup');
+        } else if (rand < 0.15) { // 13% Trúng Master Ball
+            inventory['master-ball'] = (inventory['master-ball'] || 0) + 1;
+            rewardText = "🎁 Lộc Item: 1x Master Ball!";
+        } else if (rand < 0.4) { // 25% Trúng Kẹo
+            inventory['rare-candy'] = (inventory['rare-candy'] || 0) + 3;
+            rewardText = "🍬 Lộc Kẹo: 3x Rare Candy.";
+        } else if (rand < 0.7) { // 30% Trúng Tiền
+            let luckyMoney = [6800, 8800, 9999][Math.floor(Math.random()*3)];
+            coins += luckyMoney;
+            rewardText = `💰 Lì xì may mắn: ${luckyMoney.toLocaleString()} Coins!`;
+        } else { // 30% Chúc may mắn lần sau (được bóng thường)
+            inventory['great-ball'] = (inventory['great-ball'] || 0) + 5;
+            rewardText = "🧧 Quà nhỏ: 5x Great Ball.";
+        }
+
+        // Hiển thị đẹp
+        if(typeof log === 'function') {
+            log(`<div class="embed" style="border-left-color:#e74c3c; background:rgba(231, 76, 60, 0.1)">
+                <h3 style="color:#f1c40f; margin:0">🧧 MỞ BAO LÌ XÌ</h3>
+                <div style="font-size:1.1em; font-weight:bold; color:white; margin-top:5px">${rewardText}</div>
+            </div>`);
+        } else {
+            alert(rewardText);
+        }
+        return;
+    }
+
+    // --- CÁC ITEM CŨ (Copy lại logic cũ để không bị mất tính năng) ---
+    if ((inventory[id] || 0) <= 0) return;
+    
+    if (id === 'razz-berry') {
+        inventory[id]--;
+        activeBuffs.berry = true;
+        saveGame();
+        updateStats();
+        if(typeof log === 'function') log(`<span style="color:#e91e63">🍒 Đã dùng Berry! Tăng tỉ lệ bắt.</span>`);
+    }
+    // (Các item khác như Incense, Lucky Egg bạn có thể thêm lại vào đây nếu cần)
+}
 }
 </script>
 </body>
 </html>
+
 
 
 
